@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="${project.name}">
+	<!-- <bannerLeft> <name>Maven</name> <src>http://maven.apache.org/images/apache-maven-project.png</src> 
+		<href>http://maven.apache.org/</href> </bannerLeft> <bannerRight> <src>http://maven.apache.org/images/maven-small.gif</src> 
+		</bannerRight> -->
+	<body>
+		<!-- <links> <item name="Some Link" href="http://some.url/" /> </links> -->
+
+		<menu name="${project.name}" inherit="top">
+			<item name="Motivation" href="index.html" />
+			<item name="How to Use" href="howto.html" />
+			<item name="How it Works" href="docu.html" />
+		</menu>
+
+		<menu ref="reports" inherit="bottom" />
+		<menu ref="maven_artifacts" />
+	</body>
+</project>
