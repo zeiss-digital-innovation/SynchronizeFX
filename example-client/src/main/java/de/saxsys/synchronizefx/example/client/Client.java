@@ -18,7 +18,7 @@ import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
 import de.saxsys.synchronizefx.example.server.domain.Board;
 import de.saxsys.synchronizefx.example.server.domain.Note;
 import de.saxsys.synchronizefx.example.server.domain.Position2D;
-import de.saxsys.synchronizefx.kryo.KryoNetClient;
+import de.saxsys.synchronizefx.netty.KryoNetClient;
 
 /**
  * Provides a client that shows notes on a board
@@ -132,7 +132,7 @@ public final class Client extends Application implements UserCallbackClient {
 
     @Override
     public void onError(final SynchronizeFXException error) {
-        System.err.println(error);
+        error.printStackTrace();
         System.exit(-1);
     }
 }

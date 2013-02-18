@@ -90,7 +90,8 @@ class DomainModelServerInternal implements NetworkToTopologyCallbackServer, Topo
      */
     @Override
     public void onConnect(final Object newClient) {
-        networkLayer.send(meta.commandsForDomainModel(), newClient);
+        List<Object> commandsForDomainModel = meta.commandsForDomainModel();
+        networkLayer.send(commandsForDomainModel, newClient);
     }
 
     /**
@@ -105,7 +106,7 @@ class DomainModelServerInternal implements NetworkToTopologyCallbackServer, Topo
      */
     @Override
     public void onClientConnectionError(final SynchronizeFXException e) {
-        LOG.warn("Client connected unexpectetly", e);
+        LOG.warn("Client disconnected unexpectetly", e);
     }
 
     @Override

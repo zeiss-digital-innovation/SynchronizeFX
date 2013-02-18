@@ -7,12 +7,6 @@ import java.util.UUID;
  * 
  */
 public class AddToSet {
-    @Override
-    public String toString() {
-        return "AddToSet [setId=" + setId + ", observableObjectId=" + observableObjectId + ", simpleObjectValue="
-                + simpleObjectValue + "]";
-    }
-
     private UUID setId;
     private UUID observableObjectId;
     private Object simpleObjectValue;
@@ -62,5 +56,11 @@ public class AddToSet {
      */
     public void setSimpleObjectValue(final Object value) {
         this.simpleObjectValue = value;
+    }
+    
+    @Override
+    public String toString() {
+        return "AddToSet [setId=" + setId + ", observableObjectId=" + observableObjectId + ", simpleObjectValue="
+                + simpleObjectValue + "]";
     }
 }

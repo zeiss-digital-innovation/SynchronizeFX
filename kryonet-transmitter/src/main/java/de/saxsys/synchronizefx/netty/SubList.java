@@ -1,4 +1,4 @@
-package de.saxsys.synchronizefx.kryo;
+package de.saxsys.synchronizefx.netty;
 
 import java.util.AbstractList;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * 
  * @param <T> the concrete type of the elements in this list.
  */
-class SubList<T> extends AbstractList<T> {
+public class SubList<T> extends AbstractList<T> {
     private final int start;
     private final int size;
     private final List<T> real;

@@ -1,4 +1,4 @@
-package de.saxsys.synchronizefx.kryo.serializers;
+package de.saxsys.synchronizefx.kryo;
 
 import java.util.UUID;
 
@@ -15,7 +15,7 @@ import com.esotericsoftware.kryo.io.Output;
  */
 public final class UUIDSerializer extends Serializer<UUID> {
     @Override
-    public UUID create(final Kryo kryo, final Input input, final Class<UUID> type) {
+    public UUID read(final Kryo kryo, final Input input, final Class<UUID> type) {
         return new UUID(input.readLong(), input.readLong());
     }
 

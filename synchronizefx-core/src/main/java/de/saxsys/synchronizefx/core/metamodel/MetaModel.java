@@ -55,6 +55,7 @@ public class MetaModel {
     public MetaModel(final TopologyLayerCallback topology, final Object root) {
         this(topology);
         this.root = root;
+        // to register all objects in the id map
         commandsForDomainModel();
         // assign UUIDs for all observable objects that don't have them until now.
         listeners.registerListenersOnEverything(root);

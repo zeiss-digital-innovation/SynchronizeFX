@@ -1,93 +1,65 @@
 package de.saxsys.synchronizefx.kryo;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryonet.EndPoint;
-
-import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
-import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
-import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
-import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
-import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
-import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
-import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
-import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
-import de.saxsys.synchronizefx.kryo.serializers.ListSerializer;
-import de.saxsys.synchronizefx.kryo.serializers.MapSerializer;
-import de.saxsys.synchronizefx.kryo.serializers.UUIDSerializer;
 
 /**
- * Registers the classes that may be serialized in the internal {@link Kryo} of an {@link EndPoint}.
+ * Initializes {@link Kryo} instances with all the Serializers needed for SynchronizeFX and the one the user
+ * registerend.
  * 
- * @author raik.bieniek
+ * A new {@link Kryo} instance is created for each {@link Thread} to ensure thread-safety.
  */
-class KryoInitializer {
-    private final List<ClassSerializer> classesToSerialize = new LinkedList<>();
+final class KryoInitializer extends ThreadLocal<Kryo> {
 
-    /**
-     * @see KryoNetMessageHandler#registerSerializableClass(Class, Serializer)
-     * @param <T> see {@link KryoNetMessageHandler#registerSerializableClass(Class, Serializer)}
-     * @param clazz see {@link KryoNetMessageHandler#registerSerializableClass(Class, Serializer)}
-     * @param serializer see {@link KryoNetMessageHandler#registerSerializableClass(Class, Serializer)}
-     */
-    <T> void registerSerializableClass(final Class<T> clazz, final Serializer<T> serializer) {
-        classesToSerialize.add(new ClassSerializer(clazz, serializer));
+    private List<CustomSerializers<?>> customSerializers = new LinkedList<>();
+
+    @Override
+    protected Kryo initialValue() {
+        Kryo kryo = new Kryo();
+        kryo.register(UUID.class, new UUIDSerializer());
+
+        synchronized (customSerializers) {
+            for (CustomSerializers<?> serializer : customSerializers) {
+                if (serializer.serializer != null) {
+                    kryo.register(serializer.clazz, serializer.serializer);
+                } else {
+                    kryo.register(serializer.clazz);
+                }
+            }
+        }
+        return kryo;
     }
 
     /**
-     * Set's up the internal {@link Kryo} serializer for a KryoNet {@link EndPoint}.
+     * See {@link KryoSerializer#registerSerializableClass(Class, Serializer)}.
      * 
-     * That means that all classes are registered that may get send over the network.
-     * 
-     * @param connection The connection that's internal {@link Kryo} should be set up.
+     * @param clazz see {@link KryoSerializer#registerSerializableClass(Class, Serializer)}.
+     * @param serializer see {@link KryoSerializer#registerSerializableClass(Class, Serializer)}.
+     * @param <T> see {@link KryoSerializer#registerSerializableClass(Class, Serializer)}.
+     * @see KryoSerializer#registerSerializableClass(Class, Serializer)
      */
-    void setupKryo(final EndPoint connection) {
-        final Kryo kryo = connection.getKryo();
-        kryo.register(HashMap.class, new MapSerializer());
-
-        Serializer<List<?>> listSerialzer = new ListSerializer();
-        kryo.register(LinkedList.class, listSerialzer);
-        kryo.register(SubList.class, listSerialzer);
-
-        kryo.register(UUID.class, new UUIDSerializer());
-
-        kryo.register(SetPropertyValue.class);
-        kryo.register(AddToList.class);
-        kryo.register(RemoveFromList.class);
-        kryo.register(CreateObservableObject.class);
-        kryo.register(RemoveFromMap.class);
-        kryo.register(PutToMap.class);
-        kryo.register(SetRootElement.class);
-        kryo.register(ClearReferences.class);
-
-        for (final ClassSerializer serializer : classesToSerialize) {
-            if (serializer.serializer != null) {
-                kryo.register(serializer.clazz, serializer.serializer);
-            } else {
-                kryo.register(serializer.clazz);
-            }
+    <T> void registerSerializableClass(final Class<T> clazz, final Serializer<T> serializer) {
+        synchronized (customSerializers) {
+            customSerializers.add(new CustomSerializers<>(clazz, serializer));
         }
     }
 
     /**
-     * A simple data structure to save a class and it's serializer together.
+     * A simple storage class for {@link Class} that should be serialized and the {@link Serializer} to use.
      * 
-     * @author raik.bieniek
-     * 
+     * @param <T> The class to serialize.
      */
-    private static class ClassSerializer {
-        private final Class<?> clazz;
-        private final Serializer<?> serializer;
+    private class CustomSerializers<T> {
+        private final Class<T> clazz;
+        private final Serializer<T> serializer;
 
-        public ClassSerializer(final Class<?> clazz, final Serializer<?> serializer) {
+        public CustomSerializers(final Class<T> clazz, final Serializer<T> serializer) {
             this.clazz = clazz;
             this.serializer = serializer;
         }
     }
-
 }

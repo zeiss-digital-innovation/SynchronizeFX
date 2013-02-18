@@ -9,7 +9,7 @@ import de.saxsys.synchronizefx.core.clientserver.DomainModelServer;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
 import de.saxsys.synchronizefx.example.server.domain.Board;
 import de.saxsys.synchronizefx.example.server.domain.Note;
-import de.saxsys.synchronizefx.kryo.KryoNetServer;
+import de.saxsys.synchronizefx.netty.KryoNetServer;
 
 /**
  * A server that serves notes and their relative positions on a board to multiple clients.
@@ -92,7 +92,7 @@ public final class Server implements UserCallbackServer {
 
     @Override
     public void onError(final SynchronizeFXException error) {
-        System.err.println(error);
+        error.printStackTrace();
         System.exit(-1);
     }
 
