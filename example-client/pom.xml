@@ -18,7 +18,11 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>kryonet-transmitter</artifactId>
+			<artifactId>netty-transmitter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>kryo-serializer</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.oracle</groupId>

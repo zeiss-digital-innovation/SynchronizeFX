@@ -14,7 +14,7 @@ import com.esotericsoftware.kryo.io.Output;
  * Serializes SynchronizeFX messages by using the Kryo library.
  * 
  */
-public class KryoSerializer {
+public class KryoSerializer implements de.saxsys.synchronizefx.core.clientserver.Serializer {
     private KryoInitializer kryo = new KryoInitializer();
 
     /**
@@ -41,6 +41,7 @@ public class KryoSerializer {
      * @param messages The messages to serialize.
      * @return The messages in serialized form.
      */
+    @Override
     public byte[] serialize(final List<Object> messages) {
         final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         final Output output = new Output(outStream);
@@ -50,7 +51,7 @@ public class KryoSerializer {
         try {
             outStream.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            // This will not happen, as there is no real I/O. Everything happens in RAM.
             e.printStackTrace();
         }
         return bytes;
@@ -65,6 +66,7 @@ public class KryoSerializer {
      *            {@link KryoSerializer#serialize(List)}.
      * @return The original messages.
      */
+    @Override
     @SuppressWarnings("unchecked")
     public List<Object> deserialize(final byte[] messages) {
         return kryo.get().readObject(new Input(messages), LinkedList.class);

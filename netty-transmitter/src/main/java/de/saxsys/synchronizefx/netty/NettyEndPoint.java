@@ -2,10 +2,7 @@ package de.saxsys.synchronizefx.netty;
 
 import java.util.List;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-
-import de.saxsys.synchronizefx.kryo.KryoSerializer;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
 
 /**
  * Contains common code for the client and server adapters that adapts the KryoNet library to the client server
@@ -13,7 +10,7 @@ import de.saxsys.synchronizefx.kryo.KryoSerializer;
  * 
  * @author raik.bieniek
  */
-public class KryoNetEndPoint {
+class NettyEndPoint {
 
     /**
      * How many commands are send at once. If this number is to high, some kryonet buffers will overflow.
@@ -23,18 +20,15 @@ public class KryoNetEndPoint {
     /**
      * The instance that can be used to initialize {@link Kryo}.
      */
-    protected KryoSerializer kryo = new KryoSerializer();
+    protected final Serializer serializer;
 
     /**
-     * Registers a class that may be send over the network.
+     * Constructs this endpoint.
      * 
-     * @param clazz The class that's maybe send.
-     * @param serializer An optional serializer for this class. If it's null than the default serialization of kryo
-     *            is used.
-     * @param <T> see clazz parameter.
+     * @param serializer The serializer that should be used to serialize SynchronizeFX messages.
      */
-    public <T> void registerSerializableClass(final Class<T> clazz, final Serializer<T> serializer) {
-        kryo.registerSerializableClass(clazz, serializer);
+    public NettyEndPoint(final Serializer serializer) {
+        this.serializer = serializer;
     }
 
     /**

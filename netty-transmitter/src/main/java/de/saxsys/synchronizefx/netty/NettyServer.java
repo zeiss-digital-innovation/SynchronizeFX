@@ -37,7 +37,7 @@ import de.saxsys.synchronizefx.core.clientserver.Serializer;
  * 
  * @author raik.bieniek
  */
-public class KryoNetServer extends KryoNetEndPoint implements MessageTransferServer {
+public class NettyServer extends NettyEndPoint implements MessageTransferServer {
     private NetworkToTopologyCallbackServer callbackServer;
     private int port;
 
@@ -51,8 +51,10 @@ public class KryoNetServer extends KryoNetEndPoint implements MessageTransferSer
      * The starting of the server is done by {@link DomainModelServer}.
      * 
      * @param port The port to which to listen for new connections.
+     * @param serializer The serializer that should be used to serialize SynchronizeFX messages.
      */
-    public KryoNetServer(final int port) {
+    public NettyServer(final int port, final Serializer serializer) {
+        super(serializer);
         this.port = port;
     }
 
@@ -87,7 +89,8 @@ public class KryoNetServer extends KryoNetEndPoint implements MessageTransferSer
                             @Override
                             public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent e)
                                 throws Exception {
-                                List<Object> messages = kryo.deserialize(((ChannelBuffer) e.getMessage()).array());
+                                List<Object> messages =
+                                        serializer.deserialize(((ChannelBuffer) e.getMessage()).array());
                                 if (messages != null) {
                                     callbackServer.recive(messages, ctx.getChannel());
                                 }
@@ -112,7 +115,7 @@ public class KryoNetServer extends KryoNetEndPoint implements MessageTransferSer
     public void sendToAll(final List<Object> messages) {
         List<Object>[] chunks = chunk(messages);
         for (List<Object> chunk : chunks) {
-            clients.write(ChannelBuffers.wrappedBuffer(kryo.serialize(chunk)));
+            clients.write(ChannelBuffers.wrappedBuffer(serialize(chunk)));
         }
     }
 
@@ -120,7 +123,7 @@ public class KryoNetServer extends KryoNetEndPoint implements MessageTransferSer
     public void sendToAllExcept(final List<Object> messages, final Object nonReciver) {
         List<Object>[] chunks = chunk(messages);
         for (List<Object> chunk : chunks) {
-            ChannelBuffer msg = ChannelBuffers.wrappedBuffer(kryo.serialize(chunk));
+            ChannelBuffer msg = ChannelBuffers.wrappedBuffer(serialize(chunk));
             for (Channel channel : clients) {
                 if (channel != nonReciver) {
                     channel.write(msg);
@@ -133,7 +136,7 @@ public class KryoNetServer extends KryoNetEndPoint implements MessageTransferSer
     public void send(final List<Object> messages, final Object destination) {
         List<Object>[] chunks = chunk(messages);
         for (List<Object> chunk : chunks) {
-            ((Channel) destination).write(ChannelBuffers.wrappedBuffer(kryo.serialize(chunk)));
+            ((Channel) destination).write(ChannelBuffers.wrappedBuffer(serialize(chunk)));
         }
     }
 
@@ -142,5 +145,14 @@ public class KryoNetServer extends KryoNetEndPoint implements MessageTransferSer
         serverChannel.close().awaitUninterruptibly();
         clients.close().awaitUninterruptibly();
         server.releaseExternalResources();
+    }
+
+    private byte[] serialize(final List<Object> messages) {
+        try {
+            return serializer.serialize(messages);
+        } catch (SynchronizeFXException e) {
+            callbackServer.onFatalError(e);
+        }
+        return new byte[0];
     }
 }

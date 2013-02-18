@@ -34,7 +34,7 @@ import de.saxsys.synchronizefx.core.clientserver.Serializer;
  * 
  * @author raik.bieniek
  */
-public class KryoNetClient extends KryoNetEndPoint implements MessageTransferClient {
+public class NettyClient extends NettyEndPoint implements MessageTransferClient {
 
     private final int port;
     private final String serverAdress;
@@ -50,8 +50,10 @@ public class KryoNetClient extends KryoNetEndPoint implements MessageTransferCli
      * 
      * @param serverAdress The domain name or IP address of a server to connect to.
      * @param port The port of the server to connect to.
+     * @param serializer The serializer that should be used to serialize SynchronizeFX messages.
      */
-    public KryoNetClient(final String serverAdress, final int port) {
+    public NettyClient(final String serverAdress, final int port, final Serializer serializer) {
+        super(serializer);
         this.serverAdress = serverAdress;
         this.port = port;
     }
@@ -82,7 +84,7 @@ public class KryoNetClient extends KryoNetEndPoint implements MessageTransferCli
                             public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent e)
                                 throws Exception {
                                 List<Object> messages =
-                                        kryo.deserialize(((ChannelBuffer) e.getMessage()).array());
+                                        serializer.deserialize(((ChannelBuffer) e.getMessage()).array());
                                 if (messages != null) {
                                     callbackClient.recive(messages);
                                 }
@@ -105,7 +107,11 @@ public class KryoNetClient extends KryoNetEndPoint implements MessageTransferCli
     public void send(final List<Object> messages) {
         List<Object>[] chunks = chunk(messages);
         for (List<Object> chunk : chunks) {
-            clientChannel.write(ChannelBuffers.wrappedBuffer(kryo.serialize(chunk)));
+            try {
+                clientChannel.write(ChannelBuffers.wrappedBuffer(serializer.serialize(chunk)));
+            } catch (final SynchronizeFXException e) {
+                callbackClient.onError(e);
+            }
         }
     }
 

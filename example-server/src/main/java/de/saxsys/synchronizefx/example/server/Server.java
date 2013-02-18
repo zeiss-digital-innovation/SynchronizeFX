@@ -9,7 +9,8 @@ import de.saxsys.synchronizefx.core.clientserver.DomainModelServer;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
 import de.saxsys.synchronizefx.example.server.domain.Board;
 import de.saxsys.synchronizefx.example.server.domain.Note;
-import de.saxsys.synchronizefx.netty.KryoNetServer;
+import de.saxsys.synchronizefx.kryo.KryoSerializer;
+import de.saxsys.synchronizefx.netty.NettyServer;
 
 /**
  * A server that serves notes and their relative positions on a board to multiple clients.
@@ -25,7 +26,7 @@ public final class Server implements UserCallbackServer {
     private Server() {
         createBoard();
 
-        KryoNetServer kryoServer = new KryoNetServer(5000);
+        NettyServer kryoServer = new NettyServer(5000, new KryoSerializer());
         try {
             new DomainModelServer(this.board, kryoServer, this);
         } catch (SynchronizeFXException error) {

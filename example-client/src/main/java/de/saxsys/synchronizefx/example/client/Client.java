@@ -18,7 +18,8 @@ import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
 import de.saxsys.synchronizefx.example.server.domain.Board;
 import de.saxsys.synchronizefx.example.server.domain.Note;
 import de.saxsys.synchronizefx.example.server.domain.Position2D;
-import de.saxsys.synchronizefx.netty.KryoNetClient;
+import de.saxsys.synchronizefx.kryo.KryoSerializer;
+import de.saxsys.synchronizefx.netty.NettyClient;
 
 /**
  * Provides a client that shows notes on a board
@@ -43,7 +44,7 @@ public final class Client extends Application implements UserCallbackClient {
 
         root = new Pane();
 
-        KryoNetClient kryoClient = new KryoNetClient("localhost", 5000);
+        NettyClient kryoClient = new NettyClient("localhost", 5000, new KryoSerializer());
         try {
             client = new DomainModelClient(kryoClient, this);
         } catch (SynchronizeFXException error) {

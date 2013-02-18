@@ -10,7 +10,8 @@
 
 	<modules>
 		<module>synchronizefx-core</module>
-		<module>kryonet-transmitter</module>
+		<module>netty-transmitter</module>
+		<module>kryo-serializer</module>
 		<module>example-client</module>
 		<module>example-server</module>
 	</modules>
@@ -19,7 +20,12 @@
 		<dependencies>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>kryonet-transmitter</artifactId>
+				<artifactId>netty-transmitter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>kryo-serializer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
