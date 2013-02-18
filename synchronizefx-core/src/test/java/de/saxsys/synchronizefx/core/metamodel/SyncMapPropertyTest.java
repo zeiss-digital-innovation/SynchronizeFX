@@ -21,7 +21,6 @@ import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
