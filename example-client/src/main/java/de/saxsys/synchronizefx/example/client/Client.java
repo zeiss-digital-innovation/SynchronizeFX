@@ -12,13 +12,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.SynchronizeFXException;
-import de.saxsys.synchronizefx.core.clientserver.DomainModelClient;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
 import de.saxsys.synchronizefx.example.server.domain.Board;
 import de.saxsys.synchronizefx.example.server.domain.Note;
 import de.saxsys.synchronizefx.example.server.domain.Position2D;
-import de.saxsys.synchronizefx.kryo.KryoNetClient;
 
 /**
  * Provides a client that shows notes on a board
@@ -30,25 +34,24 @@ import de.saxsys.synchronizefx.kryo.KryoNetClient;
  * 
  */
 public final class Client extends Application implements UserCallbackClient {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
     private static final int NOTE_WIDTH = 200;
     private static final int NOTE_HEIGHT = 50;
+
+    private static final String SERVER = "localhost";
+    
     private Pane root;
     private Map<Note, Pane> notes = new HashMap<>();
-    private DomainModelClient client;
+    private SynchronizeFxClient client;
 
     @Override
     public void start(final Stage stage) {
         stage.setTitle("Example Client");
 
         root = new Pane();
-
-        KryoNetClient kryoClient = new KryoNetClient("localhost", 5000);
-        try {
-            client = new DomainModelClient(kryoClient, this);
-        } catch (SynchronizeFXException error) {
-            onError(error);
-        }
+        
 
         stage.setScene(new Scene(root));
         stage.setOnHidden(new EventHandler<WindowEvent>() {
@@ -59,21 +62,25 @@ public final class Client extends Application implements UserCallbackClient {
             }
         });
         stage.show();
+        
+        startSynchronizeFx();
     }
 
-    /**
-     * This method starts the client application.
-     * 
-     * @param args The arguments are ignored.
-     */
-    public static void main(final String... args) {
-        launch();
+    private void startSynchronizeFx() {
+        client = new SynchronizeFxBuilder().createClient(SERVER, this);
+        client.connect();
     }
 
     @Override
     public void modelReady(final Object model) {
         createGui((Board) model);
 
+    }
+
+    @Override
+    public void onError(final SynchronizeFXException error) {
+        LOG.error("A SynchronizeFX error occured. Terminating the client now.", error);
+        System.exit(-1);
     }
 
     private void createGui(final Board model) {
@@ -130,9 +137,12 @@ public final class Client extends Application implements UserCallbackClient {
         root.getChildren().remove(notes.get(note));
     }
 
-    @Override
-    public void onError(final SynchronizeFXException error) {
-        System.err.println(error);
-        System.exit(-1);
+    /**
+     * This method starts the client application.
+     * 
+     * @param args The arguments are ignored.
+     */
+    public static void main(final String... args) {
+        launch();
     }
 }

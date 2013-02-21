@@ -187,13 +187,13 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     }
 
     @Override
-    public void onChanged(javafx.collections.SetChangeListener.Change<? extends Object> change) {
+    public void onChanged(final javafx.collections.SetChangeListener.Change<? extends Object> change) {
         ObservableSet<?> set = change.getSet();
-        if(disabledFor.containsKey(set)) {
+        if (disabledFor.containsKey(set)) {
             return;
         }
         final UUID setId = parent.getId(set);
-        
+
         List<Object> commands = null;
         if (change.wasAdded()) {
             Object value = change.getElementAdded();
@@ -231,9 +231,9 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Prevents the listeners of this object to be executed for a specific object.
      * 
-     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners wouldn't
-     * be disabled in this case, they would generate change messages which than would be send amongst others to the
-     * client that generated the changes in the first place. The result would be an endless loop.
+     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners
+     * wouldn't be disabled in this case, they would generate change messages which than would be send amongst others
+     * to the client that generated the changes in the first place. The result would be an endless loop.
      * 
      * @param value The object for which the listeners should be disabled.
      */

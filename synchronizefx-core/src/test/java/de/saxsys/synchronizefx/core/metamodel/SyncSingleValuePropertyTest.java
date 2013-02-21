@@ -22,7 +22,6 @@ import javafx.beans.property.StringProperty;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;

@@ -9,26 +9,18 @@
 		<relativePath>..</relativePath>
 	</parent>
 	
-	<artifactId>example-server</artifactId>
-	<name>Example Server</name>
-	<description>Example Server for SynchronizeFX</description>
+	<artifactId>kryo-serializer</artifactId>
+	<name>Kryo Serializer</name>
+	<description>Kryo based Serializer for SynchronizeFX</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.parent.groupId}</groupId>
-			<artifactId>synchronizefx</artifactId>
+			<artifactId>synchronizefx-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>javafx</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
+			<groupId>com.esotericsoftware.kryo</groupId>
+			<artifactId>kryo</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -9,26 +9,22 @@
 		<relativePath>..</relativePath>
 	</parent>
 	
-	<artifactId>example-server</artifactId>
-	<name>Example Server</name>
-	<description>Example Server for SynchronizeFX</description>
+	<artifactId>synchronizefx</artifactId>
+	<name>Default Factory</name>
+	<description>Factory classes for the default network layer and serializer implementations SynchronizeFX</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.parent.groupId}</groupId>
-			<artifactId>synchronizefx</artifactId>
+			<artifactId>synchronizefx-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>javafx</artifactId>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>netty-transmitter</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>kryo-serializer</artifactId>
 		</dependency>
 	</dependencies>
 </project>

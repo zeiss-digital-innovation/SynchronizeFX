@@ -8,7 +8,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**

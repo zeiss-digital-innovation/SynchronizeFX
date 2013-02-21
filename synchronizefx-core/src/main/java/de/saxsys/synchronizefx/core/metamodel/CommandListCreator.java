@@ -97,7 +97,7 @@ class CommandListCreator {
      * @param value The object that should be added to the set.
      * @return a set with commands necessary to recreate this add to set command.
      */
-    public List<Object> addToSet(UUID setId, Object value) {
+    public List<Object> addToSet(final UUID setId, final Object value) {
         State state = new State(true);
         addToSet(setId, value, state);
         state.commands.add(new ClearReferences());
@@ -162,11 +162,11 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a set.
      * 
-     * @param listId The ID of the list where an element should be removed.
+     * @param setId The ID of the set where an element should be removed.
      * @param value The element that should be removed.
      * @return The command list.
      */
-    public List<Object> removeFromSet(UUID setId, Object value) {
+    public List<Object> removeFromSet(final UUID setId, final Object value) {
         State state = new State(false);
 
         RemoveFromSet msg = new RemoveFromSet();
@@ -213,7 +213,7 @@ class CommandListCreator {
         state.commands.add(msg);
     }
 
-    private void addToSet(UUID setId, Object value, State state) {
+    private void addToSet(final UUID setId, final Object value, final State state) {
         AddToSet msg = new AddToSet();
         msg.setSetId(setId);
 

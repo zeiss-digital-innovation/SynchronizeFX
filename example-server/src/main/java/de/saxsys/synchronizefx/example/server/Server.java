@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.SynchronizeFXException;
-import de.saxsys.synchronizefx.core.clientserver.DomainModelServer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
 import de.saxsys.synchronizefx.example.server.domain.Board;
 import de.saxsys.synchronizefx.example.server.domain.Note;
-import de.saxsys.synchronizefx.kryo.KryoNetServer;
 
 /**
  * A server that serves notes and their relative positions on a board to multiple clients.
@@ -19,20 +22,39 @@ import de.saxsys.synchronizefx.kryo.KryoNetServer;
  */
 public final class Server implements UserCallbackServer {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Server.class);
+
     private Board board;
     private Random random = new Random();
+    private SynchronizeFxServer server;
 
     private Server() {
         createBoard();
 
-        KryoNetServer kryoServer = new KryoNetServer(5000);
-        try {
-            new DomainModelServer(this.board, kryoServer, this);
-        } catch (SynchronizeFXException error) {
-            onError(error);
-        }
+        startSynchronizeFx();
+
+        shutdownServerOnExit();
 
         userInputLoop();
+    }
+
+    private void startSynchronizeFx() {
+        server = new SynchronizeFxBuilder().createServer(this.board, this);
+        server.start();
+    }
+
+    @Override
+    public void onError(final SynchronizeFXException error) {
+        LOG.error("A SynchronizeFX error occured. Terminating the server now.", error);
+        System.exit(-1);
+    }
+
+    private void shutdownServerOnExit() {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                server.shutdown();
+            }
+        });
     }
 
     private void createBoard() {
@@ -88,12 +110,6 @@ public final class Server implements UserCallbackServer {
         note.setText("Sample Note " + random.nextInt(1000));
 
         this.board.getNotes().add(note);
-    }
-
-    @Override
-    public void onError(final SynchronizeFXException error) {
-        System.err.println(error);
-        System.exit(-1);
     }
 
     /**
