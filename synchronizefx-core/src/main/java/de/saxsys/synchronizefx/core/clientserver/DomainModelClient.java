@@ -1,60 +1,92 @@
 package de.saxsys.synchronizefx.core.clientserver;
 
-import javafx.beans.property.Property;
+import java.util.List;
+
+import javafx.application.Platform;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.saxsys.synchronizefx.core.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.MetaModel;
+import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 
 /**
- * This class implements a client that accesses a JavaFX model made available over the network by a
- * {@link DomainModelServer}. All fields of the model that implement the {@link Property} interface will be synchronized
- * between all clients.
+ * The internal implementation that does all the work for {@link SynchronizeFxClient}.
+ * 
+ * The purpose of this class is to hide methods that are meant to be used by the framework from the user.
  * 
  * @author raik.bieniek
- * 
  */
-public class DomainModelClient {
+class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLayerCallback {
 
-    private DomainModelClientInternal impl;
+    private static final Logger LOG = LoggerFactory.getLogger(DomainModelClient.class);
+    private UserCallbackClient user;
+    private MetaModel meta = new MetaModel(this);
+    private MessageTransferClient networkLayer;
 
+    // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
-     * Connects the client to the server and request the domain model.
-     * 
-     * @param networkLayer An object that does the serialization and the network transfer of the data generated to keep
-     *            models synchron.
-     * @param serializer The serializer that serializes the messages to byte array. If a user provided serializer is
-     *            supported or not depends on the implementation you pass with {@code networkLayer}. See it's JavaDoc
-     *            for more informations. Passing {@code null} here means that the internal serializer of
-     *            {@code networkLayer} is used. In this case you can also use
-     *            {@link DomainModelClient#DomainModelClient(MessageTransferClient, UserCallbackClient)}.
-     * @param listener Used to inform the user of this class on errors and when the initial transfer of the domain model
-     *            is ready.
-     * @throws SynchronizeFXException When the connection to the server failed.
-     */
-    public DomainModelClient(final MessageTransferClient networkLayer, final Serializer serializer,
-            final UserCallbackClient listener) throws SynchronizeFXException {
-        impl = new DomainModelClientInternal(networkLayer, serializer, listener);
-    }
-
-    /**
-     * Same as {@link DomainModelClient#DomainModelClient(MessageTransferClient, Serializer, UserCallbackClient)} but it
-     * relays on the internal serializer of {@code networkLayer}.
-     * 
+     * @see SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, UserCallbackClient)
      * @param networkLayer see
-     *            {@link DomainModelClient#DomainModelClient(MessageTransferClient, Serializer, UserCallbackClient)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, UserCallbackClient)}
      * @param listener see
-     *            {@link DomainModelClient#DomainModelClient(MessageTransferClient, Serializer, UserCallbackClient)}
-     * @throws SynchronizeFXException see
-     *             {@link DomainModelClient#DomainModelClient(MessageTransferClient, Serializer, UserCallbackClient)}
-     * @see DomainModelClient#DomainModelClient(MessageTransferClient, Serializer, UserCallbackClient)
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, UserCallbackClient)}
      */
-    public DomainModelClient(final MessageTransferClient networkLayer, final UserCallbackClient listener)
-        throws SynchronizeFXException {
-        this(networkLayer, null, listener);
+    // CHECKSTYLE:ON
+    public DomainModelClient(final MessageTransferClient networkLayer, final UserCallbackClient listener) {
+        this.user = listener;
+        this.networkLayer = networkLayer;
+        networkLayer.setTopologyCallback(this);
+    }
+
+    @Override
+    public void recive(final List<Object> messages) {
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Client recived commands " + messages);
+        }
+        meta.execute(messages);
+    }
+
+    @Override
+    public void sendCommands(final List<Object> commands) {
+        networkLayer.send(commands);
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Client sent commands " + commands);
+        }
+    }
+
+    @Override
+    public void onError(final SynchronizeFXException error) {
+        user.onError(error);
+    }
+
+    @Override
+    public void domainModelChanged(final Object root) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                user.modelReady(root);
+            }
+        });
+        meta.setDoChangesInJavaFxThread(true);
     }
 
     /**
-     * Terminates the connection to the server.
+     * @see SynchronizeFxClient#connect()
+     */
+    public void connect() {
+        try {
+            networkLayer.connect();
+        } catch (SynchronizeFXException e) {
+            user.onError(e);
+        }
+    }
+
+    /**
+     * @see SynchronizeFxClient#disconnect()
      */
     public void disconnect() {
-        impl.disconnect();
+        networkLayer.disconnect();
     }
 }

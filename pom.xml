@@ -6,15 +6,25 @@
 	<artifactId>parent</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>SynchronizeFX parent</name>
+
+	<name>SynchronizeFX</name>
+	<description>Aggregator and documentation project for all SynchronizeFX modules</description>
 
 	<modules>
 		<module>synchronizefx-core</module>
 		<module>netty-transmitter</module>
 		<module>kryo-serializer</module>
+		<module>synchronizefx</module>
 		<module>example-client</module>
 		<module>example-server</module>
 	</modules>
+
+	<developers>
+		<developer>
+			<name>Raik Bieniek</name>
+			<email>raik.bieniek@saxsys.de</email>
+		</developer>
+	</developers>
 
 	<dependencyManagement>
 		<dependencies>
@@ -29,8 +39,13 @@
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>de.saxsys.synchronizefx</groupId>
+				<groupId>${project.groupId}</groupId>
 				<artifactId>synchronizefx-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>synchronizefx</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -56,9 +71,9 @@
 				<version>1.6.6</version>
 			</dependency>
 			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>1.6.6</version>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>1.0.9</version>
 			</dependency>
 			<dependency>
 				<groupId>com.esotericsoftware.kryo</groupId>
@@ -78,7 +93,7 @@
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.10</version>
+				<version>4.11</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
@@ -119,7 +134,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pdf-plugin</artifactId>
-				<version>1.0</version>
+				<version>1.2</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
@@ -153,24 +168,16 @@
 							</configuration>
 							<reports>
 								<report>index</report>
-								<report>summary</report>
+								<report>project-team</report>
 
-								<report>dependencies</report>
 								<report>dependency-convergence</report>
 								<report>dependency-management</report>
 
-								<!-- <report>project-team</report> <report>scm</report> <report>issue-tracking</report><report>help</report> 
-									<report>plugin-management</report> <report>plugins</report> <report>mailing-list</report> 
-									<report>cim</report> <report>license</report> -->
+								<!-- <report>dependencies</report> <report>summary</report> <report>scm</report> 
+									<report>issue-tracking</report><report>help</report> <report>plugin-management</report> 
+									<report>plugins</report> <report>mailing-list</report> <report>cim</report> 
+									<report>license</report> -->
 							</reports>
-						</plugin>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.11</version>
-							<configuration>
-								<showSuccess>false</showSuccess>
-							</configuration>
 						</plugin>
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
@@ -182,17 +189,12 @@
 							<artifactId>findbugs-maven-plugin</artifactId>
 							<version>2.3.3</version>
 						</plugin>
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>cobertura-maven-plugin</artifactId>
-							<version>2.5.1</version>
-							<configuration>
-								<formats>
-									<format>xml</format>
-									<format>html</format>
-								</formats>
-							</configuration>
-						</plugin>
+						<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-report-plugin</artifactId> 
+							<version>2.11</version> <configuration> <showSuccess>false</showSuccess> 
+							</configuration> </plugin> <plugin> <groupId>org.codehaus.mojo</groupId> 
+							<artifactId>cobertura-maven-plugin</artifactId> <version>2.5.2</version> 
+							<configuration> <formats> <format>xml</format> <format>html</format> </formats> 
+							</configuration> </plugin> -->
 					</reportPlugins>
 				</configuration>
 			</plugin>

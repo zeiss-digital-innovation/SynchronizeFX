@@ -23,7 +23,7 @@ import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
 
 import de.saxsys.synchronizefx.core.SynchronizeFXException;
-import de.saxsys.synchronizefx.core.clientserver.DomainModelServer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
@@ -31,10 +31,8 @@ import de.saxsys.synchronizefx.core.clientserver.Serializer;
 /**
  * A server that can send and recive objects over the network to connected clients.
  * 
- * This class is intended to be used as input for {@link DomainModelServer}.
- * 
- * This implementation does not support generic serializers. It uses it's own internal serializer.
- * 
+ * This class is intended to be used as input for {@link SynchronizeFxServer}.
+ *  
  * @author raik.bieniek
  */
 public class NettyServer extends NettyEndPoint implements MessageTransferServer {
@@ -48,7 +46,7 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
     /**
      * Takes the required informations needed to start the server but doesn't actually start it.
      * 
-     * The starting of the server is done by {@link DomainModelServer}.
+     * The starting of the server is done by {@link SynchronizeFxServer}.
      * 
      * @param port The port to which to listen for new connections.
      * @param serializer The serializer that should be used to serialize SynchronizeFX messages.
@@ -56,11 +54,6 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
     public NettyServer(final int port, final Serializer serializer) {
         super(serializer);
         this.port = port;
-    }
-
-    @Override
-    public void setSerializer(final Serializer serializer) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

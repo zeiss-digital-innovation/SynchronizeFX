@@ -8,17 +8,15 @@
 		<version>0.1.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
+	
 	<artifactId>example-server</artifactId>
-	<name>Example Server for SynchronizeFX</name>
+	<name>Example Server</name>
+	<description>Example Server for SynchronizeFX</description>
 
 	<dependencies>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>netty-transmitter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>kryo-serializer</artifactId>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>synchronizefx</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.oracle</groupId>
@@ -26,7 +24,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
 		</dependency>
 	</dependencies>
 </project>

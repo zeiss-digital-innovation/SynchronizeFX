@@ -8,9 +8,10 @@
 		<version>0.1.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>netty-transmitter</artifactId>
-	<name>Netty Transmitter</name>
-	<description>Netty Transmitter for SynchronizeFX</description>
+	
+	<artifactId>synchronizefx</artifactId>
+	<name>Default Factory</name>
+	<description>Factory classes for the default network layer and serializer implementations SynchronizeFX</description>
 
 	<dependencies>
 		<dependency>
@@ -18,8 +19,12 @@
 			<artifactId>synchronizefx-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>netty-transmitter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>kryo-serializer</artifactId>
 		</dependency>
 	</dependencies>
 </project>

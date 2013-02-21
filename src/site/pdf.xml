@@ -22,7 +22,7 @@
 	<toc name="Table Of Contents">
 		<item name="Motivation" ref="index.md" />
 		<item name="How to Use" ref="howto.md" />
-		<item name="How it Work" ref="docu.md" />
+		<item name="How it Works" ref="docu.md" />
 	</toc>
 
 </document>

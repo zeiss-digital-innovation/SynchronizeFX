@@ -20,17 +20,15 @@ import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
 
 import de.saxsys.synchronizefx.core.SynchronizeFXException;
-import de.saxsys.synchronizefx.core.clientserver.DomainModelClient;
 import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 
 /**
  * A client that can send and recive objects over the network when connected to a server.
  * 
- * This class is intended to be used as input for {@link DomainModelClient}.
- * 
- * This implementation does not support generic serializers. It uses it's own internal serializer.
+ * This class is intended to be used as input for {@link SynchronizeFxClient}.
  * 
  * @author raik.bieniek
  */
@@ -46,7 +44,7 @@ public class NettyClient extends NettyEndPoint implements MessageTransferClient 
     /**
      * Takes the required informations to connect to a server but doesn't actually connect to it.
      * 
-     * The opening of the connection is done by {@link DomainModelClient}.
+     * The opening of the connection is done by {@link SynchronizeFxClient}.
      * 
      * @param serverAdress The domain name or IP address of a server to connect to.
      * @param port The port of the server to connect to.
@@ -56,11 +54,6 @@ public class NettyClient extends NettyEndPoint implements MessageTransferClient 
         super(serializer);
         this.serverAdress = serverAdress;
         this.port = port;
-    }
-
-    @Override
-    public void setSerializer(final Serializer serializer) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
