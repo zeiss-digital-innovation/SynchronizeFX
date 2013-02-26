@@ -2,7 +2,7 @@ package de.saxsys.synchronizefx.core.clientserver;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * A thread safe serializer and deserializer that serializes {@link List}s with Java objects to byte arrays.

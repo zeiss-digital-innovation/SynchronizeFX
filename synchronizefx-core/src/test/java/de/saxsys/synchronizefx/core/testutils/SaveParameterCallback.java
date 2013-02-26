@@ -4,7 +4,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 
 /**

@@ -1,4 +1,4 @@
-package de.saxsys.synchronizefx.core;
+package de.saxsys.synchronizefx.core.exceptions;
 
 /**
  * A exception for any kind of failures that appear in this framework.

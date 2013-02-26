@@ -17,12 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.SynchronizeFxBuilder;
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
-import de.saxsys.synchronizefx.example.server.domain.Board;
-import de.saxsys.synchronizefx.example.server.domain.Note;
-import de.saxsys.synchronizefx.example.server.domain.Position2D;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.example.domain.Board;
+import de.saxsys.synchronizefx.example.domain.Note;
+import de.saxsys.synchronizefx.example.domain.Position2D;
 
 /**
  * Provides a client that shows notes on a board

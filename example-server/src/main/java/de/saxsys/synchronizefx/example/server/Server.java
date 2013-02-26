@@ -8,11 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.SynchronizeFxBuilder;
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
-import de.saxsys.synchronizefx.example.server.domain.Board;
-import de.saxsys.synchronizefx.example.server.domain.Note;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.example.domain.Board;
+import de.saxsys.synchronizefx.example.domain.Note;
 
 /**
  * A server that serves notes and their relative positions on a board to multiple clients.

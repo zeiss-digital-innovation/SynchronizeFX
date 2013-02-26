@@ -1,4 +1,4 @@
-package de.saxsys.synchronizefx.example.server.domain;
+package de.saxsys.synchronizefx.example.domain;
 
 import java.util.List;
 

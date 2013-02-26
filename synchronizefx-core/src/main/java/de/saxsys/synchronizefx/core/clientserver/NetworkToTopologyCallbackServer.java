@@ -2,7 +2,7 @@ package de.saxsys.synchronizefx.core.clientserver;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * This is an callback interface for the network library to inform the upper layer of incoming events like messages or

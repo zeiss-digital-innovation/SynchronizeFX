@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.scene.control.WeakListChangeListener;
 
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * Implements the listeners that generate the commands neccessary for reproducing the changes that where made on

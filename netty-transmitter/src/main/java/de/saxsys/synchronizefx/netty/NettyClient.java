@@ -19,11 +19,11 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
 
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * A client that can send and recive objects over the network when connected to a server.

@@ -2,7 +2,7 @@ package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * This is an callback interface for the meta model.
