@@ -1,3 +1,22 @@
+/**
+ * This file is part of SynchronizeFX.
+ * 
+ * Copyright (C) 2013 Saxonia Systems AG
+ *
+ * SynchronizeFX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SynchronizeFX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.saxsys.synchronizefx.example.client;
 
 import java.util.HashMap;
@@ -27,21 +46,21 @@ import de.saxsys.synchronizefx.example.server.domain.Position2D;
 /**
  * Provides a client that shows notes on a board
  * 
- * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs see
- * the movement of the notes live.
+ * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs
+ * see the movement of the notes live.
  * 
  * @author raik.bieniek
  * 
  */
 public final class Client extends Application implements UserCallbackClient {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
     private static final int NOTE_WIDTH = 200;
     private static final int NOTE_HEIGHT = 50;
 
     private static final String SERVER = "localhost";
-    
+
     private Pane root;
     private Map<Note, Pane> notes = new HashMap<>();
     private SynchronizeFxClient client;
@@ -51,7 +70,6 @@ public final class Client extends Application implements UserCallbackClient {
         stage.setTitle("Example Client");
 
         root = new Pane();
-        
 
         stage.setScene(new Scene(root));
         stage.setOnHidden(new EventHandler<WindowEvent>() {
@@ -62,7 +80,7 @@ public final class Client extends Application implements UserCallbackClient {
             }
         });
         stage.show();
-        
+
         startSynchronizeFx();
     }
 
