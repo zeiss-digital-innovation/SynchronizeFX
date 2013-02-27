@@ -6,7 +6,7 @@ It's build for applications that need realtime synchronization of the UI or othe
 At the moment it's in an early alpha state.
 
 ## Authors
-SynchronizeFX is developed by Saxonia Systems AG (@saxsys). The main developer is Raik Bieniek (@rbi). Contributors are Alexander Casall (@sialcasa), Manuel Mauky (@lestard) and Michael Thiele.
+SynchronizeFX is developed by [Saxonia Systems AG](https://github.com/saxsys). The main developer is [Raik Bieniek](https://github.com/rbi) . Contributors are [Alexander Casall](https://github.com/sialcasa), [Manuel Mauky](https://github.com/lestard) and Michael Thiele.
 
 ## License
 SynchronizeFX is released under the **LGPL** license.
