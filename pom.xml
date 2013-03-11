@@ -25,20 +25,20 @@
 			<email>raik.bieniek@saxsys.de</email>
 		</developer>
 	</developers>
-  <contributors>
-    <contributor>
-      <name>Manuel Mauky</name>
-      <email>manuel.mauky@saxsys.de</email>
-    </contributor>
-    <contributor>
-      <name>Alexander Casall</name>
-      <email>alexander.casall@saxsys.de</email>
-    </contributor>
-    <contributor>
-      <name>Michael Thiele</name>
-      <email>michael.thiele@saxsys.de</email>
-    </contributor>
-  </contributors>
+	<contributors>
+		<contributor>
+			<name>Manuel Mauky</name>
+			<email>manuel.mauky@saxsys.de</email>
+		</contributor>
+		<contributor>
+			<name>Alexander Casall</name>
+			<email>alexander.casall@saxsys.de</email>
+		</contributor>
+		<contributor>
+			<name>Michael Thiele</name>
+			<email>michael.thiele@saxsys.de</email>
+		</contributor>
+	</contributors>
 
 	<dependencyManagement>
 		<dependencies>
