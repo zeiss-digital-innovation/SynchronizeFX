@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.saxsys.synchronizefx</groupId>
@@ -12,6 +13,7 @@
 	<modules>
 		<module>synchronizefx-core</module>
 		<module>netty-transmitter</module>
+		<module>tomcat-transmitter</module>
 		<module>kryo-serializer</module>
 		<module>synchronizefx</module>
 		<module>example-client</module>
@@ -43,14 +45,24 @@
 		<url>https://github.com/saxsys/SynchronizeFX</url>
 		<developerConnection>scm:git:git@github.com:saxsys/SynchronizeFX.git</developerConnection>
 		<connection>scm:git:https://github.com/saxsys/SynchronizeFX.git</connection>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
+
+	<properties>
+		<!-- for maven site -->
+		<currentVersion>${project.version}</currentVersion>
+	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>netty-transmitter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>tomcat-transmitter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -109,6 +121,20 @@
 				<groupId>commons-collections</groupId>
 				<artifactId>commons-collections</artifactId>
 				<version>3.2.1</version>
+			</dependency>
+			<dependency>
+				<!-- For websockets -->
+				<groupId>org.apache.tomcat</groupId>
+				<artifactId>tomcat-catalina</artifactId>
+				<version>7.0.37</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<!-- needed by org.apache.catalina.websocket.StreamInbound -->
+				<groupId>org.apache.tomcat</groupId>
+				<artifactId>tomcat-coyote</artifactId>
+				<version>7.0.37</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>

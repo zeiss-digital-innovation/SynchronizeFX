@@ -40,12 +40,12 @@ E.g. initializing properties the following way will do fullfill this requirement
 
 ## Maven Config
 
-To add SynchronizeFX to an Maven based project add the following to your pom.xml
+To add SynchronizeFX to a Maven based project add the following to your pom.xml
 
     <dependency>
         <groupId>de.saxsys.synchronizefx</groupId>
         <artifactId>synchronizefx</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>${currentVersion}</version>
     </dependency>
 
 You must make sure that you have added an repository which contains this artifact in the \<repositories\> section
