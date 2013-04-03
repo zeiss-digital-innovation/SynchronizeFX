@@ -53,7 +53,7 @@ public final class Server implements UserCallbackServer {
         startSynchronizeFx();
 
         shutdownServerOnExit();
-
+        
         userInputLoop();
     }
 

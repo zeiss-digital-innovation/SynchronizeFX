@@ -81,6 +81,11 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
     }
 
     @Override
+    public void onServerDisconnect() {
+        user.onServerDisconnect(); 
+    }
+
+    @Override
     public void domainModelChanged(final Object root) {
         Platform.runLater(new Runnable() {
             @Override

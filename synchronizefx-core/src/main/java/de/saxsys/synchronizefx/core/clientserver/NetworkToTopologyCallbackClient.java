@@ -51,4 +51,12 @@ public interface NetworkToTopologyCallbackClient {
      * @param e an exception that describes the problem.
      */
     void onError(SynchronizeFXException e);
+
+    /**
+     * This method is called when the server closed the connection to this client.
+     * 
+     * This method is called when the server shut the connection down normally. When the connection just aborted
+     * {@link NetworkToTopologyCallbackClient#onError(SynchronizeFXException)} is called instead.
+     */
+    void onServerDisconnect();
 }

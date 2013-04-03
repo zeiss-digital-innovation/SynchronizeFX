@@ -39,9 +39,18 @@ public interface UserCallbackClient {
     /**
      * Called when an error occurred in the synchronization code.
      * 
-     * This includes errors occurred in the {@link MessageTransferClient} implementation.
+     * This includes errors occurred in the {@link MessageTransferClient} implementation. When this method is called,
+     * the connection to the server has to be already closed.
      * 
      * @param error the exception that describes the error.
      */
     void onError(SynchronizeFXException error);
+
+    /**
+     * This method is called when the server closed the connection to this client.
+     * 
+     * This method is called when the server shut the connection down normally. When the connection just aborted
+     * {@link UserCallbackClient#onError(SynchronizeFXException)} is called instead.
+     */
+    void onServerDisconnect();
 }

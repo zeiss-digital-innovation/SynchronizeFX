@@ -46,8 +46,8 @@ import de.saxsys.synchronizefx.example.domain.Position2D;
 /**
  * Provides a client that shows notes on a board
  * 
- * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs
- * see the movement of the notes live.
+ * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs see
+ * the movement of the notes live.
  * 
  * @author raik.bieniek
  * 
@@ -93,6 +93,11 @@ public final class Client extends Application implements UserCallbackClient {
     public void modelReady(final Object model) {
         createGui((Board) model);
 
+    }
+
+    @Override
+    public void onServerDisconnect() {
+        LOG.warn("The server closed the connection.");
     }
 
     @Override
