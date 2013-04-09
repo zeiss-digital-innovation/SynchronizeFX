@@ -49,7 +49,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
  * Tomcat for the network transfer.
  * 
  * Clients wishing to connect to this implementation the Websocket sub-protocol used must be
- * "v1.synchronizefx.saxsys.de". It must be ensured that this server and the client use {@link Serializer}
+ * "v1.websocket.synchronizefx.saxsys.de". It must be ensured that this server and the client use {@link Serializer}
  * implementations that are compatible. Ideally both sides use the same implementations. Each message that is created
  * by {@link Serializer#serialize(java.util.List)} must be send as is in a single websocket binary frame. Each
  * content binary frames must be passed through {@link Serializer#deserialize(byte[])} to reproduce the SynchronizeFX

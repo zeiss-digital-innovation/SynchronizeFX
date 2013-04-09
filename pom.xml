@@ -14,6 +14,7 @@
 		<module>synchronizefx-core</module>
 		<module>netty-transmitter</module>
 		<module>tomcat-transmitter</module>
+		<module>netty-websocket-transmitter</module>
 		<module>kryo-serializer</module>
 		<module>synchronizefx</module>
 		<module>example-client</module>
@@ -116,6 +117,13 @@
 				<groupId>io.netty</groupId>
 				<artifactId>netty</artifactId>
 				<version>3.6.2.Final</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<!--Websockt Clients are not supported in 3.x -->
+				<version>4.0.0.CR1</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-collections</groupId>
