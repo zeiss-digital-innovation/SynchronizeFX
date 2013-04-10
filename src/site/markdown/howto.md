@@ -88,7 +88,7 @@ To access an object that was made available as described above, the following co
     //can be an IP address or a host name
     private final static String SERVER = "localhost";
     
-    private DomainModelClient client;
+    private SynchronizeFxClient client;
     private SomeDomainClass root;
     
     ...
