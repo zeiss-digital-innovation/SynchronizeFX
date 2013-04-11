@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**
@@ -54,7 +55,7 @@ public class EqualsHashCodeTest {
 
         copyCb = new SaveParameterCallback();
         copyMeta = new MetaModel(copyCb);
-        copyMeta.execute(meta.commandsForDomainModel());
+        copyMeta.execute(EasyCommandsForDomainModel.commandsForDomainModel(meta));
         copyRoot = (MessedUpHashCodeEqualsClass) copyCb.getRoot();
     }
 

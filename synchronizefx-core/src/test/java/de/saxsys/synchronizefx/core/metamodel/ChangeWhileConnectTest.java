@@ -20,7 +20,6 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -34,6 +33,7 @@ import javafx.collections.FXCollections;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**
@@ -72,10 +72,10 @@ public class ChangeWhileConnectTest {
         root.waitingProperty.set(6);
 
         Domain child1 = new Domain();
-        //If lost updates occur, this value is not changed on the second client.
+        // If lost updates occur, this value is not changed on the second client.
         child1.waitingProperty.set(7);
         root.list.add(child1);
-        
+
         Domain child2 = new Domain();
         blockingProperty = new BlockingIntegerProperty();
         blockingProperty.waitAfterInvocationCount = -1;
@@ -96,13 +96,13 @@ public class ChangeWhileConnectTest {
         blockingProperty.waitAfterInvocationCount = 0;
         propertyVisitorThreadShouldWakeUp = false;
         testThreadShouldWakeUp = false;
-        
+
         Domain child1 = root.list.get(0);
 
         Thread propertyVisitorThread = new Thread() {
             @Override
             public void run() {
-                commands = meta.commandsForDomainModel();
+                commands = EasyCommandsForDomainModel.commandsForDomainModel(meta);
             }
         };
         synchronized (threadWaitMonitor) {
@@ -123,7 +123,7 @@ public class ChangeWhileConnectTest {
             }
         }
 
-        //this update may is lost
+        // this update may is lost
         child1.waitingProperty.set(9);
         synchronized (threadWaitMonitor) {
             propertyVisitorThreadShouldWakeUp = true;
@@ -140,7 +140,6 @@ public class ChangeWhileConnectTest {
         MetaModel copyMeta = new MetaModel(copyCb);
         copyMeta.execute(commands);
         assertEquals(root, copyCb.getRoot());
-        assertNull(cb.getCommands());
     }
 
     /**

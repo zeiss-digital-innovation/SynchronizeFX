@@ -43,6 +43,7 @@ import org.junit.Test;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**
@@ -77,7 +78,7 @@ public class SyncSingleValuePropertyTest {
         root.someString.set("Test");
 
         // create commands
-        List<Object> commands = model.commandsForDomainModel();
+        List<Object> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
 
         // check created commands
         boolean createRootObject = false;
@@ -153,7 +154,7 @@ public class SyncSingleValuePropertyTest {
         // setup
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copyMeta = new MetaModel(copyCb);
-        copyMeta.execute(model.commandsForDomainModel());
+        copyMeta.execute(EasyCommandsForDomainModel.commandsForDomainModel(model));
         Root copyRoot = (Root) copyCb.getRoot();
 
         assertEquals(copyRoot, root);

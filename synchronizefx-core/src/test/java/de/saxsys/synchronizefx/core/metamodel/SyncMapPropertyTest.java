@@ -44,6 +44,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**
@@ -76,7 +77,7 @@ public class SyncMapPropertyTest {
         String testString = "testString";
         root.map.put(testId, testString);
 
-        List<Object> commands = model.commandsForDomainModel();
+        List<Object> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
         CreateObservableObject msg = (CreateObservableObject) commands.get(0);
 
         assertEquals(2, msg.getPropertyNameToId().size());
@@ -176,7 +177,7 @@ public class SyncMapPropertyTest {
         MetaModel copy = new MetaModel(copyCb);
         UUID uuid = UUID.randomUUID();
 
-        copy.execute(model.commandsForDomainModel());
+        copy.execute(EasyCommandsForDomainModel.commandsForDomainModel(model));
         Root copyRoot = (Root) copyCb.getRoot();
 
         assertEquals(root, copyRoot);

@@ -19,7 +19,6 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,6 +49,10 @@ public class MetaModel {
     private Object root;
     private TopologyLayerCallback topology;
 
+    private List<Object> changeMessagesWhileWalking;
+    private final Object changeMessagesWhileWalkingLock = new Object();
+    private final Object modelWalkingInProgressLock = new Object();
+
     /**
      * Creates a {@link MetaModel} where the root object of the domain model is received from another node.
      * 
@@ -75,7 +78,12 @@ public class MetaModel {
         this(topology);
         this.root = root;
         // to register all objects in the id map
-        commandsForDomainModel();
+        commandsForDomainModel(new CommandsForDomainModelCallback() {
+            @Override
+            public void commandsReady(final List<Object> commands) {
+                // the commands are not needed.
+            }
+        });
         // assign UUIDs for all observable objects that don't have them until now.
         listeners.registerListenersOnEverything(root);
     }
@@ -100,42 +108,61 @@ public class MetaModel {
     /**
      * Executes commands to change the domain model of the user.
      * 
+     * <p>
      * These commands have usually been created by an other instance of {@link MetaModel} in an other JVM which send
      * them via {@link TopologyLayerCallback#sendCommands(List)} or produced them through
      * {@link MetaModel#commandsForDomainModel()}.
+     * </p>
+     * 
+     * <p>
+     * If you need to send these commands to other peers e.g. when you are the server in an client/server environment,
+     * please call this method first an than redistribute the commands. This call blocks when one of your threads called
+     * {@link MetaModel#commandsForDomainModel()} and hasn't finished yet. When this happens, the commands you've passed
+     * as argument to this method will not be incorporated into the command list returned by your
+     * {@link MetaModel#commandsForDomainModel()} and so you may want to also redistribute them to the new client that's
+     * the reason you've called {@link MetaModel#commandsForDomainModel()}.
+     * </p>
      * 
      * @param commands The commands that should be executed.
      */
     public void execute(final List<Object> commands) {
-        for (Object message : commands) {
-            execute(message);
+        synchronized (modelWalkingInProgressLock) {
+            for (Object message : commands) {
+                execute(message);
+            }
         }
-    }
-
-    /**
-     * Execute a single command to change the domain model of the user.
-     * 
-     * @see MetaModel#execute(List)
-     * @param command The command that should be executed.
-     */
-    public void execute(final Object command) {
-        executor.execute(command);
     }
 
     /**
      * This method creates the commands necessary to reproduce the entire domain model.
      * 
-     * @return The list with the necessary commands.
+     * <p>
+     * The API of this method may looks a bit odd as the commands produced are returned via a callback instead of return
+     * but this is necessary to ensure that no updated are lost for newly connecting peers.
+     * </p>
+     * 
+     * <p>
+     * Make sure that commands you receive via {@link TopologyLayerCallback#sendCommands(List)} are not send to the peer
+     * you've requested this initial set of commands for before your callback is called. Make also sure that future
+     * calls of {@link TopologyLayerCallback#sendCommands(List)} will send the changes to this new peer before your
+     * callback returns.
+     * </p>
+     * 
+     * <p>
+     * It is guaranteed that your callback is only called once and that this call happens before
+     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} returns.
+     * </p>
+     * 
+     * @param callback The callback that takes the commands.
      */
-    public List<Object> commandsForDomainModel() {
+    public void commandsForDomainModel(final CommandsForDomainModelCallback callback) {
         if (this.root == null) {
             topology.onError(new SynchronizeFXException(
                     "Request to create necessary commands to reproduce the domain model "
                             + " but the root object of the domain model is not set."));
-            return new LinkedList<Object>();
+            return;
         }
-        List<Object> commands = creator.commandsForDomainModel(this.root);
-        return commands;
+        creator.commandsForDomainModel(this.root, callback);
     }
 
     /**
@@ -193,6 +220,56 @@ public class MetaModel {
     void registerObject(final Object object, final UUID id) {
         objectToId.put(object, id);
         idToObject.put(id, object);
+    }
+
+    /**
+     * Returns an object to lock when walking through the domain model.
+     * 
+     * By requesting a lock on this object, updates on the domain model than can be avoided are avoided while the
+     * walking is in process.
+     * 
+     * @return the lock object
+     */
+    Object getModelWalkingInProgressLock() {
+        return modelWalkingInProgressLock;
+    }
+
+    /**
+     * Returns an object to lock when working with the {@link MetaModel#getChangeMessagesWhileWalking()} list.
+     * 
+     * The list can't be locked itself because it can be null.
+     * 
+     * @return the lock object
+     */
+    Object getChangeMessagesWhileWalkingLock() {
+        return changeMessagesWhileWalkingLock;
+    }
+
+    /**
+     * A list with change commands that occurred while the domain model is walked through.
+     * 
+     * @return the list or {@code null} if no walking is in progress.
+     */
+    List<Object> getChangeMessagesWhileWalking() {
+        return changeMessagesWhileWalking;
+    }
+
+    /**
+     * @see MetaModel#getChangeMessagesWhileWalking()
+     * @param changeMessagesWhileWalking the new list
+     */
+    void setChangeMessagesWhileWalking(final List<Object> changeMessagesWhileWalking) {
+        this.changeMessagesWhileWalking = changeMessagesWhileWalking;
+    }
+
+    /**
+     * Execute a single command to change the domain model of the user.
+     * 
+     * @see MetaModel#execute(List)
+     * @param command The command that should be executed.
+     */
+    private void execute(final Object command) {
+        executor.execute(command);
     }
 
     /**

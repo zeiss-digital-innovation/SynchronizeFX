@@ -157,7 +157,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         if (newValue != null) {
             registerListenersOnEverything(newValue);
         }
-        topology.sendCommands(commands);
+        distributeCommands(commands);
     }
 
     @Override
@@ -199,7 +199,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                 commands = creator.removeFromList(listId, event.getTo());
             }
             if (commands != null) {
-                topology.sendCommands(commands);
+                distributeCommands(commands);
             }
         }
         event.reset();
@@ -222,7 +222,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
             Object value = change.getElementRemoved();
             commands = creator.removeFromSet(setId, value);
         }
-        topology.sendCommands(commands);
+        distributeCommands(commands);
     }
 
     @Override
@@ -240,9 +240,9 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
             if (value != null) {
                 registerListenersOnEverything(value);
             }
-            topology.sendCommands(commands);
+            distributeCommands(commands);
         } else {
-            topology.sendCommands(creator.removeFromMap(mapId, key));
+            distributeCommands(creator.removeFromMap(mapId, key));
         }
 
     }
@@ -250,9 +250,9 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Prevents the listeners of this object to be executed for a specific object.
      * 
-     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners
-     * wouldn't be disabled in this case, they would generate change messages which than would be send amongst others
-     * to the client that generated the changes in the first place. The result would be an endless loop.
+     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners wouldn't
+     * be disabled in this case, they would generate change messages which than would be send amongst others to the
+     * client that generated the changes in the first place. The result would be an endless loop.
      * 
      * @param value The object for which the listeners should be disabled.
      */
@@ -268,5 +268,15 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
      */
     public void enableFor(final Object value) {
         disabledFor.remove(value);
+    }
+
+    private void distributeCommands(final List<Object> commands) {
+        synchronized (parent.getChangeMessagesWhileWalkingLock()) {
+            List<Object> msgList = parent.getChangeMessagesWhileWalking();
+            if (msgList != null) {
+                msgList.addAll(commands);
+            }
+        }
+        topology.sendCommands(commands);
     }
 }

@@ -48,7 +48,7 @@ import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
- * A server that can send and recive objects over the network to connected clients.
+ * A server that can send and receive objects over the network to connected clients.
  * 
  * This class is intended to be used as input for {@link SynchronizeFxServer}.
  *  
@@ -94,7 +94,6 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
                             @Override
                             public void channelConnected(final ChannelHandlerContext ctx, final ChannelStateEvent e)
                                 throws Exception {
-                                clients.add(ctx.getChannel());
                                 callbackServer.onConnect(ctx.getChannel());
                             }
 
@@ -123,6 +122,12 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
         serverChannel = server.bind(new InetSocketAddress(port));
     }
 
+
+    @Override
+    public void onConnectFinished(Object client) {
+        clients.add((Channel) client);
+    }
+    
     @Override
     public void sendToAll(final List<Object> messages) {
         List<Object>[] chunks = chunk(messages);
@@ -163,6 +168,7 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
         try {
             return serializer.serialize(messages);
         } catch (SynchronizeFXException e) {
+            shutdown();
             callbackServer.onFatalError(e);
         }
         return new byte[0];

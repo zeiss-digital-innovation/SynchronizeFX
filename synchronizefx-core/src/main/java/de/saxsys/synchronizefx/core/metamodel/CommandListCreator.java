@@ -66,18 +66,28 @@ class CommandListCreator {
      * @see MetaModel#commandsForDomainModel()
      * 
      * @param root The root object of the domain model.
-     * @return The commands necessary to rebuild the domain model at it's current state.
+     * @param callback The callback that takes the commands necessary to rebuild the domain model at it's current state.
      */
-    public List<Object> commandsForDomainModel(final Object root) {
-        State state = new State(false);
-        createObservableObject(root, state);
+    public void commandsForDomainModel(final Object root, final CommandsForDomainModelCallback callback) {
+        synchronized (parent.getModelWalkingInProgressLock()) {
+            synchronized (parent.getChangeMessagesWhileWalkingLock()) {
+                parent.setChangeMessagesWhileWalking(new LinkedList<>());
+            }
+            final State state = new State(false);
+            createObservableObject(root, state);
 
-        SetRootElement msg = new SetRootElement();
-        msg.setRootElementId(parent.getId(root));
-        state.commands.add(msg);
+            SetRootElement msg = new SetRootElement();
+            msg.setRootElementId(parent.getId(root));
+            state.commands.add(msg);
 
-        state.commands.add(new ClearReferences());
-        return state.commands;
+            synchronized (parent.getChangeMessagesWhileWalkingLock()) {
+                List<Object> mergedCommands =
+                        CommandListMerger.merge(state.commands, parent.getChangeMessagesWhileWalking());
+                mergedCommands.add(new ClearReferences());
+                parent.setChangeMessagesWhileWalking(null);
+                callback.commandsReady(mergedCommands);
+            }
+        }
     }
 
     /**
@@ -197,7 +207,7 @@ class CommandListCreator {
         } else {
             msg.setSimpleObjectValue(value);
         }
-        
+
         state.commands.add(msg);
         state.commands.add(new ClearReferences());
         return state.commands;

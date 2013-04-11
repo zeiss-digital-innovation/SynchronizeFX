@@ -37,6 +37,11 @@ public interface TopologyLayerCallback {
     /**
      * Called when the meta model layer has produced commands that need to be shared with other meta models.
      * 
+     * When you've called {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} to get the initial
+     * domain model for a new peer, you don't need to send the commands from this method to this peer as long as your
+     * callback {@link CommandsForDomainModelCallback#commandsReady(List)} has not been called. They are incorporated
+     * automatically.
+     * 
      * @param commands The commands that need to be shared.
      */
     void sendCommands(List<Object> commands);

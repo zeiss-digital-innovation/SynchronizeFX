@@ -40,7 +40,7 @@ import javafx.beans.property.SetProperty;
 /**
  * Visits all observable objects and their fields that extend {@link Property} in a domain model.
  * 
- * The {@link Property} fields for each object are only visited once. Even if they occure multible times in the domain
+ * The {@link Property} fields for each object are only visited once. Even if they occur multiple times in the domain
  * model. This prevents endless loops.
  * 
  * Parents are visited before their childs.
@@ -65,9 +65,7 @@ abstract class PropertyVisitor {
      * @throws IllegalAccessException
      * @throws SecurityException
      */
-    // CHECKSTYLE:OFF for documenting which unchecked exception can be occur.
     PropertyVisitor(final Object object) throws IllegalArgumentException, IllegalAccessException, SecurityException {
-        // CHECKSTYLE:ON
         parent.push(new Parent(null, null, null, null));
         visit(object);
     }

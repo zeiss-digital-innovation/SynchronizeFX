@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
 import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 
@@ -100,8 +101,15 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      */
     @Override
     public void onConnect(final Object newClient) {
-        List<Object> commandsForDomainModel = meta.commandsForDomainModel();
-        networkLayer.send(commandsForDomainModel, newClient);
+        meta.commandsForDomainModel(new CommandsForDomainModelCallback() {
+            @Override
+            public void commandsReady(final List<Object> commands) {
+                networkLayer.onConnectFinished(newClient);
+                networkLayer.send(commands, newClient);
+            }
+        });
+        // TODO networkLayer onConnectFinished(); javadoc that networklayer should then enable sendToAll for new client.
+        
     }
 
     /**
