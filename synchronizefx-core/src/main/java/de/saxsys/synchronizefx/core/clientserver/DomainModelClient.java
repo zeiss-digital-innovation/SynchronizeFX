@@ -40,21 +40,21 @@ import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLayerCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(DomainModelClient.class);
-    private UserCallbackClient user;
+    private ClientCallback clientCallback;
     private MetaModel meta = new MetaModel(this);
     private MessageTransferClient networkLayer;
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
-     * @see SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, UserCallbackClient)
+     * @see SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)
      * @param networkLayer see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, UserCallbackClient)}
-     * @param listener see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, UserCallbackClient)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     * @param clientCallback see
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
      */
     // CHECKSTYLE:ON
-    public DomainModelClient(final MessageTransferClient networkLayer, final UserCallbackClient listener) {
-        this.user = listener;
+    public DomainModelClient(final MessageTransferClient networkLayer, final ClientCallback clientCallback) {
+        this.clientCallback = clientCallback;
         this.networkLayer = networkLayer;
         networkLayer.setTopologyCallback(this);
     }
@@ -77,12 +77,12 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
 
     @Override
     public void onError(final SynchronizeFXException error) {
-        user.onError(error);
+        clientCallback.onError(error);
     }
 
     @Override
     public void onServerDisconnect() {
-        user.onServerDisconnect(); 
+        clientCallback.onServerDisconnect(); 
     }
 
     @Override
@@ -90,7 +90,7 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                user.modelReady(root);
+                clientCallback.modelReady(root);
             }
         });
         meta.setDoChangesInJavaFxThread(true);
@@ -103,7 +103,7 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
         try {
             networkLayer.connect();
         } catch (SynchronizeFXException e) {
-            user.onError(e);
+            clientCallback.onError(e);
         }
     }
 

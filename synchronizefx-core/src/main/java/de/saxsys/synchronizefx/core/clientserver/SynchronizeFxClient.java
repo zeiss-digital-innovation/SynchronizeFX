@@ -44,7 +44,7 @@ public class SynchronizeFxClient {
      *            model is ready. The methods in the callback are not called before you call
      *            {@link SynchronizeFxClient#connect()}
      */
-    public SynchronizeFxClient(final MessageTransferClient networkLayer, final UserCallbackClient listener) {
+    public SynchronizeFxClient(final MessageTransferClient networkLayer, final ClientCallback listener) {
         impl = new DomainModelClient(networkLayer, listener);
     }
 
@@ -52,7 +52,7 @@ public class SynchronizeFxClient {
      * Connects to the server and requests the domain model from it.
      * 
      * When the model is transfered completly it is returned by invoking the
-     * {@link UserCallbackClient#modelReady(Object)} method on the instance supplied by the user in the constructor.
+     * {@link ClientCallback#modelReady(Object)} method on the instance supplied by the user in the constructor.
      */
     public void connect() {
         impl.connect();

@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
-import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.example.domain.Board;
 import de.saxsys.synchronizefx.example.domain.Note;
@@ -39,7 +39,7 @@ import de.saxsys.synchronizefx.example.domain.Note;
  * @author raik.bieniek
  * 
  */
-public final class Server implements UserCallbackServer {
+public final class Server implements ServerCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
 
@@ -58,7 +58,7 @@ public final class Server implements UserCallbackServer {
     }
 
     private void startSynchronizeFx() {
-        server = new SynchronizeFxBuilder().createServer(this.board, this);
+        server = SynchronizeFxBuilder.create().buildServer(this.board, this);
         server.start();
     }
 
