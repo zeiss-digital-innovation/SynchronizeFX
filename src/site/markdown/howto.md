@@ -65,7 +65,7 @@ You can than make this instance available in the network with the following code
     ...
     
     //setup the SynchronizeFX server
-    server = new SynchronizeFxBuilder().createServer(root, new UserCallbackServer() {
+    server = SynchronizeFxBuilder.create().buildServer(root, new ServerCallback() {
             @Override
     	    void onError(SynchronizeFXException error) {
     		    //Put your code to handle errors that occur after the successful startup
@@ -94,7 +94,7 @@ To access an object that was made available as described above, the following co
     ...
 
     //setup the SynchronizeFX client
-    client = new SynchronizeFxBuilder().createClient(SERVER, new UserCallbackClient() {
+    client = SynchronizeFxBuilder.create.buildClient(SERVER, new ClientCallback() {
         @Override
         public void modelReady(final Object model) {
             //Put your code that uses the remote model here.
