@@ -1,4 +1,5 @@
-#SynchronizeFX
+# ![SynchronizeFX](https://raw.github.com/saxsys/SynchronizeFX/master/src/site/resources/images/synchronizeFX_logo.png)
+
 SynchronizeFX is a library for **JavaFX 2** that enables property bindings between different JVMs, both on a local computer and over the network.
 
 It's build for applications that need realtime synchronization of the UI or other data.
