@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.core.metamodel;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import javafx.beans.property.IntegerProperty;
@@ -72,7 +73,7 @@ public class ChangeWhileConnectTest {
         root.waitingProperty.set(6);
 
         Domain child1 = new Domain();
-        // If lost updates occur, this value is not changed on the second client.
+        // If lost updates occur, this value is not changed on the second client in test case testChangeWhileWalking().
         child1.waitingProperty.set(7);
         root.list.add(child1);
 
@@ -85,27 +86,134 @@ public class ChangeWhileConnectTest {
 
         cb = new SaveParameterCallback();
         meta = new MetaModel(cb, root);
+
+        blockingProperty.waitAfterInvocationCount = 0;
+        propertyVisitorThreadShouldWakeUp = false;
+        testThreadShouldWakeUp = false;
     }
 
     /**
      * Changes the domain model while it is walked through and checks that everything is synchronized.
+     * 
+     * <p>
+     * Assume the following object graph.
+     * </p>
+     * 
+     * <pre>
+     * {@code _
+     *    (A)
+     *   /   \
+     * (B)   (C)}
+     * </pre>
+     * 
+     * <p>
+     * Assume that walker is already at C. When changes are done to B the walker won't get them as it already has
+     * visited B. This test checks if this changes are lost (which shouldn't happen).
+     * </p>
      */
-    @Test()
+    @Test
     public void testChangeWhileWalking() {
-        // simulate the situation in which updates can be lost
-        blockingProperty.waitAfterInvocationCount = 0;
-        propertyVisitorThreadShouldWakeUp = false;
-        testThreadShouldWakeUp = false;
+        final Domain child1 = root.list.get(0);
 
-        Domain child1 = root.list.get(0);
+        Thread propertyVisitorThread = startPropertyVisitorThread();
 
+        // this update may is lost
+        doInNewThread(new Runnable() {
+            @Override
+            public void run() {
+                child1.waitingProperty.set(9);
+            }
+        });
+        finishPropertyVisitorThread(propertyVisitorThread);
+
+        // check if updates are lost
+        executeCommands();
+    }
+
+    /**
+     * Makes a change the domain model (remove) while it is walked through in the part that wasn't visited yet. It then
+     * checks that this change is merged correctly so that it won't result in errors.
+     * 
+     * <p>
+     * Assume the following object graph.
+     * </p>
+     * 
+     * <pre>
+     * {@code _
+     *    (A)
+     *   /   \
+     * (B)   (C)}
+     * </pre>
+     * 
+     * <p>
+     * This test produces a change that removes C while the walker is at A. This change is safed until the walking has
+     * finished. The walker did'nt create a message to create C. If the message to remove C would be send to the client,
+     * an error would occur that an unknown object should be removed. This test checks if this happens.
+     * </p>
+     */
+    @Test
+    public void testRemoveOfObjectThatWasntCreated() {
+        final Domain child3 = new Domain();
+        root.list.add(child3);
+
+        // simulate the problem
+        Thread propertyVisitorThread = startPropertyVisitorThread();
+        doInNewThread(new Runnable() {
+            @Override
+            public void run() {
+                root.list.remove(child3);
+            }
+        });
+
+        finishPropertyVisitorThread(propertyVisitorThread);
+
+        // check if command list can be executed without errors.
+        executeCommands();
+    }
+
+    /**
+     * This list ensures that {@link ConcurrentModificationException} thrown by iterating list in the property walker
+     * that get changed by the user don't result in incorrect results.
+     */
+    @Test
+    public void testProvokeConcurentModificationExceptionByListIterateors() {
+        final Domain child3 = new Domain();
+        root.list.add(child3);
+        root.list.add(child3);
+
+        // simulate the problem
+        Thread propertyVisitorThread = startPropertyVisitorThread();
+        doInNewThread(new Runnable() {
+            @Override
+            public void run() {
+                root.list.remove(child3);
+            }
+        });
+
+        finishPropertyVisitorThread(propertyVisitorThread);
+
+        // check if command list can be executed without errors.
+        executeCommands();
+    }
+
+    /**
+     * Starts the domain model walking in a separate {@link Thread} and blocks the current {@link Thread} until
+     * {@link BlockingIntegerProperty} wakes it.
+     * 
+     * The commands created by this {@link Thread} are safed to {@link ChangeWhileConnectTest#commands}.
+     * 
+     * @return The thread with the paused property walker.
+     */
+    private Thread startPropertyVisitorThread() {
         Thread propertyVisitorThread = new Thread() {
             @Override
             public void run() {
+                Thread.currentThread().setName("PropertyVisitor Thread");
                 commands = EasyCommandsForDomainModel.commandsForDomainModel(meta);
             }
         };
         synchronized (threadWaitMonitor) {
+            Thread.currentThread().setName("Test Thread");
             propertyVisitorThread.start();
             while (!testThreadShouldWakeUp) {
                 try {
@@ -122,9 +230,16 @@ public class ChangeWhileConnectTest {
                 }
             }
         }
+        return propertyVisitorThread;
+    }
 
-        // this update may is lost
-        child1.waitingProperty.set(9);
+    /**
+     * Continues the property visitor {@link Thread} (returned by
+     * {@link ChangeWhileConnectTest#startPropertyVisitorThread()} and wait for it to finish.
+     * 
+     * @param propertyVisitorThread The property visitor {@link Thread}.
+     */
+    private void finishPropertyVisitorThread(final Thread propertyVisitorThread) {
         synchronized (threadWaitMonitor) {
             propertyVisitorThreadShouldWakeUp = true;
             threadWaitMonitor.notify();
@@ -134,8 +249,40 @@ public class ChangeWhileConnectTest {
         } catch (InterruptedException e) {
             fail("Could not wait for the PropertyVisitorThread to finish.");
         }
+    }
 
-        // check if updates are lost
+    /**
+     * Executes code in a new thread and waits until this new thread goes to sleep.
+     * 
+     * <p>
+     * The test cases in this class block the Property Walker thread until they allow it to continue. The also change
+     * property which causes the SynchronizeFX listeners to get invoked. These listeners will block the test thread
+     * until the property walking finishes. This results in a dead lock.
+     * </p>
+     * <p>
+     * Therefore this method does the property changing in a new thread and waits for until it goes to sleep. This
+     * ensures that the property value has changed bevor this method returns.
+     * </p>
+     * 
+     * @param runnable The code to execute.
+     */
+    private void doInNewThread(final Runnable runnable) {
+        Thread newThread = new Thread(runnable);
+        newThread.start();
+        while (newThread.getState() != Thread.State.WAITING) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                fail(ChangeWhileConnectTest.class.getName()
+                        + "#doInNewThread() was woken up unexpectely by an exception.");
+            }
+        }
+    }
+
+    /**
+     * Executes the generated commands and checks if the resulting domain model is identical to the original one.
+     */
+    private void executeCommands() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copyMeta = new MetaModel(copyCb);
         copyMeta.execute(commands);
@@ -216,12 +363,12 @@ public class ChangeWhileConnectTest {
                             long time = System.currentTimeMillis();
                             threadWaitMonitor.wait(WAIT_TIMEOUT);
                             if (time + WAIT_TIMEOUT < System.currentTimeMillis()) {
-                                fail("Test was not woken up by the PropertyVisitor thread as it was expected "
+                                fail("PropertyVisitor was not woken up by the test thread as expected "
                                         + "but by a timout.");
                                 break;
                             }
                         } catch (InterruptedException e) {
-                            fail("PropertyVisitor was not woken up by the test thread as expected"
+                            fail("PropertyVisitor was not woken up by the test thread as expected "
                                     + "but by an interuption.");
                             break;
                         }

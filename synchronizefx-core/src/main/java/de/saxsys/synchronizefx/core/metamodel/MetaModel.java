@@ -49,9 +49,8 @@ public class MetaModel {
     private Object root;
     private TopologyLayerCallback topology;
 
-    private List<Object> changeMessagesWhileWalking;
-    private final Object changeMessagesWhileWalkingLock = new Object();
     private final Object modelWalkingInProgressLock = new Object();
+    private boolean modelWalkingInProgress;
 
     /**
      * Creates a {@link MetaModel} where the root object of the domain model is received from another node.
@@ -223,10 +222,9 @@ public class MetaModel {
     }
 
     /**
-     * Returns an object to lock when walking through the domain model.
-     * 
-     * By requesting a lock on this object, updates on the domain model than can be avoided are avoided while the
-     * walking is in process.
+     * Returns an object to lock when using {@link MetaModel#isModelWalkingInProgress()},
+     * {@link MetaModel#setModelWalkingInProgress(boolean)} and to {@link Object#wait()} on till the walking process has
+     * finished.
      * 
      * @return the lock object
      */
@@ -235,31 +233,26 @@ public class MetaModel {
     }
 
     /**
-     * Returns an object to lock when working with the {@link MetaModel#getChangeMessagesWhileWalking()} list.
+     * Whether a model walking process is currently in progress or not.
      * 
-     * The list can't be locked itself because it can be null.
+     * Use this method only while synchronized on {@link MetaModel#getModelWalkingInProgressLock()}.
      * 
-     * @return the lock object
+     * @return {@code true} if it is is progress, {@code false if not}.
      */
-    Object getChangeMessagesWhileWalkingLock() {
-        return changeMessagesWhileWalkingLock;
+    boolean isModelWalkingInProgress() {
+        return modelWalkingInProgress;
     }
 
     /**
-     * A list with change commands that occurred while the domain model is walked through.
+     * Sets whether a model walking progress is in progress or not.
      * 
-     * @return the list or {@code null} if no walking is in progress.
+     * Use this method only while synchronized on {@link MetaModel#getModelWalkingInProgressLock()}.
+     * 
+     * @see MetaModel#isModelWalkingInProgress();
+     * @param modelWalkingInProgress the new value.
      */
-    List<Object> getChangeMessagesWhileWalking() {
-        return changeMessagesWhileWalking;
-    }
-
-    /**
-     * @see MetaModel#getChangeMessagesWhileWalking()
-     * @param changeMessagesWhileWalking the new list
-     */
-    void setChangeMessagesWhileWalking(final List<Object> changeMessagesWhileWalking) {
-        this.changeMessagesWhileWalking = changeMessagesWhileWalking;
+    void setModelWalkingInProgress(final boolean modelWalkingInProgress) {
+        this.modelWalkingInProgress = modelWalkingInProgress;
     }
 
     /**

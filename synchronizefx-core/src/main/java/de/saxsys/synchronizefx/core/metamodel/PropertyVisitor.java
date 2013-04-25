@@ -274,7 +274,8 @@ abstract class PropertyVisitor {
 
     private void handle(final Property<?> property) throws IllegalAccessException {
         if (visitSingleValueProperty(property)) {
-            visit(property.getValue());
+            Object value = property.getValue();
+            visit(value);
         }
     }
 
