@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -249,8 +250,9 @@ abstract class PropertyVisitor {
 
     private void handle(final ListProperty<?> property) throws IllegalAccessException {
         if (visitCollectionProperty(property)) {
-            for (Object child : property) {
-                visit(child);
+        	Iterator<?> it = property.listIterator();
+            while (it.hasNext()) {
+                visit(it.next());
             }
         }
     }

@@ -224,13 +224,17 @@ public class CommandListExecutor {
                 LOG.trace(command.toString());
             }
         }
+        if (list.size() >= command.getNewSize()) {
+            LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
+            return;
+        }
         final Object value;
         final UUID valueId = command.getObservableObjectId();
         if (valueId != null) {
             value = parent.getById(valueId);
             if (value == null) {
-                topology.onError(new SynchronizeFXException(
-                        "AddToList command unknown with value object id recived. " + command.getObservableObjectId()));
+                topology.onError(new SynchronizeFXException("AddToList command unknown with value object id recived. "
+                        + command.getObservableObjectId()));
                 return;
             }
         } else {
@@ -256,6 +260,11 @@ public class CommandListExecutor {
     private void execute(final RemoveFromList command) {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) parent.getById(command.getListId());
+        if (list.size() <= command.getNewSize()) {
+            LOG.warn("Preconditions to apply RemoveFromList command are not met."
+                    + "This may be OK if you've just connected.");
+            return;
+        }
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -293,8 +302,8 @@ public class CommandListExecutor {
         if (keyId != null) {
             key = parent.getById(keyId);
             if (key == null) {
-                topology.onError(new SynchronizeFXException(
-                        "PutToMap command with unknown key object id recived. " + command.getKeyObservableObjectId()));
+                topology.onError(new SynchronizeFXException("PutToMap command with unknown key object id recived. "
+                        + command.getKeyObservableObjectId()));
                 return;
             }
         } else {
@@ -306,9 +315,8 @@ public class CommandListExecutor {
         if (valueId != null) {
             value = parent.getById(valueId);
             if (value == null) {
-                topology.onError(new SynchronizeFXException(
-                        "PutToMap command with unknown value object id recived. "
-                                + command.getValueObservableObjectId()));
+                topology.onError(new SynchronizeFXException("PutToMap command with unknown value object id recived. "
+                        + command.getValueObservableObjectId()));
                 return;
             }
         } else {
@@ -338,8 +346,8 @@ public class CommandListExecutor {
                 command.getKeySimpleObjectValue() != null ? command.getKeySimpleObjectValue() : parent.getById(command
                         .getKeyObservableObjectId());
         if (key == null) {
-            topology.onError(new SynchronizeFXException(
-                    "RemoveFromMap command with unknown key object id recived. " + command.getKeySimpleObjectValue()));
+            topology.onError(new SynchronizeFXException("RemoveFromMap command with unknown key object id recived. "
+                    + command.getKeySimpleObjectValue()));
         }
         Runnable runnable = new Runnable() {
             @Override
@@ -356,7 +364,6 @@ public class CommandListExecutor {
         }
     }
 
-
     private void execute(final AddToSet command) {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) parent.getById(command.getListId());
@@ -370,8 +377,8 @@ public class CommandListExecutor {
         if (valueId != null) {
             value = parent.getById(valueId);
             if (value == null) {
-                topology.onError(new SynchronizeFXException(
-                        "AddToSet command unknown with value object id recived. " + command.getObservableObjectId()));
+                topology.onError(new SynchronizeFXException("AddToSet command unknown with value object id recived. "
+                        + command.getObservableObjectId()));
                 return;
             }
         } else {
@@ -393,7 +400,7 @@ public class CommandListExecutor {
             runnable.run();
         }
     }
-    
+
     private void execute(final RemoveFromSet command) {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) parent.getById(command.getListId());
@@ -401,8 +408,8 @@ public class CommandListExecutor {
                 command.getSimpleObjectValue() != null ? command.getSimpleObjectValue() : parent.getById(command
                         .getObservableObjectId());
         if (value == null) {
-            topology.onError(new SynchronizeFXException(
-                    "RemoveFromSet command with unknown value object id recived. " + command.getSimpleObjectValue()));
+            topology.onError(new SynchronizeFXException("RemoveFromSet command with unknown value object id recived. "
+                    + command.getSimpleObjectValue()));
         }
         Runnable runnable = new Runnable() {
             @Override

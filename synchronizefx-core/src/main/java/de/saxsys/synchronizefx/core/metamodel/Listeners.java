@@ -151,7 +151,6 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
 
     @Override
     public void changed(final ObservableValue<? extends Object> property, final Object oldValue, final Object newValue) {
-        creator.checkForConcurentModification(property);
         if (disabledFor.containsKey(property)) {
             return;
         }
@@ -165,7 +164,6 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     @Override
     public void onChanged(final ListChangeListener.Change<? extends Object> event) {
         final ObservableList<? extends Object> list = event.getList();
-        creator.checkForConcurentModification(list);
         if (disabledFor.containsKey(list)) {
             return;
         }
@@ -191,7 +189,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                 commands = new LinkedList<Object>();
                 for (int i = event.getFrom(); i < event.getTo(); i++) {
                     final Object elem = list.get(i);
-                    commands.addAll(creator.addToList(listId, i, elem));
+                    commands.addAll(creator.addToList(listId, i, elem, list.size()));
                     registerListenersOnEverything(elem);
                 }
             } else if (event.wasRemoved()) {
@@ -199,7 +197,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                     LOG.warn("BUG: A remove operation in a list change event can remove more than one items."
                             + " That case is not handled by the software");
                 }
-                commands = creator.removeFromList(listId, event.getTo());
+                commands = creator.removeFromList(listId, event.getTo(), list.size());
                 // TODO don't let distributeCommands() happen
             }
             if (commands != null) {
@@ -212,7 +210,6 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     @Override
     public void onChanged(final javafx.collections.SetChangeListener.Change<? extends Object> change) {
         ObservableSet<?> set = change.getSet();
-        creator.checkForConcurentModification(set);
         if (disabledFor.containsKey(set)) {
             return;
         }
@@ -233,7 +230,6 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     @Override
     public void onChanged(final MapChangeListener.Change<? extends Object, ? extends Object> change) {
         ObservableMap<?, ?> map = change.getMap();
-        creator.checkForConcurentModification(map);
         if (disabledFor.containsKey(map)) {
             return;
         }
@@ -277,7 +273,6 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     }
 
     private void distributeCommands(final List<Object> commands) {
-        topology.sendCommands(commands);
         synchronized (parent.getModelWalkingInProgressLock()) {
             while (parent.isModelWalkingInProgress()) {
                 try {
@@ -287,5 +282,6 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                 }
             }
         }
+        topology.sendCommands(commands);
     }
 }

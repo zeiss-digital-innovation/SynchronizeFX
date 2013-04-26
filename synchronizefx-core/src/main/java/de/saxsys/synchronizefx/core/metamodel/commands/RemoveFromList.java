@@ -30,6 +30,7 @@ import java.util.UUID;
 public class RemoveFromList {
     private UUID listId;
     private int position;
+    private int newSize;
 
     /**
      * @return The id of the list where an element should be removed.
@@ -63,8 +64,26 @@ public class RemoveFromList {
         this.position = position;
     }
 
+    /**
+     * The new size the list should have after this command has been executed on it.
+     * 
+     * @return the new size
+     */
+    public int getNewSize() {
+        return newSize;
+    }
+
+    /**
+     * @see RemoveFromList#getNewSize()
+     * @param newSize the new size
+     */
+    public void setNewSize(final int newSize) {
+        this.newSize = newSize;
+    }
+
     @Override
     public String toString() {
         return "RemoveFromList [listId=" + listId + ", position=" + position + "]";
     }
+
 }

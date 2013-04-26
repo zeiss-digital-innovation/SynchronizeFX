@@ -22,16 +22,14 @@ package de.saxsys.synchronizefx.core.metamodel;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.UUID;
 
-import javafx.beans.Observable;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
@@ -52,12 +50,6 @@ import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
  * Creates various types of commands that describe changes on the domain model.
  */
 class CommandListCreator {
-    /**
-     * Currently running command list creation states.
-     * 
-     * Only {@code synchronized} access is allowed.
-     */
-    private static final Set<State> STATES = new HashSet<>();
 
     private MetaModel parent;
 
@@ -104,28 +96,6 @@ class CommandListCreator {
     }
 
     /**
-     * Checks if any of the currently running command list creation process has already visited an observable value that
-     * has changed and therefore needs to restart.
-     * 
-     * <p>
-     * This method is thread safe. You don't need to call it from the thread that runs the property visitor.
-     * </p>
-     * 
-     * @param changedProperty The property that has changed.
-     */
-    public void checkForConcurentModification(final Observable changedProperty) {
-        synchronized (STATES) {
-            for (State state : STATES) {
-                synchronized (state.alreadyVisited) {
-                    if (state.alreadyVisited.containsKey(changedProperty)) {
-                        state.concurentModification = true;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Creates the messages necessary to set a new value for a property.
      * 
      * @param propertyId The id of the property where the new value should be set.
@@ -148,13 +118,14 @@ class CommandListCreator {
      * @param listId The ID of the list where the element should be added.
      * @param position The position in the list at which the value object should be added.
      * @param value The object that should be added to the list.
+     * @param newSize The new size the list has after this command has been executed on it.
      * @return a list with commands necessary to recreate this add to list command.
      */
-    public List<Object> addToList(final UUID listId, final int position, final Object value) {
+    public List<Object> addToList(final UUID listId, final int position, final Object value, final int newSize) {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
-                addToList(listId, position, value, state);
+                addToList(listId, position, value, newSize, state);
             }
         }, true);
         return state.commands;
@@ -200,12 +171,14 @@ class CommandListCreator {
      * 
      * @param listId The ID of the list where an element should be removed.
      * @param position The position of the element in the list which should be removed.
+     * @param newSize The size the list will have after this command has been applied.
      * @return The command list.
      */
-    public List<Object> removeFromList(final UUID listId, final int position) {
+    public List<Object> removeFromList(final UUID listId, final int position, final int newSize) {
         RemoveFromList msg = new RemoveFromList();
         msg.setListId(listId);
         msg.setPosition(position);
+        msg.setNewSize(newSize);
         List<Object> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
@@ -284,10 +257,12 @@ class CommandListCreator {
         state.commands.add(msg);
     }
 
-    private void addToList(final UUID listId, final int position, final Object value, final State state) {
+    private void addToList(final UUID listId, final int position, final Object value, final int newSize,
+            final State state) {
         AddToList msg = new AddToList();
         msg.setListId(listId);
         msg.setPosition(position);
+        msg.setNewSize(newSize);
 
         boolean isObservableObject = createObservableObject(value, state);
         if (isObservableObject) {
@@ -350,9 +325,6 @@ class CommandListCreator {
         }
 
         synchronized (state.alreadyVisited) {
-            if (state.concurentModification) {
-                throw new ConcurrentModificationException();
-            }
             if (state.alreadyVisited.containsKey(value)) {
                 return state.lastObjectWasObservable = true;
             }
@@ -370,7 +342,6 @@ class CommandListCreator {
             new PropertyVisitor(value) {
                 @Override
                 protected boolean visitSingleValueProperty(final Property<?> fieldValue) {
-                    state.alreadyVisited.put(fieldValue, null);
                     UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
                     setPropertyValue(fieldId, fieldValue.getValue(), state);
                     return false;
@@ -378,17 +349,19 @@ class CommandListCreator {
 
                 @Override
                 protected boolean visitCollectionProperty(final ListProperty<?> fieldValue) {
-                    state.alreadyVisited.put(fieldValue.get(), null);
                     UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
-                    for (Object o : fieldValue) {
-                        addToList(fieldId, fieldValue.indexOf(o), o, state);
+                    ListIterator<?> it = fieldValue.listIterator();
+                    int index = 0;
+                    while (it.hasNext()) {
+                        Object o = it.next();
+                        addToList(fieldId, index, o, index + 1, state);
+                        index++;
                     }
                     return false;
                 }
 
                 @Override
                 protected boolean visitCollectionProperty(final MapProperty<?, ?> fieldValue) {
-                    state.alreadyVisited.put(fieldValue.get(), null);
                     UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
                     for (Entry<?, ?> entry : fieldValue.entrySet()) {
                         putToMap(fieldId, entry.getKey(), entry.getValue(), state);
@@ -398,7 +371,6 @@ class CommandListCreator {
 
                 @Override
                 protected boolean visitCollectionProperty(final SetProperty<?> fieldValue) {
-                    state.alreadyVisited.put(fieldValue.get(), null);
                     UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
                     for (Object entry : fieldValue) {
                         addToSet(fieldId, entry, state);
@@ -431,23 +403,15 @@ class CommandListCreator {
 
     private State createCommandList(final WithCommandType type, final boolean skipKnown) {
         State state = new State(skipKnown);
-
-        synchronized (STATES) {
-            STATES.add(state);
-        }
-
-        state.concurentModification = true;
-        while (state.concurentModification) {
+        boolean restart= true;
+        while (restart) {
+        	restart = false;
             state.reset();
             try {
                 type.invoke(state);
             } catch (ConcurrentModificationException e) {
-                state.concurentModification = true;
+                restart = true;
             }
-        }
-
-        synchronized (STATES) {
-            STATES.remove(state);
         }
         state.commands.add(new ClearReferences());
         return state;
@@ -461,10 +425,6 @@ class CommandListCreator {
          * only {@code synchronized} access allowed.
          */
         private final Map<Object, Object> alreadyVisited = new IdentityHashMap<>();
-        /**
-         * Accesses this only in {@code synchronized} block on {@code alreadyVisited}.
-         */
-        private boolean concurentModification;
         private final List<Object> commands = new LinkedList<>();
         private final boolean skipKnown;
         /**
@@ -482,7 +442,6 @@ class CommandListCreator {
          */
         public void reset() {
             alreadyVisited.clear();
-            concurentModification = false;
             commands.clear();
             lastObjectWasObservable = false;
         }

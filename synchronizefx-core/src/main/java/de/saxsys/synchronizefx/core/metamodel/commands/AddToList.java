@@ -33,6 +33,7 @@ public class AddToList {
     private UUID observableObjectId;
     private Object simpleObjectValue;
     private int position;
+    private int newSize;
 
     /**
      * @return The id of the list where an element should be added.
@@ -90,6 +91,23 @@ public class AddToList {
         return position;
     }
 
+    /**
+     * The new size the list should have after this command has been executed on it.
+     * 
+     * @return the new size
+     */
+    public int getNewSize() {
+        return newSize;
+    }
+
+    /**
+     * @see RemoveFromList#getNewSize()
+     * @param newSize the new size
+     */
+    public void setNewSize(final int newSize) {
+        this.newSize = newSize;
+    }
+    
     /**
      * @see AddToList#getPosition()
      * @param position the position
