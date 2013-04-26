@@ -68,7 +68,8 @@ public final class Client extends Application implements ClientCallback {
     @Override
     public void start(final Stage stage) {
         stage.setTitle("Example Client");
-
+        stage.setWidth(600);
+        stage.setHeight(480);
         root = new Pane();
 
         stage.setScene(new Scene(root));
