@@ -27,6 +27,8 @@ import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -40,21 +42,25 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * A server that can send and receive objects over the network to connected clients.
  * 
  * This class is intended to be used as input for {@link SynchronizeFxServer}.
- *  
+ * 
  * @author raik.bieniek
  */
 public class NettyServer extends NettyEndPoint implements MessageTransferServer {
+    private static final Logger LOG = LoggerFactory.getLogger(NettyServer.class);
+    
     private NetworkToTopologyCallbackServer callbackServer;
     private int port;
 
@@ -90,10 +96,19 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
             public ChannelPipeline getPipeline() throws Exception {
                 return Channels.pipeline(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4),
                         new SimpleChannelUpstreamHandler() {
-
+                    
                             @Override
                             public void channelConnected(final ChannelHandlerContext ctx, final ChannelStateEvent e)
                                 throws Exception {
+                                LOG.info("A client connected");
+                                clients.add(ctx.getChannel());
+                                ctx.getChannel().getCloseFuture().addListener(new ChannelFutureListener() {
+                                    @Override
+                                    public void operationComplete(final ChannelFuture future) throws Exception {
+                                        LOG.info("A client disconnected");
+                                        clients.remove(future.getChannel());
+                                    }
+                                });
                                 callbackServer.onConnect(ctx.getChannel());
                             }
 
@@ -159,8 +174,9 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
 
     @Override
     public void shutdown() {
-        serverChannel.close().awaitUninterruptibly();
+        clients.add(serverChannel);
         clients.close().awaitUninterruptibly();
+        clients.clear();
         server.releaseExternalResources();
     }
 

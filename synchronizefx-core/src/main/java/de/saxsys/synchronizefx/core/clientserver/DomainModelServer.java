@@ -42,21 +42,21 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
 
     private MessageTransferServer networkLayer;
     private MetaModel meta;
-    private UserCallbackServer user;
+    private ServerCallback serverCallback;
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
      * @param model see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
      * @param networkLayer see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer)}
-     * @param user {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     * @param serverCallback {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
      */
-    public DomainModelServer(final Object model, final MessageTransferServer networkLayer, final UserCallbackServer user) {
+    public DomainModelServer(final Object model, final MessageTransferServer networkLayer, final ServerCallback serverCallback) {
         // CHECKSTYLE:ON
         this.networkLayer = networkLayer;
-        this.user = user;
+        this.serverCallback = serverCallback;
         this.meta = new MetaModel(this, model);
         networkLayer.setTopologyLayerCallback(this);
     }
@@ -81,12 +81,12 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
 
     @Override
     public void onError(final SynchronizeFXException error) {
-        user.onError(error);
+        serverCallback.onError(error);
     }
 
     @Override
     public void domainModelChanged(final Object root) {
-        user.onError(new SynchronizeFXException("Domain model has changed on the server side. "
+        serverCallback.onError(new SynchronizeFXException("Domain model has changed on the server side. "
                 + "This is not supported. "
                 + "If you want to serve a new domain model, consider creating an a new Server "
                 + "or create a meta root that holds the real root object of your domain model "
@@ -129,7 +129,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
 
     @Override
     public void onFatalError(final SynchronizeFXException e) {
-        user.onError(e);
+        serverCallback.onError(e);
     }
 
     /**
@@ -139,7 +139,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
         try {
             networkLayer.start();
         } catch (SynchronizeFXException e) {
-            user.onError(e);
+            serverCallback.onError(e);
         }
     }
 

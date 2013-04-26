@@ -40,12 +40,12 @@ public class SynchronizeFxServer {
      * @param model The root object of the domain model to serve.
      * @param networkLayer An object that does the network transfer and optionally the serialization of the data
      *            generated to keep models synchron.
-     * @param user Used to inform the user of this class on errors. The methods in the callback are not called before
+     * @param callback Used to inform the user of this class on errors. The methods in the callback are not called before
      *            you call {@link SynchronizeFxServer#start()}.
      */
     public SynchronizeFxServer(final Object model, final MessageTransferServer networkLayer,
-            final UserCallbackServer user) {
-        impl = new DomainModelServer(model, networkLayer, user);
+            final ServerCallback callback) {
+        impl = new DomainModelServer(model, networkLayer, callback);
     }
 
     /**

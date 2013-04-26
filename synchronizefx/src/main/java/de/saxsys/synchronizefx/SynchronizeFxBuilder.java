@@ -25,8 +25,8 @@ import com.esotericsoftware.kryo.Serializer;
 
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
-import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
-import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
+import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
 import de.saxsys.synchronizefx.netty.NettyClient;
 import de.saxsys.synchronizefx.netty.NettyServer;
@@ -44,6 +44,18 @@ public class SynchronizeFxBuilder {
 
     private int port = DEFAULT_PORT;
     private KryoSerializer serializer = new KryoSerializer();
+    
+    
+    /**
+     * Create a new Instance of this builder.
+     * @return the new instance.
+     */
+    public static SynchronizeFxBuilder create(){
+    	return new SynchronizeFxBuilder();
+    }
+    
+    private SynchronizeFxBuilder(){
+    }
 
     /**
      * Sets a custom port that differs from the default port 54263.
@@ -92,7 +104,7 @@ public class SynchronizeFxBuilder {
      *            not called before you call {@link SynchronizeFxServer#start()}.
      * @return The new server instance.
      */
-    public SynchronizeFxServer createServer(final Object model, final UserCallbackServer callback) {
+    public SynchronizeFxServer buildServer(final Object model, final ServerCallback callback) {
         NettyServer netty = new NettyServer(port, serializer);
         return new SynchronizeFxServer(model, netty, callback);
     }
@@ -110,7 +122,7 @@ public class SynchronizeFxBuilder {
      *            before you call {@link SynchronizeFxClient#connect()}.
      * @return The new client instance.
      */
-    public SynchronizeFxClient createClient(final String address, final UserCallbackClient callback) {
+    public SynchronizeFxClient buildClient(final String address, final ClientCallback callback) {
         NettyClient netty = new NettyClient(address, port, serializer);
         return new SynchronizeFxClient(netty, callback);
     }

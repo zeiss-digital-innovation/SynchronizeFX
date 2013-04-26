@@ -40,12 +40,12 @@ E.g. initializing properties the following way will do fullfill this requirement
 
 ## Maven Config
 
-To add SynchronizeFX to an Maven based project add the following to your pom.xml
+To add SynchronizeFX to a Maven based project add the following to your pom.xml
 
     <dependency>
         <groupId>de.saxsys.synchronizefx</groupId>
         <artifactId>synchronizefx</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>${currentVersion}</version>
     </dependency>
 
 You must make sure that you have added an repository which contains this artifact in the \<repositories\> section
@@ -65,7 +65,7 @@ You can than make this instance available in the network with the following code
     ...
     
     //setup the SynchronizeFX server
-    server = new SynchronizeFxBuilder().createServer(root, new UserCallbackServer() {
+    server = SynchronizeFxBuilder.create().buildServer(root, new ServerCallback() {
             @Override
     	    void onError(SynchronizeFXException error) {
     		    //Put your code to handle errors that occur after the successful startup
@@ -88,13 +88,13 @@ To access an object that was made available as described above, the following co
     //can be an IP address or a host name
     private final static String SERVER = "localhost";
     
-    private DomainModelClient client;
+    private SynchronizeFxClient client;
     private SomeDomainClass root;
     
     ...
 
     //setup the SynchronizeFX client
-    client = new SynchronizeFxBuilder().createClient(SERVER, new UserCallbackClient() {
+    client = SynchronizeFxBuilder.create.buildClient(SERVER, new ClientCallback() {
         @Override
         public void modelReady(final Object model) {
             //Put your code that uses the remote model here.
