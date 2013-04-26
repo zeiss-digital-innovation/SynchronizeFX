@@ -278,6 +278,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                 try {
                     parent.getModelWalkingInProgressLock().wait();
                 } catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
                     LOG.warn("User thread that was blocked by SynchronizeFX was woken up by an Exception.", e);
                 }
             }

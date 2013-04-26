@@ -87,6 +87,7 @@ public class CommandListExecutor {
      * @param command The command to execute.
      */
     public void execute(final Object command) {
+    	sleepUntilModelWalkerFinish();
         if (command instanceof CreateObservableObject) {
             execute((CreateObservableObject) command);
         } else if (command instanceof SetPropertyValue) {
@@ -112,7 +113,7 @@ public class CommandListExecutor {
         }
     }
 
-    private void execute(final CreateObservableObject command) {
+	private void execute(final CreateObservableObject command) {
         final Object obj;
         final Class<?> objClass;
         try {
@@ -430,4 +431,17 @@ public class CommandListExecutor {
         Object root = this.parent.getById(command.getRootElementId());
         this.parent.setRoot(root);
     }
+
+    private void sleepUntilModelWalkerFinish() {
+    	synchronized (parent.getModelWalkingInProgressLock()) {
+			while(parent.isModelWalkingInProgress()) {
+				try {
+					parent.getModelWalkingInProgressLock().wait();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					LOG.warn("User thread that was blocked by SynchronizeFX was woken up by an Exception.", e);
+				}
+			}
+		}
+	}
 }
