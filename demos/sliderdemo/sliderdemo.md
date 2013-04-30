@@ -144,7 +144,7 @@ After we have started the server we create a while loop that is waiting for the 
 
 The last step we need to do is to connect our *ClientApp* with the server and enable the synchronization of the presentation model.
 
-At first we create a member variable of our presentation model. In the *start* method we use the *SynchronizeFxBuilder to create our client of type *SynchronizeFxClient*. The builder method needs a server name as String and a *ClientCallback*. The server name can be an ip address or a DNS name or, like in our example, 'localhost'. 
+At first we create a member variable of our presentation model. In the *start* method we use the *SynchronizeFxBuilder* to create our client of type *SynchronizeFxClient*. The builder method needs a server name as String and a *ClientCallback*. The server name can be an ip address or a DNS name or, like in our example, 'localhost'. 
 
 Like the *ServerCallback* the *ClientCallback* has method to handle errors and to handle a disconnect from the server. More interesting is the *modelReady* method. This method is called when the presentation model is fully transferred from the server to the client and is ready to be used. First we need to cast it to our presentation model type and assign it to our member variable. After that we can initiate the binding of the view components to the presentation model.
 
