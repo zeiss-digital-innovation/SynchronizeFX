@@ -169,7 +169,6 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     void clientConnectionReady(final SynchronizeFXTomcatConnection connection) {
         LOG.info("Client connected.");
         callback.onConnect(connection);
-        connections.add(connection);
     }
 
     /**
@@ -209,6 +208,11 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     }
 
     // MessageTransferServer
+
+    @Override
+    public void onConnectFinished(final Object client) {
+        connections.add((SynchronizeFXTomcatConnection) client);
+    }
 
     @Override
     public void setTopologyLayerCallback(final NetworkToTopologyCallbackServer callback) {
