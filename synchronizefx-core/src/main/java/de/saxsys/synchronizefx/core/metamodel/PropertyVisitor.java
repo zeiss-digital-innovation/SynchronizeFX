@@ -62,11 +62,11 @@ abstract class PropertyVisitor {
      * Starts the visiting of an object.
      * 
      * @param object The object that's {@link Property} fields should be visited.
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     * @throws SecurityException
+     * @throws SecurityException If a {@link SecurityManager} is active and denies access to fields via reflection.
+     * @throws IllegalAccessException If access modifiers like {@code private} are enforced even when the model is
+     *             accessed via reflection.
      */
-    PropertyVisitor(final Object object) throws IllegalArgumentException, IllegalAccessException, SecurityException {
+    PropertyVisitor(final Object object) throws IllegalAccessException, SecurityException {
         parent.push(new Parent(null, null, null, null));
         visit(object);
     }
@@ -208,9 +208,9 @@ abstract class PropertyVisitor {
      * 
      * @param object The object which fields should be visited.
      * @return {@code true} when the object was a observable object, {@code false} when it was a simple object.
-     * @throws SecurityException
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
+     * @throws SecurityException If a {@link SecurityManager} is active and denies access to fields via reflection.
+     * @throws IllegalAccessException If access modifiers like {@code private} are enforced even when the model is
+     *             accessed via reflection.
      */
     private boolean visitFields(final Object object) throws IllegalAccessException {
         boolean isObservableObject = false;
@@ -250,7 +250,7 @@ abstract class PropertyVisitor {
 
     private void handle(final ListProperty<?> property) throws IllegalAccessException {
         if (visitCollectionProperty(property)) {
-        	Iterator<?> it = property.listIterator();
+            Iterator<?> it = property.listIterator();
             while (it.hasNext()) {
                 visit(it.next());
             }

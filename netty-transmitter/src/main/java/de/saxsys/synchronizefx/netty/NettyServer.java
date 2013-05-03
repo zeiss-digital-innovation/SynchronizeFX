@@ -27,23 +27,14 @@ import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
@@ -59,8 +50,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
  * @author raik.bieniek
  */
 public class NettyServer extends NettyEndPoint implements MessageTransferServer {
-    private static final Logger LOG = LoggerFactory.getLogger(NettyServer.class);
-    
+
     private NetworkToTopologyCallbackServer callbackServer;
     private int port;
 
@@ -92,43 +82,11 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
                 new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
                         Executors.newCachedThreadPool()));
 
+        final ChannelHandlerServer handler = new ChannelHandlerServer(this, callbackServer, serializer);
         server.setPipelineFactory(new ChannelPipelineFactory() {
             public ChannelPipeline getPipeline() throws Exception {
-                return Channels.pipeline(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4),
-                        new SimpleChannelUpstreamHandler() {
-                    
-                            @Override
-                            public void channelConnected(final ChannelHandlerContext ctx, final ChannelStateEvent e)
-                                throws Exception {
-                                LOG.info("A client connected");
-                                clients.add(ctx.getChannel());
-                                ctx.getChannel().getCloseFuture().addListener(new ChannelFutureListener() {
-                                    @Override
-                                    public void operationComplete(final ChannelFuture future) throws Exception {
-                                        LOG.info("A client disconnected");
-                                        clients.remove(future.getChannel());
-                                    }
-                                });
-                                callbackServer.onConnect(ctx.getChannel());
-                            }
-
-                            @Override
-                            public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent e)
-                                throws Exception {
-                                List<Object> messages =
-                                        serializer.deserialize(((ChannelBuffer) e.getMessage()).array());
-                                if (messages != null) {
-                                    callbackServer.recive(messages, ctx.getChannel());
-                                }
-                            }
-
-                            @Override
-                            public void exceptionCaught(final ChannelHandlerContext ctx, final ExceptionEvent e)
-                                throws Exception {
-                                callbackServer.onClientConnectionError(new SynchronizeFXException(e.getCause()));
-                                e.getChannel().close();
-                            }
-                        }, new LengthFieldPrepender(4));
+                return Channels.pipeline(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4), handler,
+                        new LengthFieldPrepender(4));
             }
         });
         server.setOption("child.tcpNoDelay", true);
@@ -137,12 +95,11 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
         serverChannel = server.bind(new InetSocketAddress(port));
     }
 
-
     @Override
-    public void onConnectFinished(Object client) {
+    public void onConnectFinished(final Object client) {
         clients.add((Channel) client);
     }
-    
+
     @Override
     public void sendToAll(final List<Object> messages) {
         List<Object>[] chunks = chunk(messages);
@@ -178,6 +135,15 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
         clients.close().awaitUninterruptibly();
         clients.clear();
         server.releaseExternalResources();
+    }
+
+    /**
+     * Call this when the disconnecting process of a client has finished.
+     * 
+     * @param client The client that has disconnected.
+     */
+    void clientDisconnectFinished(final Channel client) {
+        clients.remove(client);
     }
 
     private byte[] serialize(final List<Object> messages) {

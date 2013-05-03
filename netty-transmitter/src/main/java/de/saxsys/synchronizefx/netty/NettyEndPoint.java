@@ -37,7 +37,7 @@ class NettyEndPoint {
     private static final int CHUNK_SIZE = 20;
 
     /**
-     * The instance that can be used to initialize {@link Kryo}.
+     * The serializer that should be used to serialize SynchronizeFX messages.
      */
     protected final Serializer serializer;
 
@@ -54,8 +54,8 @@ class NettyEndPoint {
      * Splits a big list of messages which should be send into smaller lists of messages that can be send
      * individually.
      * 
-     * The last list in the returned array has between 0 and {@link KryoNetMessageHandler#CHUNK_SIZE} elements. All
-     * other lists have {@link KryoNetMessageHandler#CHUNK_SIZE} elements.
+     * The last list in the returned array has between 0 and {@link NettyEndPoint#CHUNK_SIZE} elements. All
+     * other lists have {@link NettyEndPoint#CHUNK_SIZE} elements.
      * 
      * @param messages the big list that be split.
      * @return the parts into which the list was split.

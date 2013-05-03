@@ -114,7 +114,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                     return false;
                 }
             };
-        } catch (IllegalArgumentException | IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             topology.onError(new SynchronizeFXException(e));
         } catch (SecurityException e) {
             topology.onError(new SynchronizeFXException(
@@ -278,7 +278,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                 try {
                     parent.getModelWalkingInProgressLock().wait();
                 } catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
+                    Thread.currentThread().interrupt();
                     LOG.warn("User thread that was blocked by SynchronizeFX was woken up by an Exception.", e);
                 }
             }

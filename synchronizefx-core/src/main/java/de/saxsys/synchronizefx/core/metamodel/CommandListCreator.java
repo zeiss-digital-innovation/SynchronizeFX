@@ -385,7 +385,7 @@ class CommandListCreator {
                     return fieldId;
                 }
             };
-        } catch (IllegalArgumentException | IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             topology.onError(new SynchronizeFXException(e));
         } catch (SecurityException e) {
             topology.onError(new SynchronizeFXException(
@@ -403,9 +403,9 @@ class CommandListCreator {
 
     private State createCommandList(final WithCommandType type, final boolean skipKnown) {
         State state = new State(skipKnown);
-        boolean restart= true;
+        boolean restart = true;
         while (restart) {
-        	restart = false;
+            restart = false;
             state.reset();
             try {
                 type.invoke(state);
