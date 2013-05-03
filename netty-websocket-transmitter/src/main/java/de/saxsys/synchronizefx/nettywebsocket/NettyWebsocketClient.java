@@ -22,7 +22,9 @@ package de.saxsys.synchronizefx.nettywebsocket;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -52,6 +54,10 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 public class NettyWebsocketClient implements MessageTransferClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(NettyWebsocketClient.class);
+    /**
+     * The timeout for connection attempts in milliseconds.
+     */
+    private static final int TIMEOUT = 10000;
 
     private Serializer serializer;
     private URI uri;
@@ -92,7 +98,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
         Bootstrap bootstrap = new Bootstrap();
         final NettyWebsocketConnection connection = new NettyWebsocketConnection(uri, this);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<SocketChannel>() {
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(final SocketChannel channel) throws Exception {
                         ChannelPipeline pipeline = channel.pipeline();
@@ -104,10 +110,19 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
         LOG.info("Connecting to server");
         try {
-            this.channel = bootstrap.connect(uri.getHost(), uri.getPort()).sync().channel();
+            ChannelFuture future = bootstrap.connect(uri.getHost(), uri.getPort());
+            if (!future.await(TIMEOUT)) {
+                disconnect();
+                throw new SynchronizeFXException("Timeout while trying to connect to the server.");
+            }
+            if (!future.isSuccess()) {
+                disconnect();
+                throw new SynchronizeFXException("Connection to the server failed.", future.cause());
+            }
+            this.channel = future.channel();
             connection.waitForHandshakeFinished();
         } catch (InterruptedException e) {
-            eventLoopGroup.shutdown();
+            disconnect();
             throw new SynchronizeFXException(e);
         }
     }
@@ -131,12 +146,14 @@ public class NettyWebsocketClient implements MessageTransferClient {
     }
 
     private void disconnect(final boolean sendCloseWebsocketFrame) {
-        if (sendCloseWebsocketFrame) {
+        if (sendCloseWebsocketFrame && channel != null) {
             channel.write(new CloseWebSocketFrame());
         }
 
         try {
-            channel.closeFuture().sync();
+            if (channel != null) {
+                channel.closeFuture().sync();
+            }
         } catch (InterruptedException e) {
             callback.onError(new SynchronizeFXException("Could not wait for the disconnect to finish.", e));
         }
@@ -174,7 +191,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
      * Call this when the server closed the connection.
      */
     void onServerDisconnect() {
-        callback.onServerDisconnect();
         disconnect(true);
+        callback.onServerDisconnect();
     }
 }
