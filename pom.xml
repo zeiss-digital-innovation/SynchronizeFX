@@ -11,11 +11,11 @@
 
 	<modules>
 		<module>synchronizefx-core</module>
-		<module>netty-transmitter</module>
-		<module>tomcat-transmitter</module>
-		<module>netty-websocket-transmitter</module>
 		<module>kryo-serializer</module>
 		<module>synchronizefx</module>
+		<module>transmitter/netty-transmitter</module>
+		<module>transmitter/tomcat-transmitter</module>
+		<module>transmitter/netty-websocket-transmitter</module>
 		<module>demos/pinboarddemo-client</module>
 		<module>demos/pinboarddemo-server</module>
 		<module>demos/sliderdemo</module>
