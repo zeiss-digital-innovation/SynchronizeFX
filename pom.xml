@@ -18,6 +18,7 @@
 		<module>synchronizefx</module>
 		<module>example-client</module>
 		<module>example-server</module>
+		<module>demos/sliderdemo</module>
 	</modules>
 
 	<developers>
