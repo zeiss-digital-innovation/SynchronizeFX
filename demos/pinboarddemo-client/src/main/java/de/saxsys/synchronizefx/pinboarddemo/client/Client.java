@@ -17,7 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.example.client;
+package de.saxsys.synchronizefx.pinboarddemo.client;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +39,9 @@ import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-import de.saxsys.synchronizefx.example.domain.Board;
-import de.saxsys.synchronizefx.example.domain.Note;
-import de.saxsys.synchronizefx.example.domain.Position2D;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Board;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Note;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Position2D;
 
 /**
  * Provides a client that shows notes on a board

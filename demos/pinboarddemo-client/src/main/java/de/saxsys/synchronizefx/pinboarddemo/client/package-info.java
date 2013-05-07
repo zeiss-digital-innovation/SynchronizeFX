@@ -18,10 +18,10 @@
  */
 
 /**
- * An example server thats purpose is to demonstrate how the SynchronizeFX framework could be used.
+ * An example client thats purpose is to demonstrate how the SynchronizeFX framework could be used.
  * 
- * This server serves a domain model for a minimalist bulletin board.
- * On server side it is possible to add new notes and remove random ones.
- * When example clients connect, they can move the notes around.
+ * The client is a minimalist bulletin board. On this board you can move notes around.
+ * To synchronize the notes of multiple clients,
+ * it needs to connect to the example server which holds the shared domain model.
  */
-package de.saxsys.synchronizefx.example.server;
+package de.saxsys.synchronizefx.pinboarddemo.client;

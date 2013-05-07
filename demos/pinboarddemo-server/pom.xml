@@ -8,18 +8,14 @@
 		<relativePath>..</relativePath>
 	</parent>
 	
-	<artifactId>example-client</artifactId>
-	<name>Example Client</name>
-	<description>Example Client for SynchronizeFX</description>
+	<artifactId>pinboarddemo-server</artifactId>
+	<name>Pinboard Demo - Server</name>
+	<description>A simple pinboard thats notes are synchronized between multiple instances with SynchronizeFX. This is the server part of the application.</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.parent.groupId}</groupId>
 			<artifactId>synchronizefx</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.parent.groupId}</groupId>
-			<artifactId>example-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.oracle</groupId>

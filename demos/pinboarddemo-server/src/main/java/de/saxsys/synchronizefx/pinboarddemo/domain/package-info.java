@@ -17,37 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.example.domain;
-
-import java.util.List;
-
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
-
 /**
- * Represents the board that contains the notes.
- * 
- * @author raik.bieniek
- *
+ * The domain model for a bulletin board that is synchronized between the example server and example client.
  */
-public class Board {
-    private ListProperty<Note> notes = new SimpleListProperty<>(FXCollections.<Note> observableArrayList());
-
-    /**
-     * 
-     * @return the notes that are currently placed on the board.
-     */
-    public List<Note> getNotes() {
-        return notes.get();
-    }
-
-    /**
-     * 
-     * @see Board#getNotes()
-     * @return the property
-     */
-    public ListProperty<Note> notesProperty() {
-        return notes;
-    }
-}
+package de.saxsys.synchronizefx.pinboarddemo.domain;

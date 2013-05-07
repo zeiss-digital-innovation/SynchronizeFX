@@ -16,8 +16,8 @@
 		<module>netty-websocket-transmitter</module>
 		<module>kryo-serializer</module>
 		<module>synchronizefx</module>
-		<module>example-client</module>
-		<module>example-server</module>
+		<module>demos/pinboarddemo-client</module>
+		<module>demos/pinboarddemo-server</module>
 		<module>demos/sliderdemo</module>
 	</modules>
 
@@ -82,12 +82,12 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>example-server</artifactId>
+				<artifactId>pinboarddemo-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>example-client</artifactId>
+				<artifactId>pinboarddemo-client</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

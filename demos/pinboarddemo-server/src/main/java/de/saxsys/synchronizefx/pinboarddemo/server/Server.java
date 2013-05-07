@@ -17,7 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.example.server;
+package de.saxsys.synchronizefx.pinboarddemo.server;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,8 +30,8 @@ import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-import de.saxsys.synchronizefx.example.domain.Board;
-import de.saxsys.synchronizefx.example.domain.Note;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Board;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Note;
 
 /**
  * A server that serves notes and their relative positions on a board to multiple clients.
