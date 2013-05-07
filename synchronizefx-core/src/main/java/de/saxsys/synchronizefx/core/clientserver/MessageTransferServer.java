@@ -55,7 +55,7 @@ import javafx.beans.property.Property;
  * </p>
  * 
  * <p>
- * This is the server side. For the client side see {@link NetworkLayerCallbackClient}.
+ * This is the server side. For the client side see {@link MessageTransferClient}.
  * </p>
  * 
  * @author raik.bieniek

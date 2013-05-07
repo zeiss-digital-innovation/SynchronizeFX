@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
-  <suppress checks="MagicNumber" files="src[\\/]test[\\/]"/>
-  <suppress checks="MultipleStringLiterals" files="src[\\/]test[\\/]"/>
-  <suppress checks="VisibilityModifier" files="src[\\/]test[\\/]"/>
-  <suppress checks="JavaNCSS" files="src[\\/]test[\\/]"/>
-  <suppress checks="ExecutableStatementCount" files="src[\\/]test[\\/]"/>
-  <suppress checks="JavadocPackage" files="src[\\/]test[\\/]"/>
-  <suppress checks="." files=".*\.png"/>
-  <suppress checks="." files=".*\.properties"/>
-  <suppress checks="." files=".*\.css"/>
-  <suppress checks="." files=".*\.jpg"/>
-  <suppress checks="." files=".*\.jpeg"/>
+	<suppress checks="MagicNumber" files="src[\\/]test[\\/]" />
+	<suppress checks="MultipleStringLiterals" files="src[\\/]test[\\/]" />
+	<suppress checks="VisibilityModifier" files="src[\\/]test[\\/]" />
+	<suppress checks="JavaNCSS" files="src[\\/]test[\\/]" />
+	<suppress checks="ExecutableStatementCount" files="src[\\/]test[\\/]" />
+	<suppress checks="JavadocPackage" files="src[\\/]test[\\/]" />
+	<!-- Don't enforce the LGPL license on demo projects. -->
+	<suppress checks="RegexpHeader" files="[\\/]demos[\\/]" />
+	<suppress checks="." files=".*\.png" />
+	<suppress checks="." files=".*\.properties" />
+	<suppress checks="." files=".*\.css" />
+	<suppress checks="." files=".*\.jpg" />
+	<suppress checks="." files=".*\.jpeg" />
 </suppressions>
