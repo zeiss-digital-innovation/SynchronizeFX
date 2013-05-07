@@ -43,9 +43,9 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
  * As the user should not be constrained to do only {@code synchronize}d changes on his domain model, it is hard to
  * ensure that the model is kept synchronous while a client is connected. That is because at the time of writing this
  * test, the messages to reproduce the current state of the domain model are produced by walking through the whole
- * domain model via reflection. This messages are than send to a connecting client. When changes on the server side are
- * done while this "walking" process is active to the part which has already been walked through, this changes are lost.
- * The purpose of this test is to reproduce this problem and show if it has been solved or not.
+ * domain model via reflection. This messages are than send to a connecting client. When changes on the server side
+ * are done while this "walking" process is active to the part which has already been walked through, this changes
+ * are lost. The purpose of this test is to reproduce this problem and show if it has been solved or not.
  * 
  */
 public class ChangeWhileConnectTest {
@@ -132,8 +132,8 @@ public class ChangeWhileConnectTest {
     }
 
     /**
-     * Makes a change the domain model (remove) while it is walked through in the part that wasn't visited yet. It then
-     * checks that this change is merged correctly so that it won't result in errors.
+     * Makes a change the domain model (remove) while it is walked through in the part that wasn't visited yet. It
+     * then checks that this change is merged correctly so that it won't result in errors.
      * 
      * <p>
      * Assume the following object graph.
@@ -147,9 +147,9 @@ public class ChangeWhileConnectTest {
      * </pre>
      * 
      * <p>
-     * This test produces a change that removes C while the walker is at A. This change is safed until the walking has
-     * finished. The walker did'nt create a message to create C. If the message to remove C would be send to the client,
-     * an error would occur that an unknown object should be removed. This test checks if this happens.
+     * This test produces a change that removes C while the walker is at A. This change is safed until the walking
+     * has finished. The walker did'nt create a message to create C. If the message to remove C would be send to the
+     * client, an error would occur that an unknown object should be removed. This test checks if this happens.
      * </p>
      */
     @Test
@@ -173,8 +173,8 @@ public class ChangeWhileConnectTest {
     }
 
     /**
-     * This list ensures that {@link ConcurrentModificationException} thrown by a list iterator in the property walker
-     * don't result in incorrect results.
+     * This list ensures that {@link ConcurrentModificationException} thrown by a list iterator in the property
+     * walker don't result in incorrect results.
      */
     @Test
     public void testProvokeConcurentModificationExceptionByListIterateors() {
@@ -198,7 +198,8 @@ public class ChangeWhileConnectTest {
     }
 
     /**
-     * Tests if changes that occurred after the property walking has finished but before the commands are send are lost.
+     * Tests if changes that occurred after the property walking has finished but before the commands are send are
+     * lost.
      */
     @Test
     public void testSynchronizeChangesAfterWalkingBeforeSending() {
@@ -318,8 +319,7 @@ public class ChangeWhileConnectTest {
      * Continues the property visitor {@link Thread} (returned by
      * {@link ChangeWhileConnectTest#startPropertyVisitorThread()} and wait for it to finish.
      * 
-     * @param propertyVisitorThread
-     *            The property visitor {@link Thread}.
+     * @param propertyVisitorThread The property visitor {@link Thread}.
      */
     private void finishPropertyVisitorThread(final Thread propertyVisitorThread) {
         synchronized (threadWaitMonitor) {
@@ -328,6 +328,9 @@ public class ChangeWhileConnectTest {
         }
         try {
             propertyVisitorThread.join();
+            // FIXME after the property visitor has finished, the threads that are waiting for this event need to
+            // finish too. Sometimes this happens before the rest of the test logic is executed. In this case the
+            // test pass. Sometimes it doesn't. In this case the tests fail.
         } catch (InterruptedException e) {
             fail("Could not wait for the PropertyVisitorThread to finish.");
         }
@@ -343,11 +346,10 @@ public class ChangeWhileConnectTest {
      * </p>
      * <p>
      * Therefore this method does the property changing in a new thread and waits for until it goes to sleep. This
-     * ensures that the property value has changed bevor this method returns.
+     * ensures that the property value has changed befor this method returns.
      * </p>
      * 
-     * @param runnable
-     *            The code to execute.
+     * @param runnable The code to execute.
      */
     private void doInNewThread(final Runnable runnable) {
         Thread newThread = new Thread(runnable);
@@ -365,8 +367,8 @@ public class ChangeWhileConnectTest {
     /**
      * Executes the generated commands and checks if the resulting domain model is identical to the original one.
      * 
-     * @param additionalCommands
-     *            additional commands that should be executed on the copy model. This can be {@code null}.
+     * @param additionalCommands additional commands that should be executed on the copy model. This can be
+     *            {@code null}.
      */
     private void executeCommands(final List<Object> additionalCommands) {
         SaveParameterCallback copyCb = new SaveParameterCallback();
@@ -438,8 +440,8 @@ public class ChangeWhileConnectTest {
         private int waitAfterInvocationCount;
 
         /**
-         * Blocks the thread that is executing this method when {@link ChangeWhileConnectTest#waitAfterInvocationCount}
-         * reaches 0.
+         * Blocks the thread that is executing this method when
+         * {@link ChangeWhileConnectTest#waitAfterInvocationCount} reaches 0.
          * 
          * Each invocation decreases {@link ChangeWhileConnectTest#waitAfterInvocationCount} by 1.
          */
