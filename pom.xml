@@ -58,37 +58,37 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>netty-transmitter</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>tomcat-transmitter</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>kryo-serializer</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>synchronizefx-core</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>synchronizefx</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>pinboarddemo-server</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>pinboarddemo-client</artifactId>
-				<version>${project.version}</version>
+				<version>${project.parent.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.oracle</groupId>
