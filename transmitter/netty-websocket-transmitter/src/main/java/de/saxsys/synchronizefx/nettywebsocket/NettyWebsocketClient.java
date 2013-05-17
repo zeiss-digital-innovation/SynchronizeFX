@@ -21,7 +21,9 @@ package de.saxsys.synchronizefx.nettywebsocket;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -98,6 +100,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
         Bootstrap bootstrap = new Bootstrap();
         final NettyWebsocketConnection connection = new NettyWebsocketConnection(uri, this);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(final SocketChannel channel) throws Exception {
