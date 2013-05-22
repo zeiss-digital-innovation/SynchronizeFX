@@ -23,7 +23,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -36,9 +35,11 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.timeout.IdleStateHandler;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,10 @@ public class NettyWebsocketClient implements MessageTransferClient {
      * The timeout for connection attempts in milliseconds.
      */
     private static final int TIMEOUT = 10000;
+    /**
+     * If no data was received from the server in this time (in milliseconds) a Ping Frame is send as keep alive.
+     */
+    private static final int KEEP_ALIVE = 20000;
 
     private Serializer serializer;
     private URI uri;
@@ -105,6 +110,8 @@ public class NettyWebsocketClient implements MessageTransferClient {
                     @Override
                     public void initChannel(final SocketChannel channel) throws Exception {
                         ChannelPipeline pipeline = channel.pipeline();
+                        pipeline.addLast("keep-alive-activator", new IdleStateHandler(KEEP_ALIVE, 0, 0,
+                                TimeUnit.MILLISECONDS));
                         pipeline.addLast("http-codec", new HttpClientCodec());
                         pipeline.addLast("aggregator", new HttpObjectAggregator(8192));
                         pipeline.addLast("ws-handler", connection);

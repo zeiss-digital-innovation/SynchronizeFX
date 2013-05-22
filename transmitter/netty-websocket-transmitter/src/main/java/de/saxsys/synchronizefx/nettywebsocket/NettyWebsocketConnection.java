@@ -27,11 +27,12 @@ import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import io.netty.handler.timeout.IdleStateEvent;
 
 import java.net.URI;
 import java.util.LinkedList;
@@ -106,8 +107,6 @@ class NettyWebsocketConnection extends ChannelInboundMessageHandlerAdapter<Objec
             parent.onServerDisconnect();
         } else if (msg instanceof TextWebSocketFrame) {
             LOG.warn("Recieved a Websocket text frame. This was not expected. Ignoring it.");
-        } else if (msg instanceof PongWebSocketFrame) {
-            LOG.warn("Recieved a Websocket Pong frame. This was not expected. Ignoring it.");
         }
     }
 
@@ -142,5 +141,16 @@ class NettyWebsocketConnection extends ChannelInboundMessageHandlerAdapter<Objec
 
         ctx.close();
         parent.onError(cause);
+    }
+
+    @Override
+    public void userEventTriggered(final ChannelHandlerContext ctx, final Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            if (wsHandshaker.isHandshakeComplete()) {
+                ctx.write(new PingWebSocketFrame());
+            }
+        } else {
+            super.userEventTriggered(ctx, evt);
+        }
     }
 }
