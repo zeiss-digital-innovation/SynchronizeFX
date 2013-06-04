@@ -25,7 +25,7 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 /**
  * Mandatory step to set the callback for the client.
  */
-interface ClientCallbackStep {
+public interface ClientCallbackStep {
 
     /**
      * @param callback As the SynchronizeFx framework works asynchronously, you must provide this callback instance

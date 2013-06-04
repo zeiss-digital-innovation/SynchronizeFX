@@ -22,7 +22,7 @@ package de.saxsys.synchronizefx;
 /**
  * Mandatory Step to set the model for the server.
  */
-interface ServerModelStep {
+public interface ServerModelStep {
 
     /**
      * @param model The root object of the domain model that should be used.

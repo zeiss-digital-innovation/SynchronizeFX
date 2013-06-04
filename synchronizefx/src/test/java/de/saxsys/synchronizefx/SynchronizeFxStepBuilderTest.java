@@ -33,7 +33,7 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 
 /**
- * This test is used to demonstrate the use of the {@link SynchronizeFxStepBuilder}.
+ * This test is used to demonstrate the use of the {@link SynchronizeFxBuilder}.
  * 
  */
 public class SynchronizeFxStepBuilderTest {
@@ -68,7 +68,8 @@ public class SynchronizeFxStepBuilderTest {
      */
     @Test
     public void testSimplestPossibleClient() {
-        final SynchronizeFxClient client = SynchronizeFxStepBuilder.create().client().callback(clientCallback).build();
+        final SynchronizeFxClient client =
+                SynchronizeFxBuilder.create().client().address("localhost").callback(clientCallback).build();
         Assert.assertNotNull(client);
     }
 
@@ -78,7 +79,7 @@ public class SynchronizeFxStepBuilderTest {
     @Test
     public void testClientWithAllPossibleValues() {
         final SynchronizeFxClient client =
-                SynchronizeFxStepBuilder.create().client().callback(clientCallback).server("192.168.0.1").port(16789)
+                SynchronizeFxBuilder.create().client().address("192.168.0.1").callback(clientCallback).port(16789)
                         .customSerializer(Double.class, doubleSerializer)
                         .customSerializer(Integer.class, integerSerializer).build();
         Assert.assertNotNull(client);
@@ -90,7 +91,7 @@ public class SynchronizeFxStepBuilderTest {
     @Test
     public void testSimplestPossibleServer() {
         final SynchronizeFxServer server =
-                SynchronizeFxStepBuilder.create().server().model(modelObject).callback(serverCallback).build();
+                SynchronizeFxBuilder.create().server().model(modelObject).callback(serverCallback).build();
         Assert.assertNotNull(server);
     }
 
@@ -100,7 +101,7 @@ public class SynchronizeFxStepBuilderTest {
     @Test
     public void testServerWithAllPossibleValues() {
         final SynchronizeFxServer server =
-                SynchronizeFxStepBuilder.create().server().model(modelObject).callback(serverCallback)
+                SynchronizeFxBuilder.create().server().model(modelObject).callback(serverCallback)
                         .customSerializer(Double.class, doubleSerializer).port(16789)
                         .customSerializer(Integer.class, integerSerializer).build();
         Assert.assertNotNull(server);

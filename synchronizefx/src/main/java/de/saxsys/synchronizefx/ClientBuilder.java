@@ -29,13 +29,25 @@ import de.saxsys.synchronizefx.netty.NettyClient;
 /**
  * The Builder implementation for the Client.
  */
-class ClientBuilder implements ClientCallbackStep, OptionalClientStep {
+class ClientBuilder implements ClientCallbackStep, OptionalClientStep, ClientAddressStep {
     private static final int DEFAULT_PORT = 54263;
 
     private int port = DEFAULT_PORT;
     private String address = "localhost";
     private final KryoSerializer serializer = new KryoSerializer();
     private ClientCallback callback;
+
+
+    @Override
+    public ClientCallbackStep address(final String address) {
+        this.address = address;
+        return this;
+    }
+    @Override
+    public OptionalClientStep callback(final ClientCallback callback) {
+        this.callback = callback;
+        return this;
+    }
 
     @Override
     public OptionalClientStep port(final int port) {
@@ -46,18 +58,6 @@ class ClientBuilder implements ClientCallbackStep, OptionalClientStep {
     @Override
     public <T> OptionalClientStep customSerializer(final Class<T> clazz, final Serializer<T> serializer) {
         this.serializer.registerSerializableClass(clazz, serializer);
-        return this;
-    }
-
-    @Override
-    public OptionalClientStep server(final String address) {
-        this.address = address;
-        return this;
-    }
-
-    @Override
-    public OptionalClientStep callback(final ClientCallback callback) {
-        this.callback = callback;
         return this;
     }
 

@@ -26,8 +26,7 @@ public class ClientApp extends Application {
     /**
      * Main entry point for the client application.
      * 
-     * @param args
-     *            CLI arguments.
+     * @param args CLI arguments.
      */
     public static void main(final String... args) {
         Application.launch(args);
@@ -39,27 +38,24 @@ public class ClientApp extends Application {
         final View view = new View();
         stage.setScene(new Scene(view, 400, 200));
 
-        client = SynchronizeFxBuilder.create().buildClient(SERVER,
-                new ClientCallback() {
-                    @Override
-                    public void modelReady(final Object object) {
-                        model = (Model) object;
+        client = SynchronizeFxBuilder.create().client().address(SERVER).callback(new ClientCallback() {
+            @Override
+            public void modelReady(final Object object) {
+                model = (Model) object;
 
-                        view.sliderValue().bindBidirectional(
-                                model.sliderValueProperty());
-                    }
+                view.sliderValue().bindBidirectional(model.sliderValueProperty());
+            }
 
-                    @Override
-                    public void onError(final SynchronizeFXException exception) {
-                        System.out.println("Client Error: "
-                                + exception.getLocalizedMessage());
-                    }
+            @Override
+            public void onError(final SynchronizeFXException exception) {
+                System.out.println("Client Error: " + exception.getLocalizedMessage());
+            }
 
-                    @Override
-                    public void onServerDisconnect() {
-                        System.out.println("Server disconnected");
-                    }
-                });
+            @Override
+            public void onServerDisconnect() {
+                System.out.println("Server disconnected");
+            }
+        }).build();
 
         client.connect();
 

@@ -25,7 +25,7 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 /**
  * The initial step to choose whether to create a server or a client instance.
  */
-interface InitialStep {
+public interface InitialStep {
 
     /**
      * Creates a Builder to create a {@link SynchronizeFxServer}.
@@ -39,5 +39,5 @@ interface InitialStep {
      * 
      * @return The builder to provide a fluent API.
      */
-    ClientCallbackStep client();
+    ClientAddressStep client();
 }

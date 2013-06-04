@@ -24,7 +24,7 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 /**
  * Optional Steps for the server and the final build step.
  */
-interface OptionalServerStep extends OptionalStep<OptionalServerStep> {
+public interface OptionalServerStep extends OptionalStep<OptionalServerStep> {
 
     /**
      * Creates a server instance for serving a domain model.

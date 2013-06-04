@@ -28,7 +28,7 @@ import com.esotericsoftware.kryo.Serializer;
  * 
  * @param <K> The return type for the step methods. This has to be the extending interface itself.
  */
-interface OptionalStep<K> {
+public interface OptionalStep<K> {
 
     /**
      * Sets a custom port that differs from the default port 54263.
