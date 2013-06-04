@@ -46,8 +46,8 @@ import de.saxsys.synchronizefx.pinboarddemo.domain.Position2D;
 /**
  * Provides a client that shows notes on a board
  * 
- * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs see
- * the movement of the notes live.
+ * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs
+ * see the movement of the notes live.
  * 
  * @author raik.bieniek
  * 
@@ -86,7 +86,7 @@ public final class Client extends Application implements ClientCallback {
     }
 
     private void startSynchronizeFx() {
-        client = SynchronizeFxBuilder.create().buildClient(SERVER, this);
+        client = SynchronizeFxBuilder.create().client().address(SERVER).callback(this).build();
         client.connect();
     }
 

@@ -19,39 +19,20 @@
 
 package de.saxsys.synchronizefx;
 
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+
 /**
- * This is a Step Builder Pattern implementation to create client and server instances for SynchronizeFX.
- * 
- * @author manuel.mauky
- * 
+ * Optional Steps for the server and the final build step.
  */
-public final class SynchronizeFxBuilder {
-    private SynchronizeFxBuilder() {
-    }
+public interface OptionalServerStep extends OptionalStep<OptionalServerStep> {
 
     /**
-     * Initial step to create the builder instance.
+     * Creates a server instance for serving a domain model.
      * 
-     * @return the builder.
-     */
-    public static InitialStep create() {
-        return new Builder();
-    }
-
-    /**
-     * The default implementation of {@link InitialStep}.
+     * The returned server is not automatically started yet. You have call You have to call
+     * {@link SynchronizeFxServer#start()} to actually start it.
      * 
-     * @see InitialStep
+     * @return The new server instance.
      */
-    private static class Builder implements InitialStep {
-        @Override
-        public ServerModelStep server() {
-            return new ServerBuilder();
-        }
-
-        @Override
-        public ClientAddressStep client() {
-            return new ClientBuilder();
-        }
-    }
+    SynchronizeFxServer build();
 }

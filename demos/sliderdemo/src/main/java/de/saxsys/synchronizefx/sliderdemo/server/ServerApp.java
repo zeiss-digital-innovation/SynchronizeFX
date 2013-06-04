@@ -21,23 +21,21 @@ public final class ServerApp {
     /**
      * The main entry point to the server application.
      * 
-     * @param args
-     *            the CLI arguments.
+     * @param args the CLI arguments.
      */
     public static void main(final String... args) {
         System.out.println("starting server");
         final Model model = new Model();
 
-        final SynchronizeFxServer syncFxServer = SynchronizeFxBuilder.create()
-                .buildServer(model, new ServerCallback() {
+        final SynchronizeFxServer syncFxServer =
+                SynchronizeFxBuilder.create().server().model(model).callback(new ServerCallback() {
 
                     @Override
                     public void onError(final SynchronizeFXException exception) {
-                        System.out.println("Server Error:"
-                                + exception.getLocalizedMessage());
+                        System.out.println("Server Error:" + exception.getLocalizedMessage());
                     }
 
-                });
+                }).build();
 
         syncFxServer.start();
 

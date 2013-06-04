@@ -19,39 +19,19 @@
 
 package de.saxsys.synchronizefx;
 
+import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+
 /**
- * This is a Step Builder Pattern implementation to create client and server instances for SynchronizeFX.
- * 
- * @author manuel.mauky
- * 
+ * Mandatory Step to set the callback for the server.
  */
-public final class SynchronizeFxBuilder {
-    private SynchronizeFxBuilder() {
-    }
+public interface ServerCallbackStep {
 
     /**
-     * Initial step to create the builder instance.
-     * 
-     * @return the builder.
+     * @param callback As the SynchronizeFx framework works asynchronously, you must provide this callback instance
+     *            for the framework to be able to inform you of errors than occurred. The methods in the callback are
+     *            not called before you call {@link SynchronizeFxServer#start()}.
+     * @return The builder to provide a fluent API.
      */
-    public static InitialStep create() {
-        return new Builder();
-    }
-
-    /**
-     * The default implementation of {@link InitialStep}.
-     * 
-     * @see InitialStep
-     */
-    private static class Builder implements InitialStep {
-        @Override
-        public ServerModelStep server() {
-            return new ServerBuilder();
-        }
-
-        @Override
-        public ClientAddressStep client() {
-            return new ClientBuilder();
-        }
-    }
+    OptionalServerStep callback(ServerCallback callback);
 }

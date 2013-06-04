@@ -53,12 +53,12 @@ public final class Server implements ServerCallback {
         startSynchronizeFx();
 
         shutdownServerOnExit();
-        
+
         userInputLoop();
     }
 
     private void startSynchronizeFx() {
-        server = SynchronizeFxBuilder.create().buildServer(this.board, this);
+        server = SynchronizeFxBuilder.create().server().model(this.board).callback(this).build();
         server.start();
     }
 

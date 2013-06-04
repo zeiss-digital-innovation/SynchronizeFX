@@ -20,38 +20,13 @@
 package de.saxsys.synchronizefx;
 
 /**
- * This is a Step Builder Pattern implementation to create client and server instances for SynchronizeFX.
- * 
- * @author manuel.mauky
- * 
+ * Mandatory Step to set the model for the server.
  */
-public final class SynchronizeFxBuilder {
-    private SynchronizeFxBuilder() {
-    }
+public interface ServerModelStep {
 
     /**
-     * Initial step to create the builder instance.
-     * 
-     * @return the builder.
+     * @param model The root object of the domain model that should be used.
+     * @return The builder to provide a fluent API.
      */
-    public static InitialStep create() {
-        return new Builder();
-    }
-
-    /**
-     * The default implementation of {@link InitialStep}.
-     * 
-     * @see InitialStep
-     */
-    private static class Builder implements InitialStep {
-        @Override
-        public ServerModelStep server() {
-            return new ServerBuilder();
-        }
-
-        @Override
-        public ClientAddressStep client() {
-            return new ClientBuilder();
-        }
-    }
+    ServerCallbackStep model(Object model);
 }
