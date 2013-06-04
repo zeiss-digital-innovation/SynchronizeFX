@@ -35,8 +35,8 @@ import de.saxsys.synchronizefx.netty.NettyServer;
  * Creates {@link SynchronizeFxClient} and {@link SynchronizeFxServer} instances with the default implementations for
  * the network and the serialization layer.
  * 
- * This class simplifies the creation by hiding implementation specific classes for the network and serialization layer
- * from the user.
+ * This class simplifies the creation by hiding implementation specific classes for the network and serialization
+ * layer from the user.
  */
 public final class SynchronizeFxBuilder {
 
@@ -47,7 +47,7 @@ public final class SynchronizeFxBuilder {
 
     private SynchronizeFxBuilder() {
     }
-    
+
     /**
      * Create a new Instance of this builder.
      * 
@@ -56,7 +56,6 @@ public final class SynchronizeFxBuilder {
     public static SynchronizeFxBuilder create() {
         return new SynchronizeFxBuilder();
     }
-
 
     /**
      * Sets a custom port that differs from the default port 54263.
@@ -74,9 +73,9 @@ public final class SynchronizeFxBuilder {
      * 
      * <p>
      * Internally Kryo is used for the serialization and deserialization of objects. You do not need to register
-     * serializers for every class you use in your domain model but in some cases this is desirable. Registering custom
-     * serializers can be necessary when you use classes without a No-Arg constructor or to increase the performance and
-     * decrease the network usage.
+     * serializers for every class you use in your domain model but in some cases this is desirable. Registering
+     * custom serializers can be necessary when you use classes without a No-Arg constructor or to increase the
+     * performance and decrease the network usage.
      * </p>
      * 
      * <p>
@@ -100,9 +99,9 @@ public final class SynchronizeFxBuilder {
      * {@link SynchronizeFxServer#start()} to actually start it.
      * 
      * @param model The root object of the domain model that should be used.
-     * @param callback As the SynchronizeFx framework works asynchronously, you must provide this callback instance for
-     *            the framework to be able to inform you of errors than occurred. The methods in the callback are not
-     *            called before you call {@link SynchronizeFxServer#start()}.
+     * @param callback As the SynchronizeFx framework works asynchronously, you must provide this callback instance
+     *            for the framework to be able to inform you of errors than occurred. The methods in the callback are
+     *            not called before you call {@link SynchronizeFxServer#start()}.
      * @return The new server instance.
      */
     public SynchronizeFxServer buildServer(final Object model, final ServerCallback callback) {
@@ -113,14 +112,14 @@ public final class SynchronizeFxBuilder {
     /**
      * Creates a client instance to request a domain model from a server.
      * 
-     * The returned client does not automatically connect. You have to call {@link SynchronizeFxClient#connect()} to do
-     * so.
+     * The returned client does not automatically connect. You have to call {@link SynchronizeFxClient#connect()} to
+     * do so.
      * 
      * @param address The server address to connect to. This can be a DNS name or an IP address.
-     * @param callback As the SynchronizeFx framework works asynchronously, you must provide this callback instance for
-     *            the framework to be able to inform you when the initial transfer of the domain model from the server
-     *            has completed and of errors that have occurred. The methods in the callback are not called before you
-     *            call {@link SynchronizeFxClient#connect()}.
+     * @param callback As the SynchronizeFx framework works asynchronously, you must provide this callback instance
+     *            for the framework to be able to inform you when the initial transfer of the domain model from the
+     *            server has completed and of errors that have occurred. The methods in the callback are not called
+     *            before you call {@link SynchronizeFxClient#connect()}.
      * @return The new client instance.
      */
     public SynchronizeFxClient buildClient(final String address, final ClientCallback callback) {
