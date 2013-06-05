@@ -81,7 +81,7 @@ class NettyWebsocketConnection extends ChannelInboundMessageHandlerAdapter<Objec
     }
 
     @Override
-    public void beforeAdd(final ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(final ChannelHandlerContext ctx) throws Exception {
         wsHandshakeFuture = ctx.newPromise();
     }
 
@@ -112,7 +112,7 @@ class NettyWebsocketConnection extends ChannelInboundMessageHandlerAdapter<Objec
     }
 
     private void handleFrame(final BinaryWebSocketFrame msg) {
-        fragments.add(msg.data());
+        fragments.add(msg.content());
 
         if (!msg.isFinalFragment()) {
             return;
@@ -136,8 +136,6 @@ class NettyWebsocketConnection extends ChannelInboundMessageHandlerAdapter<Objec
 
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
-        cause.printStackTrace();
-
         if (!wsHandshakeFuture.isDone()) {
             wsHandshakeFuture.setFailure(cause);
         }

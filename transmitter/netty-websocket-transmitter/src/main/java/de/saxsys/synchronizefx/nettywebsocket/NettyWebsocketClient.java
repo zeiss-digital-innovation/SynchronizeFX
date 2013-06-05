@@ -47,8 +47,8 @@ import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
- * A client side transmitter implementation for SynchronizeFX that uses Netty and transferes messages over
- * websockets.
+ * A client side transmitter implementation for SynchronizeFX that uses Netty and transfers messages over
+ * WebSockets.
  * 
  */
 public class NettyWebsocketClient implements MessageTransferClient {
@@ -70,7 +70,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
     /**
      * Initializes the transmitter.
      * 
-     * @param uri The URI for the server to connect to. This must start with "ws:" as the protocol. Websockets over
+     * @param uri The URI for the server to connect to. This must start with "ws:" as the protocol. WebSockets over
      *            HTTPS ("wss:") are not supported at the moment.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      */
@@ -152,18 +152,19 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
         try {
             if (channel != null) {
+                channel.close();
                 channel.closeFuture().sync();
             }
         } catch (InterruptedException e) {
             callback.onError(new SynchronizeFXException("Could not wait for the disconnect to finish.", e));
         }
-        eventLoopGroup.shutdown();
+        eventLoopGroup.shutdownGracefully();
     }
 
     /**
-     * Call this when messages where recieved from the server.
+     * Call this when messages where received from the server.
      * 
-     * @param msg The messages striped of all Websocket Overhead.
+     * @param msg The messages striped of all WebSocket Overhead.
      */
     void onMessageRecived(final byte[] msg) {
         List<Object> deserialized;

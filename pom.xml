@@ -124,7 +124,7 @@
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
 				<!--Websockt Clients are not supported in 3.x -->
-				<version>4.0.0.CR1</version>
+				<version>4.0.0.CR3</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-collections</groupId>
