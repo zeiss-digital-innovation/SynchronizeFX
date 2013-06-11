@@ -60,7 +60,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
 
     private final MetaModel parent;
     private final CommandListCreator creator;
-    private TopologyLayerCallback topology;
+    private final TopologyLayerCallback topology;
 
     private final WeakChangeListener<Object> propertyListener = new WeakChangeListener<>(this);
     private final WeakListChangeListener<Object> listListener = new WeakListChangeListener<>(this);
@@ -114,9 +114,9 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                     return false;
                 }
             };
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             topology.onError(new SynchronizeFXException(e));
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             topology.onError(new SynchronizeFXException(
                     "Maybe you're JVM doesn't allow reflection for this application?", e));
         }
@@ -189,8 +189,13 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                 commands = new LinkedList<Object>();
                 for (int i = event.getFrom(); i < event.getTo(); i++) {
                     final Object elem = list.get(i);
+                    final UUID id = parent.getId(elem);
                     commands.addAll(creator.addToList(listId, i, elem, list.size()));
-                    registerListenersOnEverything(elem);
+                    // if getId() is null, then newValue is unknown to the meta model and therefore listeners need to
+                    // be registered on it.
+                    if (elem != null && id == null) {
+                        registerListenersOnEverything(elem);
+                    }
                 }
             } else if (event.wasRemoved()) {
                 if (event.getFrom() != event.getTo()) {
@@ -209,7 +214,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
 
     @Override
     public void onChanged(final javafx.collections.SetChangeListener.Change<? extends Object> change) {
-        ObservableSet<?> set = change.getSet();
+        final ObservableSet<?> set = change.getSet();
         if (disabledFor.containsKey(set)) {
             return;
         }
@@ -217,11 +222,11 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
 
         List<Object> commands = null;
         if (change.wasAdded()) {
-            Object value = change.getElementAdded();
+            final Object value = change.getElementAdded();
             commands = creator.addToSet(setId, value);
             registerListenersOnEverything(value);
         } else {
-            Object value = change.getElementRemoved();
+            final Object value = change.getElementRemoved();
             commands = creator.removeFromSet(setId, value);
         }
         distributeCommands(commands);
@@ -229,15 +234,15 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
 
     @Override
     public void onChanged(final MapChangeListener.Change<? extends Object, ? extends Object> change) {
-        ObservableMap<?, ?> map = change.getMap();
+        final ObservableMap<?, ?> map = change.getMap();
         if (disabledFor.containsKey(map)) {
             return;
         }
         final UUID mapId = parent.getId(map);
-        Object key = change.getKey();
+        final Object key = change.getKey();
         if (change.wasAdded()) {
-            Object value = change.getValueAdded();
-            List<Object> commands = creator.putToMap(mapId, key, value);
+            final Object value = change.getValueAdded();
+            final List<Object> commands = creator.putToMap(mapId, key, value);
             registerListenersOnEverything(key);
             if (value != null) {
                 registerListenersOnEverything(value);
@@ -252,9 +257,9 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Prevents the listeners of this object to be executed for a specific object.
      * 
-     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners wouldn't
-     * be disabled in this case, they would generate change messages which than would be send amongst others to the
-     * client that generated the changes in the first place. The result would be an endless loop.
+     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners
+     * wouldn't be disabled in this case, they would generate change messages which than would be send amongst others
+     * to the client that generated the changes in the first place. The result would be an endless loop.
      * 
      * @param value The object for which the listeners should be disabled.
      */
@@ -277,7 +282,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
             while (parent.isModelWalkingInProgress()) {
                 try {
                     parent.getModelWalkingInProgressLock().wait();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     Thread.currentThread().interrupt();
                     LOG.warn("User thread that was blocked by SynchronizeFX was woken up by an Exception.", e);
                 }
