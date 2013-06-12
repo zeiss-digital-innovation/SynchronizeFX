@@ -89,27 +89,32 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
      */
     public void registerListenersOnEverything(final Object object) {
         try {
+            // the removeListener() call ensures that the listener is not added more than once
             new PropertyVisitor(object) {
                 @Override
                 protected boolean visitSingleValueProperty(final Property<?> fieldValue) {
+                    fieldValue.removeListener(propertyListener);
                     fieldValue.addListener(propertyListener);
                     return true;
                 }
 
                 @Override
                 protected boolean visitCollectionProperty(final ListProperty<?> fieldValue) {
+                    fieldValue.removeListener(listListener);
                     fieldValue.addListener(listListener);
                     return true;
                 }
 
                 @Override
                 protected boolean visitCollectionProperty(final MapProperty<?, ?> fieldValue) {
+                    fieldValue.removeListener(mapListener);
                     fieldValue.addListener(mapListener);
                     return true;
                 }
 
                 @Override
                 protected boolean visitCollectionProperty(final SetProperty<?> fieldValue) {
+                    fieldValue.removeListener(setListener);
                     fieldValue.addListener(setListener);
                     return false;
                 }

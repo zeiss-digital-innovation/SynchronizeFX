@@ -1,6 +1,7 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.LinkedList;
@@ -53,7 +54,7 @@ public class MultipleListenersAreAddedForMovedObjects {
      */
     @SuppressWarnings("deprecation")
     @Test
-    public void demonstrateSomeBug() {
+    public void moveTaskToNewlyCreatedStory() {
         final Task taskA = new Task();
         taskA.setName("taskA");
 
@@ -92,6 +93,45 @@ public class MultipleListenersAreAddedForMovedObjects {
         originalCb.commands.clear();
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void moveExistingStoryToNewSprintAndCreateNewTask() {
+        final Sprint sprintA = new Sprint();
+        final Story storyA = new Story();
+        sprintA.getStories().add(storyA);
+
+        originalDomainModel.getSprints().add(sprintA);
+        assertEquals(0, copyDomainModel.getSprints().size());
+
+        copyMeta.execute(originalCb.commands);
+        originalCb.commands.clear();
+        assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
+
+        final Sprint sprintB = new Sprint();
+        originalDomainModel.getSprints().add(sprintB);
+
+        copyMeta.execute(originalCb.commands);
+        originalCb.commands.clear();
+        assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
+
+        final Story copyStoryA = copyDomainModel.getSprints().get(0).getStories().get(0);
+        sprintB.getStories().add(sprintA.getStories().remove(0));
+        assertEquals(3, originalCb.commands.size());
+        copyMeta.execute(originalCb.commands);
+        originalCb.commands.clear();
+        assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
+        assertTrue(copyStoryA == copyDomainModel.getSprints().get(1).getStories().get(0));
+
+        final Task taskA = new Task();
+        taskA.setName("taskA");
+        storyA.getTasks().add(taskA);
+        // create, set, addToList, clearReferences
+        assertEquals(4, originalCb.commands.size());
+        copyMeta.execute(originalCb.commands);
+        originalCb.commands.clear();
+        assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
     }
 
     private List<Object> commandsForDomainModel(final MetaModel model) {
