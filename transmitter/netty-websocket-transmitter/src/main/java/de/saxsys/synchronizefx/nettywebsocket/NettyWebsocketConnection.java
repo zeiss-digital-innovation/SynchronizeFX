@@ -24,7 +24,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
@@ -36,6 +38,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,14 +67,25 @@ class NettyWebsocketConnection extends ChannelInboundMessageHandlerAdapter<Objec
      * @param uri the URI of the server to connect to
      * @param parent the Instance that setup this connection. It is informed on incoming messages or errors.
      */
-    public NettyWebsocketConnection(final URI uri, final NettyWebsocketClient parent) {
+    public NettyWebsocketConnection(final URI uri, final NettyWebsocketClient parent, final Map<String,Object> headerParams) {
         this.wsHandshaker =
-                WebSocketClientHandshakerFactory.newHandshaker(uri, WebSocketVersion.V13, PROTOCOL, false, null,
+                WebSocketClientHandshakerFactory.newHandshaker(uri, WebSocketVersion.V13, PROTOCOL, false, createHttpHeaders(headerParams),
                         Integer.MAX_VALUE);
         this.parent = parent;
     }
 
-    /**
+    private HttpHeaders createHttpHeaders(Map<String, Object> headerParams) {
+    	if(headerParams == null || headerParams.isEmpty()){
+    		return null;
+    	}
+    	HttpHeaders headers = new DefaultHttpHeaders();
+    	for(Map.Entry<String, Object> headerEntry : headerParams.entrySet()){
+    		headers.add(headerEntry.getKey(),headerEntry.getValue());
+    	}
+		return headers;
+	}
+
+	/**
      * Waits for the handshake to finish.
      * 
      * @throws InterruptedException When the waiting failed.
