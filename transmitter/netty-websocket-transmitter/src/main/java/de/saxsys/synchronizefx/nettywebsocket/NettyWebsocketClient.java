@@ -38,8 +38,10 @@ import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
     private Serializer serializer;
     private URI uri;
+    private Map<String, Object> headerParams;
     private NetworkToTopologyCallbackClient callback;
 
     private EventLoopGroup eventLoopGroup;
@@ -84,6 +87,19 @@ public class NettyWebsocketClient implements MessageTransferClient {
     public NettyWebsocketClient(final URI uri, final Serializer serializer) {
         this.uri = uri;
         this.serializer = serializer;
+    }
+
+    /**
+     * Initializes the transmitter.
+     * 
+     * @param uri The URI for the server to connect to. This must start with "ws:" as the protocol. Websockets over
+     *            HTTPS ("wss:") are not supported at the moment.
+     * @param serializer The serializer to use to serialize SynchronizeFX messages.
+     * @param headerParams header parameter for the http connection
+     */
+    public NettyWebsocketClient(final URI uri, final Serializer serializer, final Map<String, Object> headerParams) {
+        this(uri, serializer);
+        this.headerParams = new HashMap<>(headerParams);
     }
 
     @Override
@@ -103,7 +119,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
         this.eventLoopGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
-        final NettyWebsocketConnection connection = new NettyWebsocketConnection(uri, this);
+        final NettyWebsocketConnection connection = new NettyWebsocketConnection(uri, this, headerParams);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(new ChannelInitializer<SocketChannel>() {
