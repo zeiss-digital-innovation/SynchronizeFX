@@ -1,20 +1,39 @@
+/**
+ * This file is part of SynchronizeFX.
+ * 
+ * Copyright (C) 2013 Saxonia Systems AG
+ *
+ * SynchronizeFX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SynchronizeFX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.saxsys.synchronizefx.core.metamodel;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Sprint;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Story;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Task;
+import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
+import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**
  * This tests whether objects that are moved between lists are handled correctly by the meta model. It should test
@@ -24,7 +43,7 @@ import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Task;
  * @author michael.thiele
  * 
  */
-public class MultipleListenersAreAddedForMovedObjects {
+public class MultipleListenersAreAddedForMovedObjectsTest {
 
     private ComplexDomainModel originalDomainModel;
     private SaveParameterCallback originalCb;
@@ -45,14 +64,13 @@ public class MultipleListenersAreAddedForMovedObjects {
 
         this.copyCb = new SaveParameterCallback();
         this.copyMeta = new MetaModel(copyCb);
-        copyMeta.execute(commandsForDomainModel(originalMeta));
-        this.copyDomainModel = (ComplexDomainModel) copyCb.root;
+        copyMeta.execute(EasyCommandsForDomainModel.commandsForDomainModel(originalMeta));
+        this.copyDomainModel = (ComplexDomainModel) copyCb.getRoot();
     }
 
     /**
      * @see ETEO-934: comment #4.
      */
-    @SuppressWarnings("deprecation")
     @Test
     public void moveTaskToNewlyCreatedStory() {
         final Task taskA = new Task();
@@ -65,37 +83,44 @@ public class MultipleListenersAreAddedForMovedObjects {
         sprintA.getStories().add(storyA);
 
         final Sprint sprintB = new Sprint();
-
+        
+        final List<Object> commands = new ArrayList<>();
         originalDomainModel.getSprints().add(sprintA);
+        commands.addAll(originalCb.getCommands());
         originalDomainModel.getSprints().add(sprintB);
+        commands.addAll(originalCb.getCommands());
         assertEquals(0, copyDomainModel.getSprints().size());
 
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        copyMeta.execute(commands);
+        commands.clear();
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
         final Story storyB = new Story();
         sprintA.getStories().add(storyB);
 
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        copyMeta.execute(originalCb.getCommands());
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
-        sprintB.getStories().add(sprintA.getStories().remove(1));
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        final Story removedStory = sprintA.getStories().remove(1);
+        commands.addAll(originalCb.getCommands());
+        sprintB.getStories().add(removedStory);
+        commands.addAll(originalCb.getCommands());
+        copyMeta.execute(commands);
+        commands.clear();
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
-        storyB.getTasks().add(storyA.getTasks().remove(0));
+        final Task removedTasks = storyA.getTasks().remove(0);
+        commands.addAll(originalCb.getCommands());
+        storyB.getTasks().add(removedTasks);
+        commands.addAll(originalCb.getCommands());
         // remove, add, cleanReferences
-        assertEquals(3, originalCb.commands.size());
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        assertEquals(3, commands.size());
+        copyMeta.execute(commands);
+        commands.clear();
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void moveExistingStoryToNewSprintAndCreateNewTask() {
         final Sprint sprintA = new Sprint();
@@ -105,22 +130,25 @@ public class MultipleListenersAreAddedForMovedObjects {
         originalDomainModel.getSprints().add(sprintA);
         assertEquals(0, copyDomainModel.getSprints().size());
 
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        copyMeta.execute(originalCb.getCommands());
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
         final Sprint sprintB = new Sprint();
         originalDomainModel.getSprints().add(sprintB);
 
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        copyMeta.execute(originalCb.getCommands());
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
+
+        final List<Object> commands = new ArrayList<>();
         final Story copyStoryA = copyDomainModel.getSprints().get(0).getStories().get(0);
-        sprintB.getStories().add(sprintA.getStories().remove(0));
-        assertEquals(3, originalCb.commands.size());
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        final Story removedStory = sprintA.getStories().remove(0);
+        commands.addAll(originalCb.getCommands());
+        sprintB.getStories().add(removedStory);
+        commands.addAll(originalCb.getCommands());
+        assertEquals(3, commands.size());
+        copyMeta.execute(commands);
+        commands.clear();
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
         assertTrue(copyStoryA == copyDomainModel.getSprints().get(1).getStories().get(0));
 
@@ -128,46 +156,8 @@ public class MultipleListenersAreAddedForMovedObjects {
         taskA.setName("taskA");
         storyA.getTasks().add(taskA);
         // create, set, addToList, clearReferences
-        assertEquals(4, originalCb.commands.size());
-        copyMeta.execute(originalCb.commands);
-        originalCb.commands.clear();
+        assertEquals(4, originalCb.getCommands().size());
+        copyMeta.execute(originalCb.getCommands());
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
-    }
-
-    private List<Object> commandsForDomainModel(final MetaModel model) {
-        final CommandsStore store = new CommandsStore();
-        model.commandsForDomainModel(new CommandsForDomainModelCallback() {
-
-            @Override
-            public void commandsReady(final List<Object> initialCommands) {
-                store.commands = initialCommands;
-            }
-        });
-        return store.commands;
-    }
-
-    private static class SaveParameterCallback implements TopologyLayerCallback {
-        private Object root;
-        private final List<Object> commands = new LinkedList<>();
-
-        @Override
-        public void sendCommands(final List<Object> commands) {
-            this.commands.addAll(commands);
-        }
-
-        @Override
-        public void onError(final SynchronizeFXException error) {
-            fail("exception occured: " + error.getMessage());
-        }
-
-        @Override
-        public void domainModelChanged(final Object root) {
-            this.root = root;
-        }
-
-    }
-
-    private static final class CommandsStore {
-        protected List<Object> commands;
     }
 }
