@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>de.saxsys.synchronizefx</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.1.3-SNAPSHOT</version>
+		<version>0.2</version>
 		<relativePath>../..</relativePath>
 	</parent>
 	<artifactId>netty-websocket-transmitter</artifactId>
