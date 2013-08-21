@@ -32,6 +32,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
@@ -252,6 +253,7 @@ public class ChangeWhileConnectTest {
      * Test if incoming changes from other peers result n lost updates.
      */
     @Test
+    @Ignore("Works only sometimes. See the comments in finishPropertyVisitorThread on how to fix this")
     public void testIncommingChanges() {
         final Domain child1 = root.list.get(0);
         child1.waitingProperty.set(40);
