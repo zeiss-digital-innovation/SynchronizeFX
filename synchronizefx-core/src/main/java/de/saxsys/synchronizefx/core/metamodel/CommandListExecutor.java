@@ -20,6 +20,7 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -54,17 +55,17 @@ public class CommandListExecutor {
 
     private static final Logger LOG = LoggerFactory.getLogger(CommandListExecutor.class);
 
-    private MetaModel parent;
-    private Listeners listeners;
+    private final MetaModel parent;
+    private final Listeners listeners;
     /**
      * A set that holds hard references to objects that would otherwise only have weak references and thus could get
      * garbage collected before they are used.
      */
-    private Map<Object, Object> hardReferences = new IdentityHashMap<>();
+    private final Map<Object, Object> hardReferences = new IdentityHashMap<>();
     // only needed for tracing
     private Map<Property<?>, Field> propFieldMap;
 
-    private TopologyLayerCallback topology;
+    private final TopologyLayerCallback topology;
 
     /**
      * Initializes the executor.
@@ -120,17 +121,17 @@ public class CommandListExecutor {
             objClass = Class.forName(command.getClassName());
             obj = objClass.newInstance();
             listeners.registerListenersOnEverything(obj);
-            for (Entry<String, UUID> entry : command.getPropertyNameToId().entrySet()) {
+            for (final Entry<String, UUID> entry : command.getPropertyNameToId().entrySet()) {
                 Class<?> current = objClass;
                 boolean fieldFound = false;
                 while (current != Object.class) {
                     try {
-                        Field field = current.getDeclaredField(entry.getKey());
+                        final Field field = current.getDeclaredField(entry.getKey());
                         field.setAccessible(true);
                         parent.registerObject(field.get(obj), entry.getValue());
                         fieldFound = true;
                         break;
-                    } catch (NoSuchFieldException e) {
+                    } catch (final NoSuchFieldException e) {
                         // If it's not in this class, it's maybe in the super class. So this is no exceptional state.
                     }
                     current = current.getSuperclass();
@@ -142,19 +143,19 @@ public class CommandListExecutor {
                                     + " in your clients and the server?"));
                 }
             }
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             topology.onError(new SynchronizeFXException(
                     "Maybe you've forgot to add a public no-arg constructor to one of your domain objects?", e));
             return;
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             topology.onError(new SynchronizeFXException(
                     "Maybe one of your no-arg constructor of one of your domain objects is not public?", e));
             return;
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             topology.onError(new SynchronizeFXException(
                     "Maybe not all of you're domain objects or their dependencies are availabe on every node?", e));
             return;
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             topology.onError(new SynchronizeFXException(
                     "Maybe you're JVM doesn't allow reflection for this application?", e));
             return;
@@ -173,7 +174,7 @@ public class CommandListExecutor {
             return;
         }
         if (LOG.isTraceEnabled()) {
-            Field field = propFieldMap.get(prop);
+            final Field field = propFieldMap.get(prop);
             if (field != null) {
                 LOG.trace("Set on field " + field + " value " + command);
             } else {
@@ -194,7 +195,7 @@ public class CommandListExecutor {
             value = command.getSimpleObjectValue();
         }
 
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(prop);
@@ -218,16 +219,12 @@ public class CommandListExecutor {
             return;
         }
         if (LOG.isTraceEnabled()) {
-            Field field = propFieldMap.get(list);
+            final Field field = propFieldMap.get(list);
             if (field != null) {
                 LOG.trace("Add to list " + field + " value " + command);
             } else {
                 LOG.trace(command.toString());
             }
-        }
-        if (list.size() >= command.getNewSize()) {
-            LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
-            return;
         }
         final Object value;
         final UUID valueId = command.getObservableObjectId();
@@ -243,10 +240,18 @@ public class CommandListExecutor {
         }
 
         // TODO catch index out of bounds exception.
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(list);
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Add value {} to list {} at position {}.",
+                            new Object[] {value, Arrays.toString(list.toArray()), command.getPosition() });
+                }
+                if (list.size() >= command.getNewSize()) {
+                    LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
+                    return;
+                }
                 list.add(command.getPosition(), value);
                 listeners.enableFor(list);
             }
@@ -261,15 +266,27 @@ public class CommandListExecutor {
     private void execute(final RemoveFromList command) {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) parent.getById(command.getListId());
-        if (list.size() <= command.getNewSize()) {
-            LOG.warn("Preconditions to apply RemoveFromList command are not met."
-                    + "This may be OK if you've just connected.");
-            return;
+        if (LOG.isTraceEnabled()) {
+            final Field field = propFieldMap.get(list);
+            if (field != null) {
+                LOG.trace("Remove from list " + field + " value " + command);
+            } else {
+                LOG.trace(command.toString());
+            }
         }
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(list);
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Remove from list {} at position {}.", Arrays.toString(list.toArray()),
+                            command.getPosition());
+                }
+                if (list.size() <= command.getNewSize()) {
+                    LOG.warn("Preconditions to apply RemoveFromList command are not met."
+                            + "This may be OK if you've just connected.");
+                    return;
+                }
                 list.remove(command.getPosition());
                 listeners.enableFor(list);
             }
@@ -290,7 +307,7 @@ public class CommandListExecutor {
             return;
         }
         if (LOG.isTraceEnabled()) {
-            Field field = propFieldMap.get(map);
+            final Field field = propFieldMap.get(map);
             if (field != null) {
                 LOG.trace("Put in map " + field + " value " + command);
             } else {
@@ -325,7 +342,7 @@ public class CommandListExecutor {
         }
 
         // TODO catch index out of bounds exception.
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(map);
@@ -350,7 +367,7 @@ public class CommandListExecutor {
             topology.onError(new SynchronizeFXException("RemoveFromMap command with unknown key object id recived. "
                     + command.getKeySimpleObjectValue()));
         }
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(map);
@@ -387,7 +404,7 @@ public class CommandListExecutor {
         }
 
         // TODO catch index out of bounds exception.
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(set);
@@ -412,7 +429,7 @@ public class CommandListExecutor {
             topology.onError(new SynchronizeFXException("RemoveFromSet command with unknown value object id recived. "
                     + command.getSimpleObjectValue()));
         }
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 listeners.disableFor(set);
@@ -428,7 +445,7 @@ public class CommandListExecutor {
     }
 
     private void execute(final SetRootElement command) {
-        Object root = this.parent.getById(command.getRootElementId());
+        final Object root = this.parent.getById(command.getRootElementId());
         this.parent.setRoot(root);
     }
 
@@ -437,7 +454,7 @@ public class CommandListExecutor {
             while (parent.isModelWalkingInProgress()) {
                 try {
                     parent.getModelWalkingInProgressLock().wait();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     Thread.currentThread().interrupt();
                     LOG.warn("User thread that was blocked by SynchronizeFX was woken up by an Exception.", e);
                 }
