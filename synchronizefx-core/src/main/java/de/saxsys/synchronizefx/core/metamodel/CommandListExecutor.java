@@ -244,8 +244,10 @@ public class CommandListExecutor {
             @Override
             public void run() {
                 listeners.disableFor(list);
-                LOG.trace("Add value {} to list {} at position {}.",
-                        new Object[] {value, Arrays.toString(list.toArray()), command.getPosition() });
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Add value {} to list {} at position {}.",
+                            new Object[] {value, Arrays.toString(list.toArray()), command.getPosition() });
+                }
                 if (list.size() >= command.getNewSize()) {
                     LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
                     return;
@@ -276,7 +278,10 @@ public class CommandListExecutor {
             @Override
             public void run() {
                 listeners.disableFor(list);
-                LOG.trace("Remove from list {} at position {}.", Arrays.toString(list.toArray()), command.getPosition());
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Remove from list {} at position {}.", Arrays.toString(list.toArray()),
+                            command.getPosition());
+                }
                 if (list.size() <= command.getNewSize()) {
                     LOG.warn("Preconditions to apply RemoveFromList command are not met."
                             + "This may be OK if you've just connected.");
