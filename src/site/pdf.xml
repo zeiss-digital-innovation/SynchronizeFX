@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/DOCUMENT/1.0.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/DOCUMENT/1.0.1 http://maven.apache.org/xsd/document-1.0.1.xsd"
+	outputName="maven-pdf-plugin">
+
+	<meta>
+		<title>${project.name}</title>
+		<author>Raik Bieniek</author>
+	</meta>
+
+	<cover>
+		<coverTitle>${project.name}</coverTitle>
+		<coverSubTitle>Version ${project.version}</coverSubTitle>
+		<coverType>Documentation</coverType>
+		<projectName>${project.name}</projectName>
+		<!-- <projectLogo>...</projectLogo> -->
+		<!-- <companyName>${project.organization.name}</companyName> -->
+		<!-- <companyLogo>src/site/resources/images/logo_saxsys.gif</companyLogo> -->
+	</cover>
+
+	<toc name="Table Of Contents">
+		<item name="Motivation" ref="index.md" />
+		<item name="How to Use" ref="howto.md.vm" />
+		<item name="How it Works" ref="docu.md" />
+	</toc>
+
+</document>

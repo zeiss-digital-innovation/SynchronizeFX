@@ -1,0 +1,48 @@
+## About
+
+This module provides an implementation for the server side of the network layer of SynchronizeFX.
+It uses the Websocket implementation of Tomcat for this purpose.
+
+## Maven Config
+
+To add this module to a Maven based project add the following to your pom.xml
+
+    <dependency>
+        <groupId>de.saxsys.synchronizefx</groupId>
+        <artifactId>synchronizefx</artifactId>
+        <version>${currentVersion}</version>
+    </dependency>
+
+## Usage
+
+The network layer is provided in form of a servlet.
+This servlet needs to get a `de.saxsys.synchronizefx.core.clientserver.Serializer` implementation to work properly.
+To do this you need to sub class `SynchronizeFXTomcatServlet` and implement the abstract method `getSerializer()`.
+Make sure this servlet get's loaded in your Tomcat e.g. by using the `javax.servlet.annotation.WebServlet` annotation
+or registering it in your web.xml.
+You can then use it for the `SynchronizeFxServer` like this
+
+    //Get the servlet you just implemented somehow.
+    //This could be done with `@Inject` or ` = this;` if you put the following code directly in this servelet 
+    private MessageTransferServer myServlet = ...;
+    
+    //Your implementation that handles errors and other events that can occur while the framework is running.
+    //This could be directly implemented here as anonymous class, it could be `this` or some extra class.
+    private UserCallbackServer callback = ...;
+    
+    //The root of the domain model you want to share.
+    private Object root = ...;
+    
+    [...]
+    
+    SynchronizeFxServer server = new SynchronizeFxServer(root, myServlet, callback);
+    //At the moment the following statement has no effect as it is assumed that the servlet is started already.
+    //It should be called anyway for forward compatibility as it may be needed in future for some initialization
+    //in SynchronizeFxServer itself.
+    server.start();
+    
+    [...]
+    
+    //Use this when you have finished serving your domain model.
+    //As with server.start() this has no effect at the moment but it may have in upcomming versions.
+    server.shutdown();
