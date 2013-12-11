@@ -35,6 +35,7 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.net.URI;
@@ -52,8 +53,12 @@ import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
- * A client side transmitter implementation for SynchronizeFX that uses Netty and transfers messages over
- * WebSockets.
+ * A client side transmitter implementation for SynchronizeFX that uses Netty and transfers messages over WebSockets.
+ * 
+ * <p>
+ * Both, encrypted and unencrypted web socket connections are supported with this transmitter. The transmitter does
+ * however not validate the server certificate for encrypetd connections.
+ * </p>
  * 
  */
 public class NettyWebsocketClient implements MessageTransferClient {
@@ -80,8 +85,8 @@ public class NettyWebsocketClient implements MessageTransferClient {
     /**
      * Initializes the transmitter.
      * 
-     * @param uri The URI for the server to connect to. This must start with "ws:" as the protocol. WebSockets over
-     *            HTTPS ("wss:") are not supported at the moment.
+     * @param uri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based websocket
+     *            connection and <code>wss</code> for a HTTPS based connection.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      */
     public NettyWebsocketClient(final URI uri, final Serializer serializer) {
@@ -92,8 +97,8 @@ public class NettyWebsocketClient implements MessageTransferClient {
     /**
      * Initializes the transmitter.
      * 
-     * @param uri The URI for the server to connect to. This must start with "ws:" as the protocol. Websockets over
-     *            HTTPS ("wss:") are not supported at the moment.
+     * @param uri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based websocket
+     *            connection and <code>wss</code> for a HTTPS based connection.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      * @param headerParams header parameter for the http connection
      */
@@ -109,13 +114,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
     @Override
     public void connect() throws SynchronizeFXException {
-        if ("wss".equals(uri.getScheme())) {
-            throw new SynchronizeFXException(new IllegalArgumentException(
-                    "Websockets over HTTPS are not supported at the moment. Sorry."));
-        }
-        if (!"ws".equals(uri.getScheme())) {
-            throw new SynchronizeFXException(new IllegalArgumentException("The protocol of the uri is not Websocket."));
-        }
+        final boolean useSSL = uriRequiresSslOrFail(uri);
 
         this.eventLoopGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
@@ -126,6 +125,10 @@ public class NettyWebsocketClient implements MessageTransferClient {
                     @Override
                     public void initChannel(final SocketChannel channel) throws Exception {
                         ChannelPipeline pipeline = channel.pipeline();
+                        if (useSSL) {
+                            pipeline.addLast("ssl",
+                                    new SslHandler(new NonValidatingSSLEngineFactory().createClientEngine()));
+                        }
                         pipeline.addLast("keep-alive-activator", new IdleStateHandler(KEEP_ALIVE, 0, 0,
                                 TimeUnit.MILLISECONDS));
                         pipeline.addLast("http-codec", new HttpClientCodec());
@@ -220,5 +223,16 @@ public class NettyWebsocketClient implements MessageTransferClient {
     void onServerDisconnect() {
         disconnect(true);
         callback.onServerDisconnect();
+    }
+
+    private boolean uriRequiresSslOrFail(final URI uri) throws SynchronizeFXException {
+        String protocol = uri.getScheme();
+        if ("ws".equals(protocol)) {
+            return false;
+        }
+        if ("wss".equals(protocol)) {
+            return true;
+        }
+        throw new SynchronizeFXException(new IllegalArgumentException("The protocol of the uri is not Websocket."));
     }
 }
