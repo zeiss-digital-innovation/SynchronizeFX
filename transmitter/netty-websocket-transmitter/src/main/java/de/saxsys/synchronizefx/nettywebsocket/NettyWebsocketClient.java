@@ -37,6 +37,8 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -166,7 +168,7 @@ public class NettyWebsocketClient implements MessageTransferClient {
             callback.onError(e);
             return;
         }
-        channel.write(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(serialized)));
+        channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(serialized)));
     }
 
     @Override
