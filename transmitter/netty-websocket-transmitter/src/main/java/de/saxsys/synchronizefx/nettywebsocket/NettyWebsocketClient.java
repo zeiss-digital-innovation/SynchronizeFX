@@ -24,26 +24,16 @@ import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -70,14 +60,10 @@ public class NettyWebsocketClient implements MessageTransferClient {
      * The timeout for connection attempts in milliseconds.
      */
     private static final int TIMEOUT = 10000;
-    /**
-     * If no data was received from the server in this time (in milliseconds) a Ping Frame is send as keep alive.
-     */
-    private static final int KEEP_ALIVE = 20000;
 
     private Serializer serializer;
-    private URI uri;
-    private Map<String, Object> headerParams;
+    private URI serverUri;
+    private Map<String, Object> httpHeaders;
     private NetworkToTopologyCallbackClient callback;
 
     private EventLoopGroup eventLoopGroup;
@@ -87,26 +73,27 @@ public class NettyWebsocketClient implements MessageTransferClient {
     /**
      * Initializes the transmitter.
      * 
-     * @param uri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based websocket
-     *            connection and <code>wss</code> for a HTTPS based connection.
+     * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
+     *            websocket connection and <code>wss</code> for a HTTPS based connection.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      */
-    public NettyWebsocketClient(final URI uri, final Serializer serializer) {
-        this.uri = uri;
+    public NettyWebsocketClient(final URI serverUri, final Serializer serializer) {
+        this.serverUri = serverUri;
         this.serializer = serializer;
     }
 
     /**
      * Initializes the transmitter.
      * 
-     * @param uri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based websocket
-     *            connection and <code>wss</code> for a HTTPS based connection.
+     * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
+     *            websocket connection and <code>wss</code> for a HTTPS based connection.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
-     * @param headerParams header parameter for the http connection
+     * @param httpHeaders header parameter for the http connection
      */
-    public NettyWebsocketClient(final URI uri, final Serializer serializer, final Map<String, Object> headerParams) {
-        this(uri, serializer);
-        this.headerParams = new HashMap<>(headerParams);
+    public NettyWebsocketClient(final URI serverUri, final Serializer serializer,
+            final Map<String, Object> httpHeaders) {
+        this(serverUri, serializer);
+        this.httpHeaders = new HashMap<>(httpHeaders);
     }
 
     @Override
@@ -116,32 +103,16 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
     @Override
     public void connect() throws SynchronizeFXException {
-        final boolean useSSL = uriRequiresSslOrFail(uri);
-
         this.eventLoopGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
-        final NettyWebsocketConnection connection = new NettyWebsocketConnection(uri, this, headerParams);
+        WebsocketChannelInitializer initializer = new WebsocketChannelInitializer(serverUri, httpHeaders, this);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(final SocketChannel channel) throws Exception {
-                        ChannelPipeline pipeline = channel.pipeline();
-                        if (useSSL) {
-                            pipeline.addLast("ssl",
-                                    new SslHandler(new NonValidatingSSLEngineFactory().createClientEngine()));
-                        }
-                        pipeline.addLast("keep-alive-activator", new IdleStateHandler(KEEP_ALIVE, 0, 0,
-                                TimeUnit.MILLISECONDS));
-                        pipeline.addLast("http-codec", new HttpClientCodec());
-                        pipeline.addLast("aggregator", new HttpObjectAggregator(8192));
-                        pipeline.addLast("ws-handler", connection);
-                    }
-                });
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(initializer);
 
         LOG.info("Connecting to server");
         try {
-            ChannelFuture future = bootstrap.connect(uri.getHost(), uri.getPort());
+            ChannelFuture future = bootstrap.connect(serverUri.getHost(), serverUri.getPort());
             if (!future.await(TIMEOUT)) {
                 disconnect();
                 throw new SynchronizeFXException("Timeout while trying to connect to the server.");
@@ -151,7 +122,6 @@ public class NettyWebsocketClient implements MessageTransferClient {
                 throw new SynchronizeFXException("Connection to the server failed.", future.cause());
             }
             this.channel = future.channel();
-            connection.waitForHandshakeFinished();
         } catch (InterruptedException e) {
             disconnect();
             throw new SynchronizeFXException(e);
@@ -225,16 +195,5 @@ public class NettyWebsocketClient implements MessageTransferClient {
     void onServerDisconnect() {
         disconnect(true);
         callback.onServerDisconnect();
-    }
-
-    private boolean uriRequiresSslOrFail(final URI uri) throws SynchronizeFXException {
-        String protocol = uri.getScheme();
-        if ("ws".equals(protocol)) {
-            return false;
-        }
-        if ("wss".equals(protocol)) {
-            return true;
-        }
-        throw new SynchronizeFXException(new IllegalArgumentException("The protocol of the uri is not Websocket."));
     }
 }
