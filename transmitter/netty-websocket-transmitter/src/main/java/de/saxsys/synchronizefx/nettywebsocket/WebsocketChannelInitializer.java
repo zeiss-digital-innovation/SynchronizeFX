@@ -23,6 +23,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -51,8 +53,8 @@ class WebsocketChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final URI serverUri;
     private final Map<String, Object> httpHeaders;
-    private IncommingWebsocketFrameHandler connection;
-    private NettyWebsocketClient parent;
+    private final NetworkToTopologyCallbackClient callback;
+    private final Serializer serializer;
 
     /**
      * Gathers all dependencies for this class.
@@ -60,32 +62,36 @@ class WebsocketChannelInitializer extends ChannelInitializer<SocketChannel> {
      * @param serverUri the uri of the server to connect to.
      * @param httpHeaders optional headers that should be passed to the server when initializing the HTTP connection.
      *            If no user defined headers should be passed this parameter can be <code>null</code>
-     * @param parent 
-     *            the Instance that setup this connection. It is informed on incoming messages or errors.
+     * @param serializer The implementation for serializing and deserializing <code>byte[]</code> to SynchronizeFX
+     *            commands.
+     * @param callback The callback to the upper layer to inform it on new messages and errors.
      */
     public WebsocketChannelInitializer(final URI serverUri, final Map<String, Object> httpHeaders,
-            final NettyWebsocketClient parent) {
+            final Serializer serializer, final NetworkToTopologyCallbackClient callback) {
         this.serverUri = serverUri;
         this.httpHeaders = httpHeaders;
-        this.parent = parent;
+        this.serializer = serializer;
+        this.callback = callback;
     }
 
     @Override
     public void initChannel(final SocketChannel channel) throws Exception {
         final ChannelPipeline pipeline = channel.pipeline();
-        final boolean useSSL = uriRequiresSslOrFail(serverUri);
-
-        this.connection = new IncommingWebsocketFrameHandler(parent);
+        final boolean useSSL = uriRequiresSslOrFail();
 
         if (useSSL) {
-            pipeline.addLast("ssl", new SslHandler(new NonValidatingSSLEngineFactory().createClientEngine()));
+            pipeline.addLast("tls", new SslHandler(new NonValidatingSSLEngineFactory().createClientEngine()));
         }
-        pipeline.addLast("keep-alive-activator", new IdleStateHandler(KEEP_ALIVE, 0, 0, TimeUnit.MILLISECONDS));
+        pipeline.addLast("keep-alive", new IdleStateHandler(KEEP_ALIVE, 0, 0, TimeUnit.MILLISECONDS));
+
         pipeline.addLast("http-codec", new HttpClientCodec());
         pipeline.addLast("aggregator", new HttpObjectAggregator(8192));
         pipeline.addLast("websocket-protocol-handler", new WebSocketClientProtocolHandler(serverUri,
                 WebSocketVersion.V13, PROTOCOL, false, createHttpHeaders(httpHeaders), Integer.MAX_VALUE));
-        pipeline.addLast("ws-handler", connection);
+
+        pipeline.addLast("websocket-frame-codec", new CommandToWebSocketFrameCodec(serializer));
+        pipeline.addLast("command-handler", new InboundCommandHandler(callback));
+        pipeline.addLast("event-handler", new NetworkEventHandler(callback));
     }
 
     private HttpHeaders createHttpHeaders(final Map<String, Object> headerParams) {
@@ -99,8 +105,8 @@ class WebsocketChannelInitializer extends ChannelInitializer<SocketChannel> {
         return headers;
     }
 
-    private boolean uriRequiresSslOrFail(final URI uri) throws SynchronizeFXException {
-        String protocol = uri.getScheme();
+    private boolean uriRequiresSslOrFail() throws SynchronizeFXException {
+        String protocol = serverUri.getScheme();
         if ("ws".equals(protocol)) {
             return false;
         }

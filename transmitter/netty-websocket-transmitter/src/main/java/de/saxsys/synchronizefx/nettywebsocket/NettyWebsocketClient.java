@@ -20,7 +20,6 @@
 package de.saxsys.synchronizefx.nettywebsocket;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -28,8 +27,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -105,7 +102,8 @@ public class NettyWebsocketClient implements MessageTransferClient {
     public void connect() throws SynchronizeFXException {
         this.eventLoopGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
-        WebsocketChannelInitializer initializer = new WebsocketChannelInitializer(serverUri, httpHeaders, this);
+        WebsocketChannelInitializer initializer =
+                new WebsocketChannelInitializer(serverUri, httpHeaders, serializer, callback);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(initializer);
@@ -130,27 +128,11 @@ public class NettyWebsocketClient implements MessageTransferClient {
 
     @Override
     public void send(final List<Object> messages) {
-        byte[] serialized;
-        try {
-            serialized = serializer.serialize(messages);
-        } catch (SynchronizeFXException e) {
-            disconnect();
-            callback.onError(e);
-            return;
-        }
-        channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(serialized)));
+        channel.writeAndFlush(messages);
     }
 
     @Override
     public void disconnect() {
-        disconnect(true);
-    }
-
-    private void disconnect(final boolean sendCloseWebsocketFrame) {
-        if (sendCloseWebsocketFrame && channel != null) {
-            channel.write(new CloseWebSocketFrame());
-        }
-
         try {
             if (channel != null) {
                 channel.close();
@@ -160,40 +142,5 @@ public class NettyWebsocketClient implements MessageTransferClient {
             callback.onError(new SynchronizeFXException("Could not wait for the disconnect to finish.", e));
         }
         eventLoopGroup.shutdownGracefully();
-    }
-
-    /**
-     * Call this when messages where received from the server.
-     * 
-     * @param msg The messages striped of all WebSocket Overhead.
-     */
-    void onMessageRecived(final byte[] msg) {
-        List<Object> deserialized;
-        try {
-            deserialized = serializer.deserialize(msg);
-        } catch (SynchronizeFXException e) {
-            disconnect();
-            callback.onError(e);
-            return;
-        }
-        callback.recive(deserialized);
-    }
-
-    /**
-     * Call this when an error occurred.
-     * 
-     * @param cause The cause of the error.
-     */
-    void onError(final Throwable cause) {
-        disconnect();
-        callback.onError(new SynchronizeFXException(cause));
-    }
-
-    /**
-     * Call this when the server closed the connection.
-     */
-    void onServerDisconnect() {
-        disconnect(true);
-        callback.onServerDisconnect();
     }
 }
