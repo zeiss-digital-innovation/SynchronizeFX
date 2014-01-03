@@ -62,7 +62,8 @@ class NonValidatingSSLEngineFactory implements X509TrustManager {
     
     private SSLContext createClientContext() throws SynchronizeFXException {
         try {
-            SSLContext context = SSLContext.getInstance("TLS");
+            //as JDK >=7 is required there is no need to support older TLS versions.
+            SSLContext context = SSLContext.getInstance("TLSv1.2");
             context.init(null, new TrustManager[] {this }, null);
             return context;
         } catch (KeyManagementException | NoSuchAlgorithmException e) {

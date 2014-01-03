@@ -23,9 +23,15 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLEngine;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -37,6 +43,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 /**
  * Sets up a {@link SocketChannel} for client side, web socket based SynchronizeFX communication.
@@ -45,6 +53,7 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 class WebsocketChannelInitializer extends ChannelInitializer<SocketChannel> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketChannelInitializer.class);
     /**
      * If no data was received from the server in this time (in milliseconds) a Ping Frame is send as keep alive.
      */
@@ -80,7 +89,16 @@ class WebsocketChannelInitializer extends ChannelInitializer<SocketChannel> {
         final boolean useSSL = uriRequiresSslOrFail();
 
         if (useSSL) {
-            pipeline.addLast("tls", new SslHandler(new NonValidatingSSLEngineFactory().createClientEngine()));
+            final SSLEngine tlsEngine = new NonValidatingSSLEngineFactory().createClientEngine();
+            final SslHandler tls = new SslHandler(tlsEngine);
+            tls.handshakeFuture().addListener(new GenericFutureListener<Future<? super Channel>>() {
+                @Override
+                public void operationComplete(final Future<? super Channel> future) throws Exception {
+                    LOG.debug("Using cipher " + tlsEngine.getSession().getCipherSuite()
+                            + " for the encrypted connection to the server.");
+                }
+            });
+            pipeline.addLast("tls", tls);
         }
         pipeline.addLast("keep-alive", new IdleStateHandler(KEEP_ALIVE, 0, 0, TimeUnit.MILLISECONDS));
 
