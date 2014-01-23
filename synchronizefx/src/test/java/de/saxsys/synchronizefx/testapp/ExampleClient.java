@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.WaitForModelReadyLock;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
-import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
+import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
 import de.saxsys.synchronizefx.netty.NettyClient;
@@ -38,7 +38,7 @@ import de.saxsys.synchronizefx.netty.NettyClient;
  * @author ragna-diana.steglich
  * 
  */
-public class ExampleClient implements UserCallbackClient {
+public class ExampleClient implements ClientCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExampleClient.class);
     private static final String SERVERADRESS = "localhost";

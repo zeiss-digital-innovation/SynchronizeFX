@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
-import de.saxsys.synchronizefx.core.clientserver.UserCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
 import de.saxsys.synchronizefx.netty.NettyServer;
@@ -35,7 +35,7 @@ import de.saxsys.synchronizefx.netty.NettyServer;
  * @author ragna-diana.steglich
  * 
  */
-public class ExampleServer implements UserCallbackServer {
+public class ExampleServer implements ServerCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExampleServer.class);
     private static final int DEFAULT_PORT = 54263;
