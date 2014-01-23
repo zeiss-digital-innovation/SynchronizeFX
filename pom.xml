@@ -9,6 +9,7 @@
 
 	<name>SynchronizeFX</name>
 	<description>Aggregator and documentation project for all SynchronizeFX modules</description>
+	<url>https://github.com/saxsys/SynchronizeFX</url>
 
 	<modules>
 		<module>synchronizefx-core</module>
@@ -22,6 +23,10 @@
 		<module>demos/sliderdemo</module>
 	</modules>
 
+	<organization>
+		<name>Saxonia Systems AG</name>
+		<url>www.saxsys.de</url>
+	</organization>
 	<developers>
 		<developer>
 			<name>Raik Bieniek</name>
@@ -42,12 +47,23 @@
 			<email>michael.thiele@saxsys.de</email>
 		</contributor>
 	</contributors>
+	<licenses>
+  		<license>
+    		<name>GNU General Public License Version 3</name>
+    		<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+    		<distribution>repo</distribution>
+		</license>
+	</licenses>
 	<scm>
 		<url>https://github.com/saxsys/SynchronizeFX</url>
 		<developerConnection>scm:git:git@github.com:saxsys/SynchronizeFX.git</developerConnection>
 		<connection>scm:git:https://github.com/saxsys/SynchronizeFX.git</connection>
 		<tag>HEAD</tag>
 	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/saxsys/SynchronizeFX/issues</url>
+	</issueManagement>
 
 	<properties>
 		<!-- for maven site -->
