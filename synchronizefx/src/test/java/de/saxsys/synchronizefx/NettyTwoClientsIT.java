@@ -47,6 +47,11 @@ import de.saxsys.synchronizefx.testapp.Message;
  */
 public class NettyTwoClientsIT {
 
+    /**
+     * Time in milliseconds after which JUnit should abort a tests. This prevents the {@link ExampleServer} from
+     * continuing to run and blocking the TCP-Port because the user had to abort the test manually.
+     */
+    private static final long TEST_TIMEOUT = 20000;
     private static final int TIME_TO_WAIT = 1000;
     private static final Logger LOG = LoggerFactory.getLogger(NettyTwoClientsIT.class);
 
@@ -71,7 +76,7 @@ public class NettyTwoClientsIT {
     /**
      * Tests whether two client gets lists of same content from the server.
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     public void testSameModel() {
         assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
     }
@@ -82,7 +87,7 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     public void testChangeMessage() throws InterruptedException {
         sndClient.editRandomMessage();
         Thread.sleep(TIME_TO_WAIT);
@@ -96,7 +101,7 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     public void testAddNewMessage() throws InterruptedException {
         sndClient.addMessage();
         Thread.sleep(TIME_TO_WAIT);
@@ -110,7 +115,7 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     public void testRemoveMessage() throws InterruptedException {
         int size = fstClient.getMessages().size();
         int random = (int) (Math.round(Math.random() * (size - 1)));
@@ -128,7 +133,7 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     public void testChangeAddMessages() throws InterruptedException {
         fstClient.editRandomMessage();
         sndClient.addMessage();
@@ -144,7 +149,7 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     public void testChangeRemoveSameMessage() throws InterruptedException {
         int size = fstClient.getMessages().size();
         int random = (int) (Math.round(Math.random() * (size - 1)));
@@ -162,9 +167,9 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     @Ignore("This is a bug that can not be fixed easily")
-    //TODO FIXME
+    // TODO FIXME
     public void testChangeSameMessage() throws InterruptedException {
         int size = fstClient.getMessages().size();
         int random = (int) (Math.round(Math.random() * (size - 1)));
