@@ -19,6 +19,16 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<!-- This plugin is only needed for building SynchronizeFX itself.
+				It is not needed for this example. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
