@@ -30,7 +30,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.saxsys.synchronizefx.domain.Message;
+import de.saxsys.synchronizefx.testapp.DummyApplication;
+import de.saxsys.synchronizefx.testapp.ExampleClient;
+import de.saxsys.synchronizefx.testapp.ExampleServer;
+import de.saxsys.synchronizefx.testapp.Message;
 
 /**
  * This class tests whether the connection between a server and a client is working correct, so that the client gets

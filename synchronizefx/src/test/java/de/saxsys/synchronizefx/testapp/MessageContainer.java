@@ -17,33 +17,37 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx;
+package de.saxsys.synchronizefx.testapp;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
+import java.util.List;
+
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
 
 /**
- * Represents a dummy, which is used for starting the JavaFX-Thread.
+ * Represents the container, which contains several messages.
  * 
  * @author ragna-diana.steglich
  * 
  */
-public class DummyApplication extends Application {
+public class MessageContainer {
 
-    private static boolean running;
+    private ListProperty<Message> messages = new SimpleListProperty<>(FXCollections.<Message> observableArrayList());
 
-    @Override
-    public void start(final Stage stage) throws Exception {
-        running = true;
+    /**
+     * @return the messages, which are managed by the server
+     */
+    public List<Message> getMessages() {
+        return messages.get();
     }
 
     /**
-     * Returns whether an application is running.
-     * 
-     * @return <code>true</code>, if the instance is running, otherwise <code>false</code>
+     * @see MessageContainer##getMessages()
+     * @return the property
      */
-    public static boolean isRunning() {
-        return running;
+    public ListProperty<Message> messageProperty() {
+        return messages;
     }
 
 }

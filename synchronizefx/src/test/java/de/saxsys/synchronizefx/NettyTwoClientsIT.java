@@ -31,7 +31,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.saxsys.synchronizefx.domain.Message;
+import de.saxsys.synchronizefx.testapp.DummyApplication;
+import de.saxsys.synchronizefx.testapp.ExampleClient;
+import de.saxsys.synchronizefx.testapp.ExampleServer;
+import de.saxsys.synchronizefx.testapp.Message;
 
 /**
  * This class tests whether the connection between a server and two clients is working correct, so that the data is

@@ -17,7 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.domain;
+package de.saxsys.synchronizefx.testapp;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;

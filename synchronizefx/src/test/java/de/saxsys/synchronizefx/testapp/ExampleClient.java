@@ -17,18 +17,17 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx;
+package de.saxsys.synchronizefx.testapp;
 
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.saxsys.synchronizefx.WaitForModelReadyLock;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.UserCallbackClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-import de.saxsys.synchronizefx.domain.Message;
-import de.saxsys.synchronizefx.domain.MessageContainer;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
 import de.saxsys.synchronizefx.netty.NettyClient;
 
