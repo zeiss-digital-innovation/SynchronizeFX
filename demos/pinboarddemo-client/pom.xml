@@ -34,4 +34,17 @@
 			<artifactId>logback-classic</artifactId>
 		</dependency>
 	</dependencies>
+        <build>
+          <plugins>
+            <plugin>
+              <!-- This plugin is only needed for building SynchronizeFX itself.
+              It is not needed for this example. -->
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-deploy-plugin</artifactId>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
 </project>
