@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>synchronizefx</groupId>
 	<artifactId>sliderdemo</artifactId>
-	<version>0.3.1-SNAPSHOT</version>
+	<version>0.4.0</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>de.saxsys.synchronizefx</groupId>
 			<artifactId>synchronizefx</artifactId>
-			<version>0.3.1-SNAPSHOT</version>
+			<version>0.4.0</version>
 		</dependency>
 		<dependency>
 			<!-- Getting rid of the SLF4J error messages at start and silently discarding 
