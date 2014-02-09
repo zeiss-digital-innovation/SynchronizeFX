@@ -19,12 +19,12 @@
 
 package de.saxsys.synchronizefx.core.testutils;
 
-import static org.junit.Assert.fail;
-
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
+
+import static org.junit.Assert.fail;
 
 /**
  * An implementation that saves the parameters of the callback function so that they can be evaluated in tests.

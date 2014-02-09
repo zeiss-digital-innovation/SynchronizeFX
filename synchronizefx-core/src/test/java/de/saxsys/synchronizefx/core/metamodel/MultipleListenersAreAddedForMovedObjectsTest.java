@@ -19,14 +19,8 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Sprint;
@@ -34,6 +28,11 @@ import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Story;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Task;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
+
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This tests whether objects that are moved between lists are handled correctly by the meta model. It should test

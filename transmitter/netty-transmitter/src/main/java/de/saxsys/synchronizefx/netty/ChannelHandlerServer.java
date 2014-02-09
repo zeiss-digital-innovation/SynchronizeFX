@@ -21,6 +21,10 @@ package de.saxsys.synchronizefx.netty;
 
 import java.util.List;
 
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -31,10 +35,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * Handles incoming events and messages from a single client.

@@ -19,6 +19,9 @@
 
 package de.saxsys.synchronizefx.nettywebsocket;
 
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -27,9 +30,6 @@ import io.netty.util.concurrent.GenericFutureListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * Handles all events that where triggered through inbound network events except for message received events.

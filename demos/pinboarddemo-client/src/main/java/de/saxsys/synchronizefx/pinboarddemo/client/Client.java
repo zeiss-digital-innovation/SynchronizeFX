@@ -32,16 +32,16 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.saxsys.synchronizefx.SynchronizeFxBuilder;
-import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.pinboarddemo.domain.Board;
 import de.saxsys.synchronizefx.pinboarddemo.domain.Note;
 import de.saxsys.synchronizefx.pinboarddemo.domain.Position2D;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides a client that shows notes on a board

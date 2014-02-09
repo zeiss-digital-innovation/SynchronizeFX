@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.nettywebsocket;
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 

@@ -3,6 +3,7 @@ package de.saxsys.synchronizefx.sliderdemo.client;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
 import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;

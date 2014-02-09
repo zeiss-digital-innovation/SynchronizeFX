@@ -23,6 +23,12 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.Executors;
 
+import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -33,12 +39,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
-
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
-import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * A client that can send and recive objects over the network when connected to a server.

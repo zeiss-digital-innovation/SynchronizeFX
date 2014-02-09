@@ -23,12 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
+
 import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceIdentityMap;
 import org.apache.commons.collections.map.ReferenceMap;
 
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 
 /**
  * Generates and applies commands necessary to keep domain models synchronous.

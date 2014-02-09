@@ -19,6 +19,12 @@
 
 package de.saxsys.synchronizefx.nettywebsocket;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,14 +33,8 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * Encodes and decodes list of SynchronizeFX commands to web socket frames using a user supplied serializer.

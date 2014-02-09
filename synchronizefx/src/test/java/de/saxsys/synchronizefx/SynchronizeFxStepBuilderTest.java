@@ -19,18 +19,16 @@
 
 package de.saxsys.synchronizefx;
 
-import static org.mockito.Mockito.mock;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.esotericsoftware.kryo.Serializer;
-
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+
+import com.esotericsoftware.kryo.Serializer;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import static org.mockito.Mockito.mock;
 
 /**
  * This test is used to demonstrate the use of the {@link SynchronizeFxBuilder}.

@@ -19,21 +19,20 @@
 
 package de.saxsys.synchronizefx;
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.LinkedList;
 import java.util.List;
 
 import javafx.application.Application;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import de.saxsys.synchronizefx.testapp.DummyApplication;
 import de.saxsys.synchronizefx.testapp.ExampleClient;
 import de.saxsys.synchronizefx.testapp.ExampleServer;
 import de.saxsys.synchronizefx.testapp.Message;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class tests whether the connection between a server and a client is working correct, so that the client gets

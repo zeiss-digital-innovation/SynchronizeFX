@@ -19,16 +19,17 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
+
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 
 /**
  * The framework should not depend on {@link Object#equals(Object)} and {@link Object#hashCode()}. This test makes sure

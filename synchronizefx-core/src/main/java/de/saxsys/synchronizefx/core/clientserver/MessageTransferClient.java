@@ -21,9 +21,9 @@ package de.saxsys.synchronizefx.core.clientserver;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-
 import javafx.beans.property.Property;
+
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * <p>

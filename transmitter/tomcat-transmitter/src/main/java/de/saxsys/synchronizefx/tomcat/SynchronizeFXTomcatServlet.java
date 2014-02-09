@@ -31,18 +31,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import org.apache.catalina.websocket.MessageInbound;
 import org.apache.catalina.websocket.StreamInbound;
 import org.apache.catalina.websocket.WebSocketServlet;
 import org.apache.catalina.websocket.WsOutbound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
-import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * An server-side network layer implementation for SynchronizeFX that uses the websocket implementation of Apache

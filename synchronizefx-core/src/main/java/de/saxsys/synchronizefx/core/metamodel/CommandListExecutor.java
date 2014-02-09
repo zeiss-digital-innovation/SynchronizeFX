@@ -32,9 +32,6 @@ import java.util.UUID;
 import javafx.application.Platform;
 import javafx.beans.property.Property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
@@ -46,6 +43,9 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Applies commands on a {@link MetaModel} to synchronize it's domain objects with other instances.

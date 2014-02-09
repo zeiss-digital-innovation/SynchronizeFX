@@ -19,6 +19,16 @@
 
 package de.saxsys.synchronizefx.nettywebsocket;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -28,18 +38,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * A client side transmitter implementation for SynchronizeFX that uses Netty and transfers messages over WebSockets.

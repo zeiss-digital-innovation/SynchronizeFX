@@ -19,12 +19,12 @@
 
 package de.saxsys.synchronizefx;
 
-import com.esotericsoftware.kryo.Serializer;
-
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
 import de.saxsys.synchronizefx.netty.NettyClient;
+
+import com.esotericsoftware.kryo.Serializer;
 
 /**
  * The Builder implementation for the Client.

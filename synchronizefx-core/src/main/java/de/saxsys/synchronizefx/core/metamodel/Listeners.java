@@ -42,10 +42,10 @@ import javafx.collections.WeakListChangeListener;
 import javafx.collections.WeakMapChangeListener;
 import javafx.collections.WeakSetChangeListener;
 
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
  * Implements the listeners that generate the commands neccessary for reproducing the changes that where made on

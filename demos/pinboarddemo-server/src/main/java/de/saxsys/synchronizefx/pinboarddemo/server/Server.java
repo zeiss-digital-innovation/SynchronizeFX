@@ -23,15 +23,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.saxsys.synchronizefx.SynchronizeFxBuilder;
-import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.pinboarddemo.domain.Board;
 import de.saxsys.synchronizefx.pinboarddemo.domain.Note;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A server that serves notes and their relative positions on a board to multiple clients.
