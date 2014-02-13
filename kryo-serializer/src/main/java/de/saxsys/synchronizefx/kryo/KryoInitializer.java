@@ -72,7 +72,7 @@ final class KryoInitializer extends ThreadLocal<Kryo> {
      * 
      * @param <T> The class to serialize.
      */
-    private class CustomSerializers<T> {
+    private static class CustomSerializers<T> {
         private final Class<T> clazz;
         private final Serializer<T> serializer;
 

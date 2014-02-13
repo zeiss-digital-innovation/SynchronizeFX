@@ -20,6 +20,7 @@
 package de.saxsys.synchronizefx.testapp;
 
 import java.util.List;
+import java.util.Random;
 
 import de.saxsys.synchronizefx.WaitForModelReadyLock;
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
@@ -91,7 +92,7 @@ public class ExampleClient implements ClientCallback {
      * Edits the text of a randomly selected message of the container.
      */
     public void editRandomMessage() {
-        int random = (int) Math.random() * (messages.size() - 1);
+        int random = new Random().nextInt(messages.size() - 1);
 
         messages.get(random).textProperty().set("changed message");
     }

@@ -21,6 +21,7 @@ package de.saxsys.synchronizefx;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import javafx.application.Application;
 
@@ -32,6 +33,7 @@ import de.saxsys.synchronizefx.testapp.Message;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -107,9 +109,9 @@ public class NettyOneClientIT {
      * Tests whether a random message can be removed by a client.
      */
     @Test
-    public void tesRemoveMessage() {
+    public void testRemoveMessage() {
         int size = client.getMessages().size();
-        int random = (int) Math.random() * (size - 1);
+        int random = new Random().nextInt(size);
 
         client.deleteMessage(random);
 
