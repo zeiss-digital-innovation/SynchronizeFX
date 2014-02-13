@@ -37,16 +37,15 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-
 /**
  * Checks that changes that are done while a client is connecting are not lost.
  * 
  * As the user should not be constrained to do only {@code synchronize}d changes on his domain model, it is hard to
  * ensure that the model is kept synchronous while a client is connected. That is because at the time of writing this
  * test, the messages to reproduce the current state of the domain model are produced by walking through the whole
- * domain model via reflection. This messages are than send to a connecting client. When changes on the server side
- * are done while this "walking" process is active to the part which has already been walked through, this changes
- * are lost. The purpose of this test is to reproduce this problem and show if it has been solved or not.
+ * domain model via reflection. This messages are than send to a connecting client. When changes on the server side are
+ * done while this "walking" process is active to the part which has already been walked through, this changes are lost.
+ * The purpose of this test is to reproduce this problem and show if it has been solved or not.
  * 
  */
 public class ChangeWhileConnectTest {
@@ -129,12 +128,12 @@ public class ChangeWhileConnectTest {
         finishPropertyVisitorThread(propertyVisitorThread);
 
         // check if updates are lost
-        executeCommands(null);
+        executeCommandsAndCompare(null);
     }
 
     /**
-     * Makes a change the domain model (remove) while it is walked through in the part that wasn't visited yet. It
-     * then checks that this change is merged correctly so that it won't result in errors.
+     * Makes a change the domain model (remove) while it is walked through in the part that wasn't visited yet. It then
+     * checks that this change is merged correctly so that it won't result in errors.
      * 
      * <p>
      * Assume the following object graph.
@@ -148,9 +147,9 @@ public class ChangeWhileConnectTest {
      * </pre>
      * 
      * <p>
-     * This test produces a change that removes C while the walker is at A. This change is safed until the walking
-     * has finished. The walker did'nt create a message to create C. If the message to remove C would be send to the
-     * client, an error would occur that an unknown object should be removed. This test checks if this happens.
+     * This test produces a change that removes C while the walker is at A. This change is safed until the walking has
+     * finished. The walker did'nt create a message to create C. If the message to remove C would be send to the client,
+     * an error would occur that an unknown object should be removed. This test checks if this happens.
      * </p>
      */
     @Test
@@ -171,12 +170,12 @@ public class ChangeWhileConnectTest {
         finishPropertyVisitorThread(propertyVisitorThread);
 
         // check if command list can be executed without errors.
-        executeCommands(null);
+        executeCommandsAndCompare(null);
     }
 
     /**
-     * This list ensures that {@link ConcurrentModificationException} thrown by a list iterator in the property
-     * walker don't result in incorrect results.
+     * This list ensures that {@link ConcurrentModificationException} thrown by a list iterator in the property walker
+     * don't result in incorrect results.
      */
     @Test
     @Ignore("Test is unreliable") //FIXME make the test reliable
@@ -197,12 +196,11 @@ public class ChangeWhileConnectTest {
         finishPropertyVisitorThread(propertyVisitorThread);
 
         // check if command list can be executed without errors.
-        executeCommands(null);
+        executeCommandsAndCompare(null);
     }
 
     /**
-     * Tests if changes that occurred after the property walking has finished but before the commands are send are
-     * lost.
+     * Tests if changes that occurred after the property walking has finished but before the commands are send are lost.
      */
     @Test
     @Ignore("Test is unreliable") //FIXME make the test reliable
@@ -248,7 +246,7 @@ public class ChangeWhileConnectTest {
         finishPropertyVisitorThread(commandListCreatorThread);
 
         // check if command list can be executed without errors.
-        executeCommands(null);
+        executeCommandsAndCompare(null);
 
     }
 
@@ -280,7 +278,7 @@ public class ChangeWhileConnectTest {
         assertEquals(5781, child1.waitingProperty.get());
 
         // check if command list can be executed without errors.
-        executeCommands(simulatedIncommingChanges);
+        executeCommandsAndCompare(simulatedIncommingChanges);
     }
 
     /**
@@ -324,7 +322,8 @@ public class ChangeWhileConnectTest {
      * Continues the property visitor {@link Thread} (returned by
      * {@link ChangeWhileConnectTest#startPropertyVisitorThread()} and wait for it to finish.
      * 
-     * @param propertyVisitorThread The property visitor {@link Thread}.
+     * @param propertyVisitorThread
+     *            The property visitor {@link Thread}.
      */
     private void finishPropertyVisitorThread(final Thread propertyVisitorThread) {
         synchronized (threadWaitMonitor) {
@@ -354,7 +353,8 @@ public class ChangeWhileConnectTest {
      * ensures that the property value has changed befor this method returns.
      * </p>
      * 
-     * @param runnable The code to execute.
+     * @param runnable
+     *            The code to execute.
      */
     private void doInNewThread(final Runnable runnable) {
         Thread newThread = new Thread(runnable);
@@ -372,10 +372,10 @@ public class ChangeWhileConnectTest {
     /**
      * Executes the generated commands and checks if the resulting domain model is identical to the original one.
      * 
-     * @param additionalCommands additional commands that should be executed on the copy model. This can be
-     *            {@code null}.
+     * @param additionalCommands
+     *            additional commands that should be executed on the copy model. This can be {@code null}.
      */
-    private void executeCommands(final List<Object> additionalCommands) {
+    private void executeCommandsAndCompare(final List<Object> additionalCommands) {
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copyMeta = new MetaModel(copyCb);
         copyMeta.execute(commands);
@@ -384,6 +384,64 @@ public class ChangeWhileConnectTest {
             copyMeta.execute(additionalCommands);
         }
         assertEquals(root, copyCb.getRoot());
+    }
+
+    /**
+     * Blocks the user thread and wakes the test thread.
+     */
+    private void blockUserThread() {
+        synchronized (threadWaitMonitor) {
+            testThreadShouldWakeUp = true;
+            threadWaitMonitor.notify();
+            while (!propertyVisitorThreadShouldWakeUp) {
+                try {
+                    long time = System.currentTimeMillis();
+                    threadWaitMonitor.wait(WAIT_TIMEOUT);
+                    if (time + WAIT_TIMEOUT < System.currentTimeMillis()) {
+                        fail("PropertyVisitor was not woken up by the test thread as expected " + "but by a timout.");
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    fail("PropertyVisitor was not woken up by the test thread as expected " + "but by an interuption.");
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Blocks a the executing thread after {@link ChangeWhileConnectTest#waitAfterInvocationCount} reaches 0.
+     */
+    private class BlockingIntegerProperty extends SimpleIntegerProperty {
+        private int waitAfterInvocationCount;
+
+        /**
+         * Blocks the thread that is executing this method when {@link ChangeWhileConnectTest#waitAfterInvocationCount}
+         * reaches 0.
+         * 
+         * Each invocation decreases {@link ChangeWhileConnectTest#waitAfterInvocationCount} by 1.
+         */
+        public Integer getValue() {
+            if (waitAfterInvocationCount == 0) {
+                blockUserThread();
+            }
+            waitAfterInvocationCount--;
+            return super.getValue();
+        }
+    };
+
+    /**
+     * Blocks the thread this class is executed in, when {@link CommandsForDomainModelCallback#sendCommands(List)} is
+     * called.
+     * 
+     */
+    private class BlockingCommandsForDomainModelCallback implements CommandsForDomainModelCallback {
+
+        @Override
+        public void commandsReady(final List<Object> theCommands) {
+            blockUserThread();
+            commands = theCommands;
+        }
     }
 
     /**
@@ -436,77 +494,5 @@ public class ChangeWhileConnectTest {
             }
             return true;
         }
-    }
-
-    /**
-     * Blocks a the executing thread after {@link ChangeWhileConnectTest#waitAfterInvocationCount} reaches 0.
-     */
-    private class BlockingIntegerProperty extends SimpleIntegerProperty {
-        private int waitAfterInvocationCount;
-
-        /**
-         * Blocks the thread that is executing this method when
-         * {@link ChangeWhileConnectTest#waitAfterInvocationCount} reaches 0.
-         * 
-         * Each invocation decreases {@link ChangeWhileConnectTest#waitAfterInvocationCount} by 1.
-         */
-        public Integer getValue() {
-            if (waitAfterInvocationCount == 0) {
-                synchronized (threadWaitMonitor) {
-                    testThreadShouldWakeUp = true;
-                    threadWaitMonitor.notify();
-                    while (!propertyVisitorThreadShouldWakeUp) {
-                        try {
-                            long time = System.currentTimeMillis();
-                            threadWaitMonitor.wait(WAIT_TIMEOUT);
-                            if (time + WAIT_TIMEOUT < System.currentTimeMillis()) {
-                                fail("PropertyVisitor was not woken up by the test thread as expected "
-                                        + "but by a timout.");
-                                break;
-                            }
-                        } catch (InterruptedException e) {
-                            fail("PropertyVisitor was not woken up by the test thread as expected "
-                                    + "but by an interuption.");
-                            break;
-                        }
-                    }
-                }
-            }
-            waitAfterInvocationCount--;
-            return super.getValue();
-        }
-    };
-
-    /**
-     * Blocks the thread this class is executed in, when {@link CommandsForDomainModelCallback#sendCommands(List)} is
-     * called.
-     * 
-     */
-    private class BlockingCommandsForDomainModelCallback implements CommandsForDomainModelCallback {
-
-        @Override
-        public void commandsReady(final List<Object> theCommands) {
-            synchronized (threadWaitMonitor) {
-                testThreadShouldWakeUp = true;
-                threadWaitMonitor.notify();
-                while (!propertyVisitorThreadShouldWakeUp) {
-                    try {
-                        long time = System.currentTimeMillis();
-                        threadWaitMonitor.wait(WAIT_TIMEOUT);
-                        if (time + WAIT_TIMEOUT < System.currentTimeMillis()) {
-                            fail("CommandListCreator thread was not woken up by the test thread as expected "
-                                    + "but by a timout.");
-                            break;
-                        }
-                    } catch (InterruptedException e) {
-                        fail("CommandListCreator thread was not woken up by the test thread as expected "
-                                + "but by an interuption.");
-                        break;
-                    }
-                }
-            }
-            commands = theCommands;
-        }
-
     }
 }
