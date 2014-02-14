@@ -74,9 +74,6 @@ class CommandListCreator {
      * @param callback The callback that takes the commands necessary to rebuild the domain model at it's current state.
      */
     public void commandsForDomainModel(final Object root, final CommandsForDomainModelCallback callback) {
-        synchronized (parent.getModelWalkingInProgressLock()) {
-            parent.setModelWalkingInProgress(true);
-        }
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -90,10 +87,6 @@ class CommandListCreator {
         state.commands.add(state.commands.size() - 1, msg);
 
         callback.commandsReady(state.commands);
-        synchronized (parent.getModelWalkingInProgressLock()) {
-            parent.setModelWalkingInProgress(false);
-            parent.getModelWalkingInProgressLock().notifyAll();
-        }
     }
 
     /**

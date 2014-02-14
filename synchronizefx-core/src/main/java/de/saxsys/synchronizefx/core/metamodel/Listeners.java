@@ -41,8 +41,8 @@ import javafx.collections.SetChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.collections.WeakMapChangeListener;
 import javafx.collections.WeakSetChangeListener;
-
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +60,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     private final MetaModel parent;
     private final CommandListCreator creator;
     private final TopologyLayerCallback topology;
+    private final ModelWalkingSynchronizer synchronizer;
 
     private final WeakChangeListener<Object> propertyListener = new WeakChangeListener<>(this);
     private final WeakListChangeListener<Object> listListener = new WeakListChangeListener<>(this);
@@ -73,12 +74,15 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
      * 
      * @param parent The model to use for id lookup.
      * @param creator The creator to use for command creation.
-     * @param topology The user callback to use when errors occure.
+     * @param topology The user callback to use when errors occur.
+     * @param synchronizer The model walking locker to block user threads as long as a model walking process is active.
      */
-    public Listeners(final MetaModel parent, final CommandListCreator creator, final TopologyLayerCallback topology) {
+    public Listeners(final MetaModel parent, final CommandListCreator creator, final TopologyLayerCallback topology,
+            final ModelWalkingSynchronizer synchronizer) {
         this.parent = parent;
         this.creator = creator;
         this.topology = topology;
+        this.synchronizer = synchronizer;
     }
 
     /**
@@ -282,16 +286,11 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     }
 
     private void distributeCommands(final List<Object> commands) {
-        synchronized (parent.getModelWalkingInProgressLock()) {
-            while (parent.isModelWalkingInProgress()) {
-                try {
-                    parent.getModelWalkingInProgressLock().wait();
-                } catch (final InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    LOG.warn("User thread that was blocked by SynchronizeFX was woken up by an Exception.", e);
-                }
+        synchronizer.doWhenModelWalkerFinished(ActionType.LOCAL_PROPERTY_CHANGES, new Runnable() {
+            @Override
+            public void run() {
+                topology.sendCommands(commands);      
             }
-        }
-        topology.sendCommands(commands);
+        });
     }
 }

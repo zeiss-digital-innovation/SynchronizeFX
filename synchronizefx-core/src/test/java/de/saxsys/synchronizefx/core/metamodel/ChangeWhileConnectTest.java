@@ -28,12 +28,13 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
+import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -153,7 +154,6 @@ public class ChangeWhileConnectTest {
      * </p>
      */
     @Test
-    @Ignore("Test is unreliable") //FIXME make the test reliable
     public void testRemoveOfObjectThatWasntCreated() {
         final Domain child3 = new Domain();
         root.list.add(child3);
@@ -172,13 +172,12 @@ public class ChangeWhileConnectTest {
         // check if command list can be executed without errors.
         executeCommandsAndCompare(null);
     }
-
+    
     /**
      * This list ensures that {@link ConcurrentModificationException} thrown by a list iterator in the property walker
      * don't result in incorrect results.
      */
     @Test
-    @Ignore("Test is unreliable") //FIXME make the test reliable
     public void testProvokeConcurentModificationExceptionByListIterateors() {
         final Domain child3 = new Domain();
         root.list.add(child3);
@@ -203,7 +202,6 @@ public class ChangeWhileConnectTest {
      * Tests if changes that occurred after the property walking has finished but before the commands are send are lost.
      */
     @Test
-    @Ignore("Test is unreliable") //FIXME make the test reliable
     public void testSynchronizeChangesAfterWalkingBeforeSending() {
         // MetaModel of the setup() method is not useful here.
         root = new Domain();
@@ -254,7 +252,6 @@ public class ChangeWhileConnectTest {
      * Test if incoming changes from other peers result n lost updates.
      */
     @Test
-    @Ignore("Works only sometimes. See the comments in finishPropertyVisitorThread on how to fix this")
     public void testIncommingChanges() {
         final Domain child1 = root.list.get(0);
         child1.waitingProperty.set(40);
@@ -330,14 +327,12 @@ public class ChangeWhileConnectTest {
             propertyVisitorThreadShouldWakeUp = true;
             threadWaitMonitor.notify();
         }
-        try {
-            propertyVisitorThread.join();
-            // FIXME after the property visitor has finished, the threads that are waiting for this event need to
-            // finish too. Sometimes this happens before the rest of the test logic is executed. In this case the
-            // test pass. Sometimes it doesn't. In this case the tests fail.
-        } catch (InterruptedException e) {
-            fail("Could not wait for the PropertyVisitorThread to finish.");
-        }
+        meta.getModelWalkingSynchronizer().doWhenModelWalkerFinished(ActionType.TEST, new Runnable() {
+            @Override
+            public void run() {
+                // noting to do, just block.
+            }
+        });
     }
 
     /**

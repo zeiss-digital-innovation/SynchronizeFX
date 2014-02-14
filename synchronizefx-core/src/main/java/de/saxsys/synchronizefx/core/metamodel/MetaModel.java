@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 
 import org.apache.commons.collections.map.AbstractReferenceMap;
@@ -35,23 +36,23 @@ import org.apache.commons.collections.map.ReferenceMap;
  * Generates and applies commands necessary to keep domain models synchronous.
  */
 public class MetaModel {
-
+    
     // Apache commons collections are not generic
     @SuppressWarnings("unchecked")
     private Map<Object, UUID> objectToId = new ReferenceIdentityMap(AbstractReferenceMap.WEAK,
             AbstractReferenceMap.HARD);
     @SuppressWarnings("unchecked")
     private Map<UUID, Object> idToObject = new ReferenceMap(AbstractReferenceMap.HARD, AbstractReferenceMap.WEAK);
-    private CommandListCreator creator;
-    private CommandListExecutor executor;
-    private Listeners listeners;
 
     private boolean doChangesInJavaFxThread;
     private Object root;
-    private TopologyLayerCallback topology;
-
-    private final Object modelWalkingInProgressLock = new Object();
-    private boolean modelWalkingInProgress;
+    
+    private final CommandListCreator creator;
+    private final CommandListExecutor executor;
+    private final Listeners listeners;
+    private final ModelWalkingSynchronizer modelWalkingSynchronizer;
+    
+    private final TopologyLayerCallback topology;
 
     /**
      * Creates a {@link MetaModel} where the root object of the domain model is received from another node.
@@ -62,8 +63,10 @@ public class MetaModel {
     public MetaModel(final TopologyLayerCallback topology) {
         this.doChangesInJavaFxThread = false;
         this.topology = topology;
+        
+        this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
         this.creator = new CommandListCreator(this, topology);
-        this.listeners = new Listeners(this, creator, topology);
+        this.listeners = new Listeners(this, creator, topology, modelWalkingSynchronizer);
         this.executor = new CommandListExecutor(this, listeners, topology);
     }
 
@@ -126,11 +129,14 @@ public class MetaModel {
      * @param commands The commands that should be executed.
      */
     public void execute(final List<Object> commands) {
-        synchronized (modelWalkingInProgressLock) {
-            for (Object message : commands) {
-                execute(message);
+        modelWalkingSynchronizer.doWhenModelWalkerFinished(ActionType.INCOMMING_MESSAGES, new Runnable() {
+            @Override
+            public void run() {
+                for (Object message : commands) {
+                    execute(message);
+                }
             }
-        }
+        });
     }
 
     /**
@@ -162,7 +168,9 @@ public class MetaModel {
                             + " but the root object of the domain model is not set."));
             return;
         }
+        modelWalkingSynchronizer.startModelWalking();
         creator.commandsForDomainModel(this.root, callback);
+        modelWalkingSynchronizer.finishedModelWalking();
     }
 
     /**
@@ -221,39 +229,18 @@ public class MetaModel {
         objectToId.put(object, id);
         idToObject.put(id, object);
     }
-
+    
     /**
-     * Returns an object to lock when using {@link MetaModel#isModelWalkingInProgress()},
-     * {@link MetaModel#setModelWalkingInProgress(boolean)} and to {@link Object#wait()} on till the walking process has
-     * finished.
+     * The synchronizer used to synchronize model walking processes with other tasks.
      * 
-     * @return the lock object
+     * <p>
+     * This method is intended to be used by tests only.
+     * </p> 
+     * 
+     * @return The synchronizer
      */
-    Object getModelWalkingInProgressLock() {
-        return modelWalkingInProgressLock;
-    }
-
-    /**
-     * Whether a model walking process is currently in progress or not.
-     * 
-     * Use this method only while synchronized on {@link MetaModel#getModelWalkingInProgressLock()}.
-     * 
-     * @return {@code true} if it is is progress, {@code false if not}.
-     */
-    boolean isModelWalkingInProgress() {
-        return modelWalkingInProgress;
-    }
-
-    /**
-     * Sets whether a model walking progress is in progress or not.
-     * 
-     * Use this method only while synchronized on {@link MetaModel#getModelWalkingInProgressLock()}.
-     * 
-     * @see MetaModel#isModelWalkingInProgress();
-     * @param modelWalkingInProgress the new value.
-     */
-    void setModelWalkingInProgress(final boolean modelWalkingInProgress) {
-        this.modelWalkingInProgress = modelWalkingInProgress;
+    ModelWalkingSynchronizer getModelWalkingSynchronizer() {
+        return modelWalkingSynchronizer;
     }
 
     /**
