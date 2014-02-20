@@ -1,7 +1,7 @@
 /**
  * This file is part of SynchronizeFX.
  * 
- * Copyright (C) 2013 Saxonia Systems AG
+ * Copyright (C) 2013-2014 Saxonia Systems AG
  *
  * SynchronizeFX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
