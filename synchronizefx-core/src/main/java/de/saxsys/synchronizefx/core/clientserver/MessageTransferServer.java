@@ -43,7 +43,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
  * </p>
  * 
  * <p>
- * It is guaranteed that {@link MessageTransferServer#setTopologyCallback(NetworkToTopologyCallbackServer)} is only
+ * It is guaranteed that {@link MessageTransferServer#setTopologyLayerCallback(NetworkToTopologyCallbackServer) is only
  * called before {@link MessageTransferServer#start()} and the send methods only after
  * {@link MessageTransferServer#start()} (maybe multiple times). It is also guaranteed that no more methods are called
  * after {@link MessageTransferServer#shutdown()} was called.
@@ -101,10 +101,12 @@ public interface MessageTransferServer {
     /**
      * Sends messages to a single client.
      * 
-     * @param messages the messages to send. The messages don't need to be send all at once but their order must not be
+     * @param messages
+     *            the messages to send. The messages don't need to be send all at once but their order must not be
      *            changed.
-     * @param client the destination to which this method should be send. Only objects returned by
-     *            {@link IncommingEventHandlerServer#recive(List, Object)} as sender are valid destinations.
+     * @param client
+     *            the destination to which this method should be send. Only objects returned by
+     *            {@link NetworkToTopologyCallbackServer#recive(List, Object)} as sender are valid destinations.
      */
     void send(List<Object> messages, Object client);
 

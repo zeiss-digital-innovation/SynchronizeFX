@@ -114,19 +114,21 @@ public class MetaModel {
      * <p>
      * These commands have usually been created by an other instance of {@link MetaModel} in an other JVM which send
      * them via {@link TopologyLayerCallback#sendCommands(List)} or produced them through
-     * {@link MetaModel#commandsForDomainModel()}.
+     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)}.
      * </p>
      * 
      * <p>
      * If you need to send these commands to other peers e.g. when you are the server in an client/server environment,
      * please call this method first an than redistribute the commands. This call blocks when one of your threads called
-     * {@link MetaModel#commandsForDomainModel()} and hasn't finished yet. When this happens, the commands you've passed
-     * as argument to this method will not be incorporated into the command list returned by your
-     * {@link MetaModel#commandsForDomainModel()} and so you may want to also redistribute them to the new client that's
-     * the reason you've called {@link MetaModel#commandsForDomainModel()}.
+     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and hasn't finished yet. When this
+     * happens, the commands you've passed as argument to this method will not be incorporated into the command list
+     * returned by your {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and so you may want to
+     * also redistribute them to the new client that's the reason you've called
+     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)}.
      * </p>
      * 
-     * @param commands The commands that should be executed.
+     * @param commands
+     *            The commands that should be executed.
      */
     public void execute(final List<Object> commands) {
         modelWalkingSynchronizer.doWhenModelWalkerFinished(ActionType.INCOMMING_MESSAGES, new Runnable() {
