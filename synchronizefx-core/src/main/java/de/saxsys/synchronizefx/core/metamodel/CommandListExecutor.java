@@ -223,18 +223,8 @@ public class CommandListExecutor {
                 LOG.trace(command.toString());
             }
         }
-        final Object value;
-        final UUID valueId = command.getObservableObjectId();
-        if (valueId != null) {
-            value = parent.getById(valueId);
-            if (value == null) {
-                topology.onError(new SynchronizeFXException("AddToList command unknown with value object id recived. "
-                        + command.getObservableObjectId()));
-                return;
-            }
-        } else {
-            value = command.getSimpleObjectValue();
-        }
+        
+        final ObservedValue value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(list, new Runnable() {
             @Override
@@ -247,7 +237,7 @@ public class CommandListExecutor {
                     LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
                     return;
                 }
-                list.add(command.getPosition(), value);
+                list.add(command.getPosition(), value.getValue());
             }
         });
     }

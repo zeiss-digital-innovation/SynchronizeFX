@@ -27,11 +27,10 @@ import java.util.UUID;
  * @author raik.bieniek
  * 
  */
-public class AddToList {
+public class AddToList implements Command {
 
     private UUID listId;
-    private UUID observableObjectId;
-    private Object simpleObjectValue;
+    private Value value;
     private int position;
     private int newSize;
 
@@ -51,35 +50,18 @@ public class AddToList {
     }
 
     /**
-     * @return The id of the observable object that should be added to the list. If this is null, than the value is a
-     *         simple object an can be retrieved through through {@link #getSimpleObjectValue()}.
+     * @return The value to add to the list. 
      */
-    public UUID getObservableObjectId() {
-        return observableObjectId;
+    public Value getValue() {
+        return value;
     }
 
     /**
-     * @see AddToList#getObservableObjectId()
-     * @param observableObjectId the id
+     * @see #getValue()
+     * @param value the value
      */
-    public void setObservableObjectId(final UUID observableObjectId) {
-        this.observableObjectId = observableObjectId;
-    }
-
-    /**
-     * @return The simple object that should be added to the list. The returned value is only valid if
-     *         {@link #getObservableObjectId()} returns null.
-     */
-    public Object getSimpleObjectValue() {
-        return simpleObjectValue;
-    }
-
-    /**
-     * @see AddToList#getSimpleObjectValue()
-     * @param simpleObjectValue the value
-     */
-    public void setSimpleObjectValue(final Object simpleObjectValue) {
-        this.simpleObjectValue = simpleObjectValue;
+    public void setValue(final Value value) {
+        this.value = value;
     }
 
     /**
@@ -118,7 +100,7 @@ public class AddToList {
 
     @Override
     public String toString() {
-        return "AddToList [listId=" + listId + ", observableObjectId=" + observableObjectId + ", simpleObjectValue="
-                + simpleObjectValue + ", position=" + position + "]";
+        return "AddToList [listId=" + listId + ", value=" + value + ", position=" + position + ", newSize=" + newSize
+                + "]";
     }
 }

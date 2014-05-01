@@ -275,11 +275,7 @@ class CommandListCreator {
         msg.setNewSize(newSize);
 
         boolean isObservableObject = createObservableObject(value, state);
-        if (isObservableObject) {
-            msg.setObservableObjectId(parent.getId(value));
-        } else {
-            msg.setSimpleObjectValue(value);
-        }
+        msg.setValue(valueMapper.map(new ObservedValue(value, isObservableObject)));
 
         state.commands.add(msg);
     }

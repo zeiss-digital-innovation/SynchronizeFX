@@ -89,8 +89,8 @@ public class SyncListPropertyTest {
         // test adding of a simple object
         root.wrappedList.add("Test Value 257");
         AddToList msg1 = (AddToList) cb.getCommands().get(0);
-        assertEquals("Test Value 257", msg1.getSimpleObjectValue());
-        assertNull(msg1.getObservableObjectId());
+        assertEquals("Test Value 257", msg1.getValue().getSimpleObjectValue());
+        assertNull(msg1.getValue().getObservableObjectId());
         assertEquals(0, msg1.getPosition());
         assertEquals(1, msg1.getNewSize());
 
@@ -101,8 +101,8 @@ public class SyncListPropertyTest {
         AddToList msg3 = (AddToList) cb.getCommands().get(2);
 
         assertEquals(Child.class.getName(), msg2.getClassName());
-        assertNull(msg3.getSimpleObjectValue());
-        assertEquals(msg2.getObjectId(), msg3.getObservableObjectId());
+        assertNull(msg3.getValue().getSimpleObjectValue());
+        assertEquals(msg2.getObjectId(), msg3.getValue().getObservableObjectId());
         assertEquals(1, msg3.getNewSize());
 
         // test that the position is set correctly
