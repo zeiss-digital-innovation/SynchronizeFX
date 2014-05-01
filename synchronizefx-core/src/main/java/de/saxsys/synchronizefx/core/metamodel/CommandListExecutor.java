@@ -352,47 +352,32 @@ public class CommandListExecutor {
 
     private void execute(final AddToSet command) {
         @SuppressWarnings("unchecked")
-        final Set<Object> set = (Set<Object>) parent.getById(command.getListId());
+        final Set<Object> set = (Set<Object>) parent.getById(command.getSetId());
         if (set == null) {
             topology.onError(new SynchronizeFXException("AddToSet command with unknown list id recived. "
-                    + command.getListId()));
+                    + command.getSetId()));
             return;
         }
-        final Object value;
-        final UUID valueId = command.getObservableObjectId();
-        if (valueId != null) {
-            value = parent.getById(valueId);
-            if (value == null) {
-                topology.onError(new SynchronizeFXException("AddToSet command unknown with value object id recived. "
-                        + command.getObservableObjectId()));
-                return;
-            }
-        } else {
-            value = command.getSimpleObjectValue();
-        }
+        final ObservedValue value = valueMapper.map(command.getValue());
 
         // TODO catch index out of bounds exception.
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                set.add(value);
+                set.add(value.getValue());
             }
         });
     }
 
     private void execute(final RemoveFromSet command) {
         @SuppressWarnings("unchecked")
-        final Set<Object> set = (Set<Object>) parent.getById(command.getListId());
-        final Object value = command.getSimpleObjectValue() != null ? command.getSimpleObjectValue() : parent
-                .getById(command.getObservableObjectId());
-        if (value == null) {
-            topology.onError(new SynchronizeFXException("RemoveFromSet command with unknown value object id recived. "
-                    + command.getSimpleObjectValue()));
-        }
+        final Set<Object> set = (Set<Object>) parent.getById(command.getSetId());
+        final ObservedValue value = valueMapper.map(command.getValue());
+        
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                set.remove(value);
+                set.remove(value.getValue());
             }
         });
     }

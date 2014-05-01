@@ -25,18 +25,17 @@ import java.util.UUID;
  * A command that states that an element should be added to a set.
  * 
  */
-public class AddToSet {
+public class AddToSet implements Command {
     private UUID setId;
-    private UUID observableObjectId;
-    private Object simpleObjectValue;
+    private Value value;
 
     /**
      * @return The id of the set where an element should be added.
      */
-    public UUID getListId() {
+    public UUID getSetId() {
         return setId;
     }
-    
+
     /**
      * @see AddToSet#getListId()
      * @param setId The id
@@ -46,40 +45,22 @@ public class AddToSet {
     }
     
     /**
-     * @return The id of the observable object that should be added to the set. If this is null, than the value is a
-     *         simple object an can be retrieved through through {@link AddToSet#getSimpleObjectValue()}.
+     * @return The value that should be added to the set.
      */
-    public UUID getObservableObjectId() {
-        return observableObjectId;
+    public Value getValue() {
+        return value;
     }
 
     /**
-     * @see AddToSet#getObservableObjectId()
-     * @param id The id
+     * @see AddToSet#getValue()
+     * @param value the value
      */
-    public void setObservableObjectId(final UUID id) {
-        this.observableObjectId = id;
-    }
-    
-    /**
-     * @return The simple object that should be added to the set. The returned value is only valid if
-     *         {@link #getObservableObjectId()} returns null.
-     */
-    public Object getSimpleObjectValue() {
-        return simpleObjectValue;
-    }
-    
-    /**
-     * @see AddToSet#getSimpleObjectValue()
-     * @param value The value
-     */
-    public void setSimpleObjectValue(final Object value) {
-        this.simpleObjectValue = value;
+    public void setValue(final Value value) {
+        this.value = value;
     }
     
     @Override
     public String toString() {
-        return "AddToSet [setId=" + setId + ", observableObjectId=" + observableObjectId + ", simpleObjectValue="
-                + simpleObjectValue + "]";
+        return "AddToSet [setId=" + setId + ", value=" + value + "]";
     }
 }

@@ -25,62 +25,43 @@ import java.util.UUID;
  * A command to remove an element in a set.
  * 
  */
-public class RemoveFromSet {
+public class RemoveFromSet implements Command {
 
     private UUID setId;
-    private UUID observableObjectId;
-    private Object simpleObjectValue;
+    private Value value;
 
     /**
      * @return The id of the set where an element should be added.
      */
-    public UUID getListId() {
+    public UUID getSetId() {
         return setId;
     }
     
     /**
-     * @see RemoveFromSet#getListId()
+     * @see #getSetId()
      * @param setId The id
      */
     public void setSetId(final UUID setId) {
         this.setId = setId;
     }
-    
+
     /**
-     * @return The id of the observable object that should be removed from the set. If this is null, than the value is a
-     *         simple object an can be retrieved through through {@link RemoveFromSet#getSimpleObjectValue()}.
+     * @return The value that should be removed from the set.
      */
-    public UUID getObservableObjectId() {
-        return observableObjectId;
+    public Value getValue() {
+        return value;
     }
 
     /**
-     * @see RemoveFromSet#getObservableObjectId()
-     * @param id The id
+     * @see #getValue()
+     * @param value the value
      */
-    public void setObservableObjectId(final UUID id) {
-        this.observableObjectId = id;
-    }
-    
-    /**
-     * @return The simple object that should be removed from the set. The returned value is only valid if
-     *         {@link RemoveFromSet#getObservableObjectId()} returns null.
-     */
-    public Object getSimpleObjectValue() {
-        return simpleObjectValue;
-    }
-    
-    /**
-     * @see RemoveFromSet#getSimpleObjectValue()
-     * @param value The value
-     */
-    public void setSimpleObjectValue(final Object value) {
-        this.simpleObjectValue = value;
+    public void setValue(final Value value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return "RemoveFromSet [setId=" + setId + ", observableObjectId=" + observableObjectId + ", simpleObjectValue="
-                + simpleObjectValue + "]";
+        return "RemoveFromSet [setId=" + setId + ", value=" + value + "]";
     }
 }

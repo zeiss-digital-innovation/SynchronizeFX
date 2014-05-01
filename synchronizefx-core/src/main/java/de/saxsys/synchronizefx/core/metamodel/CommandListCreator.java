@@ -255,12 +255,7 @@ class CommandListCreator {
 
         RemoveFromSet msg = new RemoveFromSet();
         msg.setSetId(setId);
-
-        if (keyIsObservableObject) {
-            msg.setObservableObjectId(parent.getId(value));
-        } else {
-            msg.setSimpleObjectValue(value);
-        }
+        msg.setValue(valueMapper.map(new ObservedValue(value, keyIsObservableObject)));
 
         state.commands.add(state.commands.size() - 1, msg);
         return state.commands;
@@ -298,11 +293,7 @@ class CommandListCreator {
         msg.setSetId(setId);
 
         boolean isObservableObject = createObservableObject(value, state);
-        if (isObservableObject) {
-            msg.setObservableObjectId(parent.getId(value));
-        } else {
-            msg.setSimpleObjectValue(value);
-        }
+        msg.setValue(valueMapper.map(new ObservedValue(value, isObservableObject)));
 
         state.commands.add(msg);
     }

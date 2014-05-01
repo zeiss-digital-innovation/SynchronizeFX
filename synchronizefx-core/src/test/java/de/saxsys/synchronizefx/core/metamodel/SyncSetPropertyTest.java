@@ -85,17 +85,17 @@ public class SyncSetPropertyTest {
     public void testAdd() {
         root.set.add("some string");
         AddToSet msg1 = (AddToSet) cb.getCommands().get(0);
-        assertNotNull(msg1.getListId());
-        assertNull(msg1.getObservableObjectId());
-        assertEquals("some string", msg1.getSimpleObjectValue());
+        assertNotNull(msg1.getSetId());
+        assertNull(msg1.getValue().getObservableObjectId());
+        assertEquals("some string", msg1.getValue().getSimpleObjectValue());
 
         root.childSet.add(new Child());
         CreateObservableObject msg2 = (CreateObservableObject) cb.getCommands().get(0);
         AddToSet msg3 = (AddToSet) cb.getCommands().get(2);
         assertEquals(Child.class.getName(), msg2.getClassName());
-        assertNotNull(msg3.getListId());
-        assertNotNull(msg3.getObservableObjectId());
-        assertNull(msg3.getSimpleObjectValue());
+        assertNotNull(msg3.getSetId());
+        assertNotNull(msg3.getValue().getObservableObjectId());
+        assertNull(msg3.getValue().getSimpleObjectValue());
     }
 
     /**
@@ -111,18 +111,18 @@ public class SyncSetPropertyTest {
 
         root.set.remove("Test Value 1");
         RemoveFromSet msg1 = (RemoveFromSet) cb.getCommands().get(0);
-        assertNotNull(msg1.getListId());
-        assertEquals("Test Value 1", msg1.getSimpleObjectValue());
-        assertNull(msg1.getObservableObjectId());
+        assertNotNull(msg1.getSetId());
+        assertEquals("Test Value 1", msg1.getValue().getSimpleObjectValue());
+        assertNull(msg1.getValue().getObservableObjectId());
 
         root.childSet.remove(new Child(0));
         // first two for child
         assertEquals(CreateObservableObject.class, cb.getCommands().get(0).getClass());
         assertEquals(SetPropertyValue.class, cb.getCommands().get(1).getClass());
         RemoveFromSet msg2 = (RemoveFromSet) cb.getCommands().get(2);
-        assertNotNull(msg2.getListId());
-        assertNull(msg2.getSimpleObjectValue());
-        assertNotNull(msg2.getObservableObjectId());
+        assertNotNull(msg2.getSetId());
+        assertNull(msg2.getValue().getSimpleObjectValue());
+        assertNotNull(msg2.getValue().getObservableObjectId());
     }
 
     /**
