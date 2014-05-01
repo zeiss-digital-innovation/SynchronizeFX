@@ -236,7 +236,6 @@ public class CommandListExecutor {
             value = command.getSimpleObjectValue();
         }
 
-        // TODO catch index out of bounds exception.
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
@@ -298,37 +297,13 @@ public class CommandListExecutor {
             }
         }
 
-        final Object key;
-        final UUID keyId = command.getKeyObservableObjectId();
-        if (keyId != null) {
-            key = parent.getById(keyId);
-            if (key == null) {
-                topology.onError(new SynchronizeFXException("PutToMap command with unknown key object id recived. "
-                        + command.getKeyObservableObjectId()));
-                return;
-            }
-        } else {
-            key = command.getKeySimpleObjectValue();
-        }
-
-        final Object value;
-        final UUID valueId = command.getValueObservableObjectId();
-        if (valueId != null) {
-            value = parent.getById(valueId);
-            if (value == null) {
-                topology.onError(new SynchronizeFXException("PutToMap command with unknown value object id recived. "
-                        + command.getValueObservableObjectId()));
-                return;
-            }
-        } else {
-            value = command.getValueSimpleObjectValue();
-        }
-
-        // TODO catch index out of bounds exception.
+        final ObservedValue key = valueMapper.map(command.getKey());
+        final ObservedValue value = valueMapper.map(command.getValue());
+        
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                map.put(key, value);
+                map.put(key.getValue(), value.getValue());
             }
         });
     }
@@ -336,16 +311,12 @@ public class CommandListExecutor {
     private void execute(final RemoveFromMap command) {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) parent.getById(command.getMapId());
-        final Object key = command.getKeySimpleObjectValue() != null ? command.getKeySimpleObjectValue() : parent
-                .getById(command.getKeyObservableObjectId());
-        if (key == null) {
-            topology.onError(new SynchronizeFXException("RemoveFromMap command with unknown key object id recived. "
-                    + command.getKeySimpleObjectValue()));
-        }
+        final ObservedValue key = valueMapper.map(command.getKey());
+        
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                map.remove(key);
+                map.remove(key.getValue());
             }
         });
     }
@@ -360,7 +331,6 @@ public class CommandListExecutor {
         }
         final ObservedValue value = valueMapper.map(command.getValue());
 
-        // TODO catch index out of bounds exception.
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {

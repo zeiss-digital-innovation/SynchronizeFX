@@ -26,11 +26,10 @@ import java.util.UUID;
  * 
  * @author raik.bieniek
  */
-public class RemoveFromMap {
+public class RemoveFromMap implements Command {
 
     private UUID mapId;
-    private UUID keyObservableObjectId;
-    private Object keySimpleObjectValue;
+    private Value key;
 
     /**
      * @return the id of the map where a mapping should be removed.
@@ -48,41 +47,22 @@ public class RemoveFromMap {
     }
 
     /**
-     * @return the id for the observable object that represents the key for the mapping that should be removed. If this
-     *         is null, than the key is a simple object and can be retrieved via
-     *         {@link RemoveFromMap#getKeySimpleObjectValue()}.
+     * @return The key of the mapping to remove from this map.
      */
-    public UUID getKeyObservableObjectId() {
-        return keyObservableObjectId;
+    public Value getKey() {
+        return key;
     }
 
     /**
-     * @see RemoveFromMap#getKeyObservableObjectId()
-     * @param keyObservableObjectId the id
+     * @see #getKey()
+     * @param key the key
      */
-    public void setKeyObservableObjectId(final UUID keyObservableObjectId) {
-        this.keyObservableObjectId = keyObservableObjectId;
-    }
-
-    /**
-     * @return the object that represents the key for the mapping that should be removed. If this is null than the key
-     *         is an observable object whose id can be retrieved via {@link RemoveFromMap#getKeyObservableObjectId()}.
-     */
-    public Object getKeySimpleObjectValue() {
-        return keySimpleObjectValue;
-    }
-
-    /**
-     * @see RemoveFromMap#getKeySimpleObjectValue()
-     * @param keySimpleObjectValue the key
-     */
-    public void setKeySimpleObjectValue(final Object keySimpleObjectValue) {
-        this.keySimpleObjectValue = keySimpleObjectValue;
+    public void setKey(final Value key) {
+        this.key = key;
     }
 
     @Override
     public String toString() {
-        return "RemoveFromMap [mapId=" + mapId + ", keyObservableObjectId=" + keyObservableObjectId
-                + ", keySimpleObjectValue=" + keySimpleObjectValue + "]";
+        return "RemoveFromMap [mapId=" + mapId + ", key=" + key + "]";
     }
 }
