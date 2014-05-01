@@ -23,20 +23,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javafx.application.Platform;
+
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
+import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor.ModelChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 
 import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceIdentityMap;
 import org.apache.commons.collections.map.ReferenceMap;
 
-
 /**
  * Generates and applies commands necessary to keep domain models synchronous.
  */
 public class MetaModel {
-    
+
     // Apache commons collections are not generic
     @SuppressWarnings("unchecked")
     private Map<Object, UUID> objectToId = new ReferenceIdentityMap(AbstractReferenceMap.WEAK,
@@ -46,36 +48,42 @@ public class MetaModel {
 
     private boolean doChangesInJavaFxThread;
     private Object root;
-    
+
     private final CommandListCreator creator;
     private final CommandListExecutor executor;
     private final Listeners listeners;
     private final ModelWalkingSynchronizer modelWalkingSynchronizer;
-    
+
     private final TopologyLayerCallback topology;
 
     /**
      * Creates a {@link MetaModel} where the root object of the domain model is received from another node.
      * 
-     * @param topology used to interact with the lower layer which is probably represented by the class that called this
+     * @param topology
+     *            used to interact with the lower layer which is probably represented by the class that called this
      *            constructor.
      */
     public MetaModel(final TopologyLayerCallback topology) {
         this.doChangesInJavaFxThread = false;
         this.topology = topology;
-        
+
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
         this.creator = new CommandListCreator(this, topology);
         this.listeners = new Listeners(this, creator, topology, modelWalkingSynchronizer);
-        this.executor = new CommandListExecutor(this, listeners, topology);
+
+        final SilentChangeExecutor changeExecutor = new SilentChangeExecutor(listeners,
+                new MaybeExecuteInJavaFXThread());
+        this.executor = new CommandListExecutor(this, listeners, changeExecutor, topology);
     }
 
     /**
      * Creates a {@link MetaModel} which serves a new domain model.
      * 
      * @see MetaModel#MetaModel(TopologyLayerCallback)
-     * @param topology see {@link MetaModel#MetaModel(TopologyLayerCallback)}
-     * @param root The root object of the domain model that should be served.
+     * @param topology
+     *            see {@link MetaModel#MetaModel(TopologyLayerCallback)}
+     * @param root
+     *            The root object of the domain model that should be served.
      */
     public MetaModel(final TopologyLayerCallback topology, final Object root) {
         this(topology);
@@ -102,7 +110,8 @@ public class MetaModel {
 
     /**
      * @see MetaModel#isDoChangesInJavaFxThread()
-     * @param doChangesInJavaFxThread the new value
+     * @param doChangesInJavaFxThread
+     *            the new value
      */
     public void setDoChangesInJavaFxThread(final boolean doChangesInJavaFxThread) {
         this.doChangesInJavaFxThread = doChangesInJavaFxThread;
@@ -161,7 +170,8 @@ public class MetaModel {
      * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} returns.
      * </p>
      * 
-     * @param callback The callback that takes the commands.
+     * @param callback
+     *            The callback that takes the commands.
      */
     public void commandsForDomainModel(final CommandsForDomainModelCallback callback) {
         if (this.root == null) {
@@ -178,7 +188,8 @@ public class MetaModel {
     /**
      * Returns a object that is identified by an id.
      * 
-     * @param id The id
+     * @param id
+     *            The id
      * @return The object
      */
     public Object getById(final UUID id) {
@@ -188,7 +199,8 @@ public class MetaModel {
     /**
      * Returns the id for an object.
      * 
-     * @param object the object
+     * @param object
+     *            the object
      * @return The id.
      */
     public UUID getId(final Object object) {
@@ -200,7 +212,8 @@ public class MetaModel {
      * 
      * This is usably called on an {@link SetRootElement} message.
      * 
-     * @param root the new root object.
+     * @param root
+     *            the new root object.
      */
     void setRoot(final Object root) {
         this.root = root;
@@ -210,7 +223,8 @@ public class MetaModel {
     /**
      * Registers an object in the meta model if it is not already registered.
      * 
-     * @param object The object to register.
+     * @param object
+     *            The object to register.
      * @return The id of the object. It doesn't matter if the object was just registered or already known.
      */
     UUID registerIfUnknown(final Object object) {
@@ -224,20 +238,22 @@ public class MetaModel {
     /**
      * Registers an object in this model identified by a pre existing id.
      * 
-     * @param object The object to register.
-     * @param id The id by which this object is identified.
+     * @param object
+     *            The object to register.
+     * @param id
+     *            The id by which this object is identified.
      */
     void registerObject(final Object object, final UUID id) {
         objectToId.put(object, id);
         idToObject.put(id, object);
     }
-    
+
     /**
      * The synchronizer used to synchronize model walking processes with other tasks.
      * 
      * <p>
      * This method is intended to be used by tests only.
-     * </p> 
+     * </p>
      * 
      * @return The synchronizer
      */
@@ -249,7 +265,8 @@ public class MetaModel {
      * Execute a single command to change the domain model of the user.
      * 
      * @see MetaModel#execute(List)
-     * @param command The command that should be executed.
+     * @param command
+     *            The command that should be executed.
      */
     private void execute(final Object command) {
         executor.execute(command);
@@ -258,7 +275,8 @@ public class MetaModel {
     /**
      * Registers an object in this model identified by a newly created id.
      * 
-     * @param object The object to register.
+     * @param object
+     *            The object to register.
      * @return The generated id.
      */
     private UUID registerObject(final Object object) {
@@ -269,5 +287,20 @@ public class MetaModel {
 
     private UUID generateId() {
         return UUID.randomUUID();
+    }
+
+    /**
+     * Executes changes to the users domain model in the JavaFX Thread if {@link MetaModel#doChangesInJavaFxThread} is
+     * <code>true</code>. Executes them directly otherwise.
+     */
+    private class MaybeExecuteInJavaFXThread implements ModelChangeExecutor {
+        @Override
+        public void execute(final Runnable change) {
+            if (doChangesInJavaFxThread) {
+                Platform.runLater(change);
+            } else {
+                change.run();
+            }
+        }
     }
 }

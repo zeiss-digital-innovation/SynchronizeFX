@@ -29,7 +29,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import javafx.application.Platform;
 import javafx.beans.property.Property;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
@@ -67,16 +66,25 @@ public class CommandListExecutor {
 
     private final TopologyLayerCallback topology;
 
+    private SilentChangeExecutor changeExecutor;
+
     /**
      * Initializes the executor.
      * 
-     * @param parent The model to user for id lookup and registration.
-     * @param listeners The listeners that should be registered on new properties.
-     * @param topology The user callback that should be used to report errors.
+     * @param parent
+     *            The model to user for id lookup and registration.
+     * @param listeners
+     *            The listeners that should be registered on new properties.
+     * @param changeExecutor
+     *            Used to prevent generation of change commands when doing changes to the users domain model.
+     * @param topology
+     *            The user callback that should be used to report errors.
      */
-    public CommandListExecutor(final MetaModel parent, final Listeners listeners, final TopologyLayerCallback topology) {
+    public CommandListExecutor(final MetaModel parent, final Listeners listeners,
+            final SilentChangeExecutor changeExecutor, final TopologyLayerCallback topology) {
         this.topology = topology;
         this.parent = parent;
+        this.changeExecutor = changeExecutor;
         this.listeners = listeners;
         if (LOG.isTraceEnabled()) {
             propFieldMap = new HashMap<>();
@@ -85,7 +93,8 @@ public class CommandListExecutor {
 
     /**
      * @see MetaModel#execute(Object)
-     * @param command The command to execute.
+     * @param command
+     *            The command to execute.
      */
     public void execute(final Object command) {
         if (command instanceof CreateObservableObject) {
@@ -194,19 +203,12 @@ public class CommandListExecutor {
             value = command.getSimpleObjectValue();
         }
 
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(prop, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(prop);
                 prop.setValue(value);
-                listeners.enableFor(prop);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final AddToList command) {
@@ -239,27 +241,20 @@ public class CommandListExecutor {
         }
 
         // TODO catch index out of bounds exception.
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(list);
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("Add value {} to list {} at position {}.",
-                            new Object[] {value, Arrays.toString(list.toArray()), command.getPosition() });
+                            new Object[] { value, Arrays.toString(list.toArray()), command.getPosition() });
                 }
                 if (list.size() >= command.getNewSize()) {
                     LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
                     return;
                 }
                 list.add(command.getPosition(), value);
-                listeners.enableFor(list);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final RemoveFromList command) {
@@ -273,10 +268,9 @@ public class CommandListExecutor {
                 LOG.trace(command.toString());
             }
         }
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(list);
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("Remove from list {} at position {}.", Arrays.toString(list.toArray()),
                             command.getPosition());
@@ -287,14 +281,8 @@ public class CommandListExecutor {
                     return;
                 }
                 list.remove(command.getPosition());
-                listeners.enableFor(list);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final PutToMap command) {
@@ -341,44 +329,29 @@ public class CommandListExecutor {
         }
 
         // TODO catch index out of bounds exception.
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(map);
                 map.put(key, value);
-                listeners.enableFor(map);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final RemoveFromMap command) {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) parent.getById(command.getMapId());
-        final Object key =
-                command.getKeySimpleObjectValue() != null ? command.getKeySimpleObjectValue() : parent.getById(command
-                        .getKeyObservableObjectId());
+        final Object key = command.getKeySimpleObjectValue() != null ? command.getKeySimpleObjectValue() : parent
+                .getById(command.getKeyObservableObjectId());
         if (key == null) {
             topology.onError(new SynchronizeFXException("RemoveFromMap command with unknown key object id recived. "
                     + command.getKeySimpleObjectValue()));
         }
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(map);
                 map.remove(key);
-                listeners.enableFor(map);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final AddToSet command) {
@@ -403,44 +376,29 @@ public class CommandListExecutor {
         }
 
         // TODO catch index out of bounds exception.
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(set);
                 set.add(value);
-                listeners.enableFor(set);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final RemoveFromSet command) {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) parent.getById(command.getListId());
-        final Object value =
-                command.getSimpleObjectValue() != null ? command.getSimpleObjectValue() : parent.getById(command
-                        .getObservableObjectId());
+        final Object value = command.getSimpleObjectValue() != null ? command.getSimpleObjectValue() : parent
+                .getById(command.getObservableObjectId());
         if (value == null) {
             topology.onError(new SynchronizeFXException("RemoveFromSet command with unknown value object id recived. "
                     + command.getSimpleObjectValue()));
         }
-        final Runnable runnable = new Runnable() {
+        changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                listeners.disableFor(set);
                 set.remove(value);
-                listeners.enableFor(set);
             }
-        };
-        if (parent.isDoChangesInJavaFxThread()) {
-            Platform.runLater(runnable);
-        } else {
-            runnable.run();
-        }
+        });
     }
 
     private void execute(final SetRootElement command) {
