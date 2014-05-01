@@ -19,13 +19,21 @@
 
 package de.saxsys.synchronizefx.core.exceptions;
 
+/**
+ * Indicates an error with the <em>observable object</em> to id mapping.
+ */
 public class ObjectToIdMappingException extends SynchronizeFXException {
 
     private static final long serialVersionUID = 3997295840965130660L;
 
-    public ObjectToIdMappingException(String message) {
+    /**
+     * 
+     * @param message
+     *            A user readable message that describes the problem and optionally some advice for the user how the
+     *            problem can be fixed.
+     */
+    public ObjectToIdMappingException(final String message) {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
 }

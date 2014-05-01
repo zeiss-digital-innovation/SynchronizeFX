@@ -20,8 +20,6 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +55,6 @@ public class CommandListExecutor {
 
     private final MetaModel parent;
     private final Listeners listeners;
-    private final TopologyLayerCallback topology;
     private final SilentChangeExecutor changeExecutor;
     private final ValueMapper valueMapper;
 
@@ -66,8 +63,6 @@ public class CommandListExecutor {
      * garbage collected before they are used.
      */
     private final Map<Object, Object> hardReferences = new IdentityHashMap<>();
-    // only needed for tracing
-    private Map<Property<?>, Field> propFieldMap;
 
     /**
      * Initializes the executor.
@@ -80,20 +75,13 @@ public class CommandListExecutor {
      *            Used to prevent generation of change commands when doing changes to the users domain model.
      * @param valueMapper
      *            Used to translate {@link Value} messages to the real values the represent.
-     * @param topology
-     *            The user callback that should be used to report errors.
      */
     public CommandListExecutor(final MetaModel parent, final Listeners listeners,
-            final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper,
-            final TopologyLayerCallback topology) {
-        this.topology = topology;
+            final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
         this.parent = parent;
         this.changeExecutor = changeExecutor;
         this.listeners = listeners;
         this.valueMapper = valueMapper;
-        if (LOG.isTraceEnabled()) {
-            propFieldMap = new HashMap<>();
-        }
     }
 
     /**
@@ -152,28 +140,23 @@ public class CommandListExecutor {
                     current = current.getSuperclass();
                 }
                 if (!fieldFound) {
-                    topology.onError(new SynchronizeFXException(
+                    throw new SynchronizeFXException(
                             "A message with a field name was recived which doesn't exist in the related class."
                                     + " Maybe you have different versions of the domain objects"
-                                    + " in your clients and the server?"));
+                                    + " in your clients and the server?");
                 }
             }
         } catch (final InstantiationException e) {
-            topology.onError(new SynchronizeFXException(
-                    "Maybe you've forgot to add a public no-arg constructor to one of your domain objects?", e));
-            return;
+            throw new SynchronizeFXException(
+                    "Maybe you've forgot to add a public no-arg constructor to one of your domain objects?", e);
         } catch (final IllegalAccessException e) {
-            topology.onError(new SynchronizeFXException(
-                    "Maybe one of your no-arg constructor of one of your domain objects is not public?", e));
-            return;
+            throw new SynchronizeFXException(
+                    "Maybe one of your no-arg constructor of one of your domain objects is not public?", e);
         } catch (final ClassNotFoundException e) {
-            topology.onError(new SynchronizeFXException(
-                    "Maybe not all of you're domain objects or their dependencies are availabe on every node?", e));
-            return;
+            throw new SynchronizeFXException(
+                    "Maybe not all of you're domain objects or their dependencies are availabe on every node?", e);
         } catch (final SecurityException e) {
-            topology.onError(new SynchronizeFXException(
-                    "Maybe you're JVM doesn't allow reflection for this application?", e));
-            return;
+            throw new SynchronizeFXException("Maybe you're JVM doesn't allow reflection for this application?", e);
         }
 
         hardReferences.put(obj, null);
@@ -184,17 +167,8 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Property<Object> prop = (Property<Object>) parent.getById(command.getPropertyId());
         if (prop == null) {
-            topology.onError(new SynchronizeFXException("SetPropertyValue with unknown property id recived. "
-                    + command.getPropertyId()));
-            return;
-        }
-        if (LOG.isTraceEnabled()) {
-            final Field field = propFieldMap.get(prop);
-            if (field != null) {
-                LOG.trace("Set on field " + field + " value " + command);
-            } else {
-                LOG.trace(command.toString());
-            }
+            throw new SynchronizeFXException("SetPropertyValue with unknown property id recived. "
+                    + command.getPropertyId());
         }
 
         final Object value = valueMapper.map(command.getValue()).getValue();
@@ -211,30 +185,17 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) parent.getById(command.getListId());
         if (list == null) {
-            topology.onError(new SynchronizeFXException("AddToList command with unknown list id recived. "
-                    + command.getListId()));
-            return;
+            throw new SynchronizeFXException("AddToList command with unknown list id recived. " + command.getListId());
         }
-        if (LOG.isTraceEnabled()) {
-            final Field field = propFieldMap.get(list);
-            if (field != null) {
-                LOG.trace("Add to list " + field + " value " + command);
-            } else {
-                LOG.trace(command.toString());
-            }
-        }
-        
+
         final ObservedValue value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("Add value {} to list {} at position {}.",
-                            new Object[] { value, Arrays.toString(list.toArray()), command.getPosition() });
-                }
                 if (list.size() >= command.getNewSize()) {
-                    LOG.warn("Preconditions to apply AddToList command are not met. This may be OK if you've just connected.");
+                    LOG.warn("Preconditions to apply AddToList command are not met. This may be OK "
+                            + "if you've just connected.");
                     return;
                 }
                 list.add(command.getPosition(), value.getValue());
@@ -245,21 +206,9 @@ public class CommandListExecutor {
     private void execute(final RemoveFromList command) {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) parent.getById(command.getListId());
-        if (LOG.isTraceEnabled()) {
-            final Field field = propFieldMap.get(list);
-            if (field != null) {
-                LOG.trace("Remove from list " + field + " value " + command);
-            } else {
-                LOG.trace(command.toString());
-            }
-        }
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("Remove from list {} at position {}.", Arrays.toString(list.toArray()),
-                            command.getPosition());
-                }
                 if (list.size() <= command.getNewSize()) {
                     LOG.warn("Preconditions to apply RemoveFromList command are not met."
                             + "This may be OK if you've just connected.");
@@ -274,22 +223,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) parent.getById(command.getMapId());
         if (map == null) {
-            topology.onError(new SynchronizeFXException("PutToMap command with unknown map id recived. "
-                    + command.getMapId()));
-            return;
-        }
-        if (LOG.isTraceEnabled()) {
-            final Field field = propFieldMap.get(map);
-            if (field != null) {
-                LOG.trace("Put in map " + field + " value " + command);
-            } else {
-                LOG.trace(command.toString());
-            }
+            throw new SynchronizeFXException("PutToMap command with unknown map id recived. " + command.getMapId());
         }
 
         final ObservedValue key = valueMapper.map(command.getKey());
         final ObservedValue value = valueMapper.map(command.getValue());
-        
+
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
@@ -302,7 +241,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) parent.getById(command.getMapId());
         final ObservedValue key = valueMapper.map(command.getKey());
-        
+
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
@@ -315,9 +254,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) parent.getById(command.getSetId());
         if (set == null) {
-            topology.onError(new SynchronizeFXException("AddToSet command with unknown list id recived. "
-                    + command.getSetId()));
-            return;
+            throw new SynchronizeFXException("AddToSet command with unknown list id recived. " + command.getSetId());
         }
         final ObservedValue value = valueMapper.map(command.getValue());
 
@@ -333,7 +270,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) parent.getById(command.getSetId());
         final ObservedValue value = valueMapper.map(command.getValue());
-        
+
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {

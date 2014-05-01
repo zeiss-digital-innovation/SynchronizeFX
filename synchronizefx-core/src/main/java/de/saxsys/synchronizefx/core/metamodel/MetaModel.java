@@ -75,7 +75,7 @@ public class MetaModel {
 
         final SilentChangeExecutor changeExecutor = new SilentChangeExecutor(listeners,
                 new MaybeExecuteInJavaFXThread());
-        this.executor = new CommandListExecutor(this, listeners, changeExecutor, valueMapper, topology);
+        this.executor = new CommandListExecutor(this, listeners, changeExecutor, valueMapper);
     }
 
     /**
