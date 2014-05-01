@@ -97,7 +97,7 @@ public class SyncSingleValuePropertyTest {
                 }
             } else if (command instanceof SetPropertyValue) {
                 SetPropertyValue spv = (SetPropertyValue) command;
-                if ("Test".equals(spv.getSimpleObjectValue())) {
+                if ("Test".equals(spv.getValue().getSimpleObjectValue())) {
                     setTestValue = true;
                 }
             }
@@ -116,8 +116,8 @@ public class SyncSingleValuePropertyTest {
         // set simple object value
         root.someString.set("Some Test String");
         SetPropertyValue msg1 = (SetPropertyValue) cb.getCommands().get(0);
-        assertNull(msg1.getObservableObjectId());
-        assertEquals("Some Test String", msg1.getSimpleObjectValue());
+        assertNull(msg1.getValue().getObservableObjectId());
+        assertEquals("Some Test String", msg1.getValue().getSimpleObjectValue());
 
         // set observable object value;
         Child newChild = new Child();
@@ -127,8 +127,8 @@ public class SyncSingleValuePropertyTest {
         assertEquals(cb.getCommands().get(0).getClass(), CreateObservableObject.class);
         // get(1) = SetPropertyValue for childInt in child; get(2) = SetPropertyValue for child in Root
         SetPropertyValue msg2 = (SetPropertyValue) cb.getCommands().get(2);
-        assertNull(msg2.getSimpleObjectValue());
-        assertNotNull(msg2.getObservableObjectId());
+        assertNull(msg2.getValue().getSimpleObjectValue());
+        assertNotNull(msg2.getValue().getObservableObjectId());
     }
 
     /**
@@ -140,8 +140,8 @@ public class SyncSingleValuePropertyTest {
         root.someChild.get().childInt.set(547);
         SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
 
-        assertEquals(547, msg.getSimpleObjectValue());
-        assertNull(msg.getObservableObjectId());
+        assertEquals(547, msg.getValue().getSimpleObjectValue());
+        assertNull(msg.getValue().getObservableObjectId());
     }
 
     /**

@@ -42,6 +42,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
+import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,10 @@ public class CommandListExecutor {
 
     private final MetaModel parent;
     private final Listeners listeners;
+    private final TopologyLayerCallback topology;
+    private final SilentChangeExecutor changeExecutor;
+    private final ValueMapper valueMapper;
+
     /**
      * A set that holds hard references to objects that would otherwise only have weak references and thus could get
      * garbage collected before they are used.
@@ -63,10 +68,6 @@ public class CommandListExecutor {
     private final Map<Object, Object> hardReferences = new IdentityHashMap<>();
     // only needed for tracing
     private Map<Property<?>, Field> propFieldMap;
-
-    private final TopologyLayerCallback topology;
-
-    private SilentChangeExecutor changeExecutor;
 
     /**
      * Initializes the executor.
@@ -77,15 +78,19 @@ public class CommandListExecutor {
      *            The listeners that should be registered on new properties.
      * @param changeExecutor
      *            Used to prevent generation of change commands when doing changes to the users domain model.
+     * @param valueMapper
+     *            Used to translate {@link Value} messages to the real values the represent.
      * @param topology
      *            The user callback that should be used to report errors.
      */
     public CommandListExecutor(final MetaModel parent, final Listeners listeners,
-            final SilentChangeExecutor changeExecutor, final TopologyLayerCallback topology) {
+            final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper,
+            final TopologyLayerCallback topology) {
         this.topology = topology;
         this.parent = parent;
         this.changeExecutor = changeExecutor;
         this.listeners = listeners;
+        this.valueMapper = valueMapper;
         if (LOG.isTraceEnabled()) {
             propFieldMap = new HashMap<>();
         }
@@ -95,8 +100,10 @@ public class CommandListExecutor {
      * @see MetaModel#execute(Object)
      * @param command
      *            The command to execute.
+     * @throws SynchronizeFXException
+     *             when the execution of an command failed.
      */
-    public void execute(final Object command) {
+    public void execute(final Object command) throws SynchronizeFXException {
         if (command instanceof CreateObservableObject) {
             execute((CreateObservableObject) command);
         } else if (command instanceof SetPropertyValue) {
@@ -173,7 +180,7 @@ public class CommandListExecutor {
         parent.registerObject(obj, command.getObjectId());
     }
 
-    private void execute(final SetPropertyValue command) {
+    private void execute(final SetPropertyValue command) throws SynchronizeFXException {
         @SuppressWarnings("unchecked")
         final Property<Object> prop = (Property<Object>) parent.getById(command.getPropertyId());
         if (prop == null) {
@@ -189,19 +196,8 @@ public class CommandListExecutor {
                 LOG.trace(command.toString());
             }
         }
-        final Object value;
-        final UUID valueId = command.getObservableObjectId();
-        if (valueId != null) {
-            value = parent.getById(valueId);
-            if (value == null) {
-                topology.onError(new SynchronizeFXException(
-                        "SetPropertyValue command with unknown value object id recived. "
-                                + command.getObservableObjectId()));
-                return;
-            }
-        } else {
-            value = command.getSimpleObjectValue();
-        }
+
+        final Object value = valueMapper.map(command.getValue()).getValue();
 
         changeExecutor.execute(prop, new Runnable() {
             @Override

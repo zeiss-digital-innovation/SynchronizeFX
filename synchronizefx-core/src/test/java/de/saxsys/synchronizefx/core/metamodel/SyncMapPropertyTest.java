@@ -207,10 +207,10 @@ public class SyncMapPropertyTest {
 
         root.otherMap.put(key, value);
         key.someInt.set(42);
-        assertEquals(42, ((SetPropertyValue) cb.getCommands().get(0)).getSimpleObjectValue());
+        assertEquals(42, ((SetPropertyValue) cb.getCommands().get(0)).getValue().getSimpleObjectValue());
 
         value.someInt.set(1337);
-        assertEquals(1337, ((SetPropertyValue) cb.getCommands().get(0)).getSimpleObjectValue());
+        assertEquals(1337, ((SetPropertyValue) cb.getCommands().get(0)).getValue().getSimpleObjectValue());
     }
 
     /**

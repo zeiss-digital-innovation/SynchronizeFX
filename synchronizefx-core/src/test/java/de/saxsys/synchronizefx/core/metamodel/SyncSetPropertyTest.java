@@ -165,8 +165,8 @@ public class SyncSetPropertyTest {
         someChild.someInt.set(475);
 
         SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
-        assertEquals(475, msg.getSimpleObjectValue());
-        assertNull(msg.getObservableObjectId());
+        assertEquals(475, msg.getValue().getSimpleObjectValue());
+        assertNull(msg.getValue().getObservableObjectId());
     }
 
     /**

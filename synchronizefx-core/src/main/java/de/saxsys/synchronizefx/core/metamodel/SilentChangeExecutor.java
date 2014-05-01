@@ -22,7 +22,7 @@ package de.saxsys.synchronizefx.core.metamodel;
 /**
  * Changes an Observable without notifying listeners of these changes.
  */
-public class SilentChangeExecutor {
+class SilentChangeExecutor {
 
     private final Listeners listeners;
     private final ModelChangeExecutor executor;

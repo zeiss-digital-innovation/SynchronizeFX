@@ -66,14 +66,16 @@ public class MetaModel {
     public MetaModel(final TopologyLayerCallback topology) {
         this.doChangesInJavaFxThread = false;
         this.topology = topology;
+        
+        final ValueMapper valueMapper = new ValueMapper(this);
 
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
-        this.creator = new CommandListCreator(this, topology);
+        this.creator = new CommandListCreator(this, valueMapper, topology);
         this.listeners = new Listeners(this, creator, topology, modelWalkingSynchronizer);
 
         final SilentChangeExecutor changeExecutor = new SilentChangeExecutor(listeners,
                 new MaybeExecuteInJavaFXThread());
-        this.executor = new CommandListExecutor(this, listeners, changeExecutor, topology);
+        this.executor = new CommandListExecutor(this, listeners, changeExecutor, valueMapper, topology);
     }
 
     /**
@@ -181,7 +183,11 @@ public class MetaModel {
             return;
         }
         modelWalkingSynchronizer.startModelWalking();
-        creator.commandsForDomainModel(this.root, callback);
+        try {
+            creator.commandsForDomainModel(this.root, callback);
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
+        }
         modelWalkingSynchronizer.finishedModelWalking();
     }
 
@@ -190,7 +196,7 @@ public class MetaModel {
      * 
      * @param id
      *            The id
-     * @return The object
+     * @return The object if one is registered by this id and <code>null</code> if not.
      */
     public Object getById(final UUID id) {
         return idToObject.get(id);
@@ -269,7 +275,11 @@ public class MetaModel {
      *            The command that should be executed.
      */
     private void execute(final Object command) {
-        executor.execute(command);
+        try {
+            executor.execute(command);
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
+        }
     }
 
     /**

@@ -206,8 +206,8 @@ public class SyncListPropertyTest {
 
         // check messages
         SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
-        assertEquals(924, msg.getSimpleObjectValue());
-        assertNull(msg.getObservableObjectId());
+        assertEquals(924, msg.getValue().getSimpleObjectValue());
+        assertNull(msg.getValue().getObservableObjectId());
     }
 
     /**

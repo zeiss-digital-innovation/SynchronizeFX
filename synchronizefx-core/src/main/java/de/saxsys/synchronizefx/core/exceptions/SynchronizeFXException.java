@@ -25,7 +25,7 @@ package de.saxsys.synchronizefx.core.exceptions;
  * @author raik.bieniek
  * 
  */
-public class SynchronizeFXException extends Exception {
+public class SynchronizeFXException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
