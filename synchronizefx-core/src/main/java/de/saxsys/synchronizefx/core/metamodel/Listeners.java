@@ -58,7 +58,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
 
     private static final Logger LOG = LoggerFactory.getLogger(Listeners.class);
 
-    private final MetaModel parent;
+    private final WeakObjectRegistry objectRegistry;
     private final CommandListCreator creator;
     private final TopologyLayerCallback topology;
     private final ModelWalkingSynchronizer synchronizer;
@@ -73,14 +73,18 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Initializes the Listeners.
      * 
-     * @param parent The model to use for id lookup.
-     * @param creator The creator to use for command creation.
-     * @param topology The user callback to use when errors occur.
-     * @param synchronizer The model walking locker to block user threads as long as a model walking process is active.
+     * @param objectRegistry
+     *            used for object to id lookup.
+     * @param creator
+     *            The creator to use for command creation.
+     * @param topology
+     *            The user callback to use when errors occur.
+     * @param synchronizer
+     *            The model walking locker to block user threads as long as a model walking process is active.
      */
-    public Listeners(final MetaModel parent, final CommandListCreator creator, final TopologyLayerCallback topology,
-            final ModelWalkingSynchronizer synchronizer) {
-        this.parent = parent;
+    public Listeners(final WeakObjectRegistry objectRegistry, final CommandListCreator creator,
+            final TopologyLayerCallback topology, final ModelWalkingSynchronizer synchronizer) {
+        this.objectRegistry = objectRegistry;
         this.creator = creator;
         this.topology = topology;
         this.synchronizer = synchronizer;
@@ -89,7 +93,8 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Registers listeners on all {@link Property} fields of all Objects contained in {@code model}.
      * 
-     * @param object The root of the object graph where to start registering listeners.
+     * @param object
+     *            The root of the object graph where to start registering listeners.
      */
     public void registerListenersOnEverything(final Object object) {
         try {
@@ -134,7 +139,8 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Registers listeners on a property so that commands are created when changes in the property occur.
      * 
-     * @param prop The property to register the change listeners on.
+     * @param prop
+     *            The property to register the change listeners on.
      */
     public void registerOn(final Property<?> prop) {
         prop.addListener(propertyListener);
@@ -143,7 +149,8 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Registers listeners on a property so that commands are created when changes in the property occur.
      * 
-     * @param list The property to register the change listeners on.
+     * @param list
+     *            The property to register the change listeners on.
      */
     public void registerOn(final ListProperty<?> list) {
         list.addListener(listListener);
@@ -152,7 +159,8 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
     /**
      * Registers listeners on a property so that commands are created when changes in the property occur.
      * 
-     * @param map The property to register the change listeners on.
+     * @param map
+     *            The property to register the change listeners on.
      */
     public void registerOn(final MapProperty<?, ?> map) {
         map.addListener(mapListener);
@@ -163,11 +171,15 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         if (disabledFor.containsKey(property)) {
             return;
         }
-        final List<Object> commands = creator.setPropertyValue(parent.getId(property), newValue);
-        if (newValue != null) {
-            registerListenersOnEverything(newValue);
+        try {
+            final List<Object> commands = creator.setPropertyValue(objectRegistry.getIdOrFail(property), newValue);
+            if (newValue != null) {
+                registerListenersOnEverything(newValue);
+            }
+            distributeCommands(commands);
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
         }
-        distributeCommands(commands);
     }
 
     @Override
@@ -177,48 +189,53 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
             return;
         }
         event.reset();
-        final UUID listId = parent.getId(list);
-        while (event.next()) {
-            List<Object> commands = null;
-            if (event.wasPermutated()) {
-                LOG.warn("Got an ListChangeListener.Change event that permutates the list."
-                        + " This case is not implemented and is not synchronized.");
-                // for (int i = event.getFrom(); i < event.getTo(); ++i) {
-                // //TODO
-                // }
-            } else if (event.wasUpdated()) {
-                LOG.warn("Got an ListChangeListener.Change event that indicates that some elements in a list"
-                        + " have been updated. This case is not implemented and is not synchronized.");
-                // TODO
-            } else if (event.wasAdded()) {
-                if (event.wasRemoved()) {
-                    LOG.warn("BUG: An add and remove operation can be in the same event."
-                            + " That case is not handled by the software");
-                }
-                commands = new LinkedList<Object>();
-                for (int i = event.getFrom(); i < event.getTo(); i++) {
-                    final Object elem = list.get(i);
-                    final UUID id = parent.getId(elem);
-                    commands.addAll(creator.addToList(listId, i, elem, list.size()));
-                    // if getId() is null, then newValue is unknown to the meta model and therefore listeners need to
-                    // be registered on it.
-                    if (elem != null && id == null) {
-                        registerListenersOnEverything(elem);
+        try {
+            final UUID listId = objectRegistry.getIdOrFail(list);
+            while (event.next()) {
+                List<Object> commands = null;
+                if (event.wasPermutated()) {
+                    LOG.warn("Got an ListChangeListener.Change event that permutates the list."
+                            + " This case is not implemented and is not synchronized.");
+                    // for (int i = event.getFrom(); i < event.getTo(); ++i) {
+                    // //TODO
+                    // }
+                } else if (event.wasUpdated()) {
+                    LOG.warn("Got an ListChangeListener.Change event that indicates that some elements in a list"
+                            + " have been updated. This case is not implemented and is not synchronized.");
+                    // TODO
+                } else if (event.wasAdded()) {
+                    if (event.wasRemoved()) {
+                        LOG.warn("BUG: An add and remove operation can be in the same event."
+                                + " That case is not handled by the software");
                     }
+                    commands = new LinkedList<Object>();
+                    for (int i = event.getFrom(); i < event.getTo(); i++) {
+                        final Object elem = list.get(i);
+                        final Optional<UUID> id = objectRegistry.getId(elem);
+                        commands.addAll(creator.addToList(listId, i, elem, list.size()));
+                        // if getId() was null, then newValue is unknown to the meta model and therefore listeners need
+                        // to be registered on it.
+                        if (elem != null && !id.isPresent()) {
+                            registerListenersOnEverything(elem);
+                        }
+                    }
+                } else if (event.wasRemoved()) {
+                    if (event.getFrom() != event.getTo()) {
+                        LOG.warn("BUG: A remove operation in a list change event can remove more than one items."
+                                + " That case is not handled by the software");
+                    }
+                    commands = creator.removeFromList(listId, event.getTo(), list.size());
+                    // TODO don't let distributeCommands() happen
                 }
-            } else if (event.wasRemoved()) {
-                if (event.getFrom() != event.getTo()) {
-                    LOG.warn("BUG: A remove operation in a list change event can remove more than one items."
-                            + " That case is not handled by the software");
+                if (commands != null) {
+                    distributeCommands(commands);
                 }
-                commands = creator.removeFromList(listId, event.getTo(), list.size());
-                // TODO don't let distributeCommands() happen
             }
-            if (commands != null) {
-                distributeCommands(commands);
-            }
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
+        } finally {
+            event.reset();
         }
-        event.reset();
     }
 
     @Override
@@ -227,18 +244,22 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         if (disabledFor.containsKey(set)) {
             return;
         }
-        final UUID setId = parent.getId(set);
+        try {
+            final UUID setId = objectRegistry.getIdOrFail(set);
 
-        List<Object> commands = null;
-        if (change.wasAdded()) {
-            final Object value = change.getElementAdded();
-            commands = creator.addToSet(setId, value);
-            registerListenersOnEverything(value);
-        } else {
-            final Object value = change.getElementRemoved();
-            commands = creator.removeFromSet(setId, value);
+            List<Object> commands = null;
+            if (change.wasAdded()) {
+                final Object value = change.getElementAdded();
+                commands = creator.addToSet(setId, value);
+                registerListenersOnEverything(value);
+            } else {
+                final Object value = change.getElementRemoved();
+                commands = creator.removeFromSet(setId, value);
+            }
+            distributeCommands(commands);
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
         }
-        distributeCommands(commands);
     }
 
     @Override
@@ -247,30 +268,34 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         if (disabledFor.containsKey(map)) {
             return;
         }
-        final UUID mapId = parent.getId(map);
-        final Object key = change.getKey();
-        if (change.wasAdded()) {
-            final Object value = change.getValueAdded();
-            final List<Object> commands = creator.putToMap(mapId, key, value);
-            registerListenersOnEverything(key);
-            if (value != null) {
-                registerListenersOnEverything(value);
+        try {
+            final UUID mapId = objectRegistry.getIdOrFail(map);
+            final Object key = change.getKey();
+            if (change.wasAdded()) {
+                final Object value = change.getValueAdded();
+                final List<Object> commands = creator.putToMap(mapId, key, value);
+                registerListenersOnEverything(key);
+                if (value != null) {
+                    registerListenersOnEverything(value);
+                }
+                distributeCommands(commands);
+            } else {
+                distributeCommands(creator.removeFromMap(mapId, key));
             }
-            distributeCommands(commands);
-        } else {
-            distributeCommands(creator.removeFromMap(mapId, key));
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
         }
-
     }
 
     /**
      * Prevents the listeners of this object to be executed for a specific object.
      * 
-     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners
-     * wouldn't be disabled in this case, they would generate change messages which than would be send amongst others
-     * to the client that generated the changes in the first place. The result would be an endless loop.
+     * This can be useful if you want to apply changes from other peers to the domain model. If the listeners wouldn't
+     * be disabled in this case, they would generate change messages which than would be send amongst others to the
+     * client that generated the changes in the first place. The result would be an endless loop.
      * 
-     * @param value The object for which the listeners should be disabled.
+     * @param value
+     *            The object for which the listeners should be disabled.
      */
     public void disableFor(final Object value) {
         disabledFor.put(value, null);
@@ -280,7 +305,8 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
      * Enables a previously disabled listener.
      * 
      * @see Listeners#disabledFor
-     * @param value The object for which the listeners should be enabled.
+     * @param value
+     *            The object for which the listeners should be enabled.
      */
     public void enableFor(final Object value) {
         disabledFor.remove(value);
@@ -290,7 +316,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         synchronizer.doWhenModelWalkerFinished(ActionType.LOCAL_PROPERTY_CHANGES, new Runnable() {
             @Override
             public void run() {
-                topology.sendCommands(commands);      
+                topology.sendCommands(commands);
             }
         });
     }

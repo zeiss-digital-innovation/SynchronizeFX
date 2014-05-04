@@ -30,7 +30,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  */
 class ValueMapper {
 
-    private final MetaModel objectRegistry;
+    private final WeakObjectRegistry objectRegistry;
 
     /**
      * Initializes an instance.
@@ -38,7 +38,7 @@ class ValueMapper {
      * @param objectRegistry
      *            used to retrieve observable objects from the model registry.
      */
-    public ValueMapper(final MetaModel objectRegistry) {
+    public ValueMapper(final WeakObjectRegistry objectRegistry) {
         this.objectRegistry = objectRegistry;
     }
 
@@ -56,12 +56,7 @@ class ValueMapper {
 
         final UUID valueId = message.getObservableObjectId();
         if (valueId != null) {
-            Object fromRegistry = objectRegistry.getById(valueId);
-            if (fromRegistry == null) {
-                throw new ObjectToIdMappingException(
-                        "A command was received which contains an id for an unknown value. "
-                                + message.getObservableObjectId());
-            }
+            Object fromRegistry = objectRegistry.getByIdOrFail(valueId);
             value = new ObservedValue(fromRegistry, true);
         } else {
             value = new ObservedValue(message.getSimpleObjectValue(), false);
@@ -82,11 +77,7 @@ class ValueMapper {
         Value msg = new Value();
 
         if (value.isObservable()) {
-            UUID id = objectRegistry.getId(value.getValue());
-            if (id == null) {
-                throw new ObjectToIdMappingException("A value message for an observable object should be created, "
-                        + "but the observable object has not yet been assigned an id.");
-            }
+            UUID id = objectRegistry.getIdOrFail(value.getValue());
             msg.setObservableObjectId(id);
         } else {
             msg.setSimpleObjectValue(value.getValue());

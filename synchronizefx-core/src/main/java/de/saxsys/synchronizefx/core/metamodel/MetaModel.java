@@ -20,8 +20,6 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import javafx.application.Platform;
 
@@ -30,21 +28,10 @@ import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionTyp
 import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor.ModelChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 
-import org.apache.commons.collections.map.AbstractReferenceMap;
-import org.apache.commons.collections.map.ReferenceIdentityMap;
-import org.apache.commons.collections.map.ReferenceMap;
-
 /**
  * Generates and applies commands necessary to keep domain models synchronous.
  */
 public class MetaModel {
-
-    // Apache commons collections are not generic
-    @SuppressWarnings("unchecked")
-    private Map<Object, UUID> objectToId = new ReferenceIdentityMap(AbstractReferenceMap.WEAK,
-            AbstractReferenceMap.HARD);
-    @SuppressWarnings("unchecked")
-    private Map<UUID, Object> idToObject = new ReferenceMap(AbstractReferenceMap.HARD, AbstractReferenceMap.WEAK);
 
     private boolean doChangesInJavaFxThread;
     private Object root;
@@ -66,16 +53,17 @@ public class MetaModel {
     public MetaModel(final TopologyLayerCallback topology) {
         this.doChangesInJavaFxThread = false;
         this.topology = topology;
-        
-        final ValueMapper valueMapper = new ValueMapper(this);
+
+        final WeakObjectRegistry objectRegistry = new WeakObjectRegistry();
+        final ValueMapper valueMapper = new ValueMapper(objectRegistry);
 
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
-        this.creator = new CommandListCreator(this, valueMapper, topology);
-        this.listeners = new Listeners(this, creator, topology, modelWalkingSynchronizer);
+        this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);
+        this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer);
 
         final SilentChangeExecutor changeExecutor = new SilentChangeExecutor(listeners,
                 new MaybeExecuteInJavaFXThread());
-        this.executor = new CommandListExecutor(this, listeners, changeExecutor, valueMapper);
+        this.executor = new CommandListExecutor(this, objectRegistry, listeners, changeExecutor, valueMapper);
     }
 
     /**
@@ -90,15 +78,19 @@ public class MetaModel {
     public MetaModel(final TopologyLayerCallback topology, final Object root) {
         this(topology);
         this.root = root;
-        // to register all objects in the id map
-        commandsForDomainModel(new CommandsForDomainModelCallback() {
-            @Override
-            public void commandsReady(final List<Object> commands) {
-                // the commands are not needed.
-            }
-        });
-        // assign UUIDs for all observable objects that don't have them until now.
-        listeners.registerListenersOnEverything(root);
+        try {
+            // to register all objects in the id map
+            commandsForDomainModel(new CommandsForDomainModelCallback() {
+                @Override
+                public void commandsReady(final List<Object> commands) {
+                    // the commands are not needed.
+                }
+            });
+            // assign UUIDs for all observable objects that don't have them until now.
+            listeners.registerListenersOnEverything(root);
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
+        }
     }
 
     /**
@@ -142,14 +134,18 @@ public class MetaModel {
      *            The commands that should be executed.
      */
     public void execute(final List<Object> commands) {
-        modelWalkingSynchronizer.doWhenModelWalkerFinished(ActionType.INCOMMING_MESSAGES, new Runnable() {
-            @Override
-            public void run() {
-                for (Object message : commands) {
-                    execute(message);
+        try {
+            modelWalkingSynchronizer.doWhenModelWalkerFinished(ActionType.INCOMMING_MESSAGES, new Runnable() {
+                @Override
+                public void run() {
+                    for (Object message : commands) {
+                        execute(message);
+                    }
                 }
-            }
-        });
+            });
+        } catch (final SynchronizeFXException e) {
+            topology.onError(e);
+        }
     }
 
     /**
@@ -182,35 +178,13 @@ public class MetaModel {
                             + " but the root object of the domain model is not set."));
             return;
         }
-        modelWalkingSynchronizer.startModelWalking();
         try {
+            modelWalkingSynchronizer.startModelWalking();
             creator.commandsForDomainModel(this.root, callback);
+            modelWalkingSynchronizer.finishedModelWalking();
         } catch (final SynchronizeFXException e) {
             topology.onError(e);
         }
-        modelWalkingSynchronizer.finishedModelWalking();
-    }
-
-    /**
-     * Returns a object that is identified by an id.
-     * 
-     * @param id
-     *            The id
-     * @return The object if one is registered by this id and <code>null</code> if not.
-     */
-    public Object getById(final UUID id) {
-        return idToObject.get(id);
-    }
-
-    /**
-     * Returns the id for an object.
-     * 
-     * @param object
-     *            the object
-     * @return The id.
-     */
-    public UUID getId(final Object object) {
-        return objectToId.get(object);
     }
 
     /**
@@ -224,34 +198,6 @@ public class MetaModel {
     void setRoot(final Object root) {
         this.root = root;
         topology.domainModelChanged(root);
-    }
-
-    /**
-     * Registers an object in the meta model if it is not already registered.
-     * 
-     * @param object
-     *            The object to register.
-     * @return The id of the object. It doesn't matter if the object was just registered or already known.
-     */
-    UUID registerIfUnknown(final Object object) {
-        UUID id = getId(object);
-        if (id == null) {
-            id = registerObject(object);
-        }
-        return id;
-    }
-
-    /**
-     * Registers an object in this model identified by a pre existing id.
-     * 
-     * @param object
-     *            The object to register.
-     * @param id
-     *            The id by which this object is identified.
-     */
-    void registerObject(final Object object, final UUID id) {
-        objectToId.put(object, id);
-        idToObject.put(id, object);
     }
 
     /**
@@ -275,28 +221,7 @@ public class MetaModel {
      *            The command that should be executed.
      */
     private void execute(final Object command) {
-        try {
-            executor.execute(command);
-        } catch (final SynchronizeFXException e) {
-            topology.onError(e);
-        }
-    }
-
-    /**
-     * Registers an object in this model identified by a newly created id.
-     * 
-     * @param object
-     *            The object to register.
-     * @return The generated id.
-     */
-    private UUID registerObject(final Object object) {
-        UUID id = generateId();
-        registerObject(object, id);
-        return id;
-    }
-
-    private UUID generateId() {
-        return UUID.randomUUID();
+        executor.execute(command);
     }
 
     /**

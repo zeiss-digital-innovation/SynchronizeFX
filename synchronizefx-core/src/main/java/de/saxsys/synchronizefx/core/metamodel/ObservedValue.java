@@ -32,8 +32,8 @@ import javafx.beans.property.Property;
  */
 class ObservedValue {
 
-    private boolean observable;
-    private Object value;
+    private final boolean observable;
+    private final Object value;
 
     /**
      * Initializes this value class.

@@ -39,7 +39,7 @@ final class Optional<T> {
     private final T value;
 
     private Optional(final T value) {
-        this.value = null;
+        this.value = value;
     }
 
     /**

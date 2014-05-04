@@ -131,9 +131,9 @@ public class SyncMapPropertyTest {
         PutToMap msg2 = (PutToMap) commands2.get(4);
 
         assertNotNull(msg2.getMapId());
-        assertEquals(key, model.getById(msg2.getKey().getObservableObjectId()));
+        assertNotNull(msg2.getKey().getObservableObjectId());
         assertNull(msg2.getKey().getSimpleObjectValue());
-        assertEquals(value, model.getById(msg2.getValue().getObservableObjectId()));
+        assertNotNull(msg2.getValue().getObservableObjectId());
         assertNull(msg2.getValue().getSimpleObjectValue());
     }
 
@@ -152,16 +152,16 @@ public class SyncMapPropertyTest {
         
         root.map.remove(testId1);
         RemoveFromMap msg = (RemoveFromMap) cb.getCommands().get(0);
-        assertEquals(root.map, model.getById(msg.getMapId()));
+        assertNotNull(msg.getMapId());
         assertNull(msg.getKey().getObservableObjectId());
         assertEquals(testId1, msg.getKey().getSimpleObjectValue());
         
         root.otherMap.remove(new Child(0));
         assertEquals(CreateObservableObject.class, cb.getCommands().get(0).getClass());
         RemoveFromMap msg2 = (RemoveFromMap) cb.getCommands().get(2);
-        assertEquals(root.otherMap, model.getById(msg2.getMapId()));
+        assertNotNull(msg2.getMapId());
         assertNull(msg2.getKey().getSimpleObjectValue());
-        assertEquals(new Child(0), model.getById(msg2.getKey().getObservableObjectId()));
+        assertNotNull(msg2.getKey().getObservableObjectId());
     }
 
     /**

@@ -53,23 +53,23 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  */
 class CommandListCreator {
 
-    private final MetaModel parent;
+    private final WeakObjectRegistry objectRegistry;
     private final ValueMapper valueMapper;
     private final TopologyLayerCallback topology;
 
     /**
      * Initializes the creator.
      * 
-     * @param parent
-     *            The model used to lookup and set ids for objects.
+     * @param objectRegistry
+     *            used to lookup and set ids for objects.
      * @param valueMapper
      *            used to create {@link Value} messages.
      * @param topology
      *            The user callback used to report errors.
      */
-    public CommandListCreator(final MetaModel parent, final ValueMapper valueMapper,
+    public CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
             final TopologyLayerCallback topology) {
-        this.parent = parent;
+        this.objectRegistry = objectRegistry;
         this.valueMapper = valueMapper;
         this.topology = topology;
     }
@@ -91,7 +91,7 @@ class CommandListCreator {
         }, false);
 
         SetRootElement msg = new SetRootElement();
-        msg.setRootElementId(parent.getId(root));
+        msg.setRootElementId(objectRegistry.getIdOrFail(root));
         // prepend it to ClearReferences message
         state.commands.add(state.commands.size() - 1, msg);
 
@@ -328,7 +328,7 @@ class CommandListCreator {
             state.alreadyVisited.put(value, null);
         }
 
-        if (state.skipKnown && parent.getId(value) != null) {
+        if (state.skipKnown && objectRegistry.getId(value).isPresent()) {
             return state.lastObjectWasObservable = true;
         }
 
@@ -376,8 +376,8 @@ class CommandListCreator {
                 }
 
                 private UUID registerPropertyAndParent(final Field field, final Property<?> fieldValue) {
-                    msg.setObjectId(parent.registerIfUnknown(value));
-                    UUID fieldId = parent.registerIfUnknown(fieldValue);
+                    msg.setObjectId(objectRegistry.registerIfUnknown(value));
+                    UUID fieldId = objectRegistry.registerIfUnknown(fieldValue);
                     msg.getPropertyNameToId().put(field.getName(), fieldId);
                     return fieldId;
                 }

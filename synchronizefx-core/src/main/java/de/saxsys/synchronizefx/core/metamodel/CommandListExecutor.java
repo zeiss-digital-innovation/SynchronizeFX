@@ -54,6 +54,7 @@ public class CommandListExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CommandListExecutor.class);
 
     private final MetaModel parent;
+    private final WeakObjectRegistry objectRegistry;
     private final Listeners listeners;
     private final SilentChangeExecutor changeExecutor;
     private final ValueMapper valueMapper;
@@ -68,7 +69,9 @@ public class CommandListExecutor {
      * Initializes the executor.
      * 
      * @param parent
-     *            The model to user for id lookup and registration.
+     *            used to set up the root object
+     * @param objectRegistry
+     *            used for id to object lookup
      * @param listeners
      *            The listeners that should be registered on new properties.
      * @param changeExecutor
@@ -76,9 +79,10 @@ public class CommandListExecutor {
      * @param valueMapper
      *            Used to translate {@link Value} messages to the real values the represent.
      */
-    public CommandListExecutor(final MetaModel parent, final Listeners listeners,
-            final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
+    public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
+            final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
         this.parent = parent;
+        this.objectRegistry = objectRegistry;
         this.changeExecutor = changeExecutor;
         this.listeners = listeners;
         this.valueMapper = valueMapper;
@@ -131,7 +135,7 @@ public class CommandListExecutor {
                     try {
                         final Field field = current.getDeclaredField(entry.getKey());
                         field.setAccessible(true);
-                        parent.registerObject(field.get(obj), entry.getValue());
+                        objectRegistry.registerObject(field.get(obj), entry.getValue());
                         fieldFound = true;
                         break;
                     } catch (final NoSuchFieldException e) {
@@ -160,16 +164,12 @@ public class CommandListExecutor {
         }
 
         hardReferences.put(obj, null);
-        parent.registerObject(obj, command.getObjectId());
+        objectRegistry.registerObject(obj, command.getObjectId());
     }
 
     private void execute(final SetPropertyValue command) throws SynchronizeFXException {
         @SuppressWarnings("unchecked")
-        final Property<Object> prop = (Property<Object>) parent.getById(command.getPropertyId());
-        if (prop == null) {
-            throw new SynchronizeFXException("SetPropertyValue with unknown property id recived. "
-                    + command.getPropertyId());
-        }
+        final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
 
         final Object value = valueMapper.map(command.getValue()).getValue();
 
@@ -183,10 +183,7 @@ public class CommandListExecutor {
 
     private void execute(final AddToList command) {
         @SuppressWarnings("unchecked")
-        final List<Object> list = (List<Object>) parent.getById(command.getListId());
-        if (list == null) {
-            throw new SynchronizeFXException("AddToList command with unknown list id recived. " + command.getListId());
-        }
+        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
 
         final ObservedValue value = valueMapper.map(command.getValue());
 
@@ -205,7 +202,8 @@ public class CommandListExecutor {
 
     private void execute(final RemoveFromList command) {
         @SuppressWarnings("unchecked")
-        final List<Object> list = (List<Object>) parent.getById(command.getListId());
+        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
+        
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
@@ -221,10 +219,7 @@ public class CommandListExecutor {
 
     private void execute(final PutToMap command) {
         @SuppressWarnings("unchecked")
-        final Map<Object, Object> map = (Map<Object, Object>) parent.getById(command.getMapId());
-        if (map == null) {
-            throw new SynchronizeFXException("PutToMap command with unknown map id recived. " + command.getMapId());
-        }
+        final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
 
         final ObservedValue key = valueMapper.map(command.getKey());
         final ObservedValue value = valueMapper.map(command.getValue());
@@ -239,7 +234,8 @@ public class CommandListExecutor {
 
     private void execute(final RemoveFromMap command) {
         @SuppressWarnings("unchecked")
-        final Map<Object, Object> map = (Map<Object, Object>) parent.getById(command.getMapId());
+        final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
+        
         final ObservedValue key = valueMapper.map(command.getKey());
 
         changeExecutor.execute(map, new Runnable() {
@@ -252,10 +248,8 @@ public class CommandListExecutor {
 
     private void execute(final AddToSet command) {
         @SuppressWarnings("unchecked")
-        final Set<Object> set = (Set<Object>) parent.getById(command.getSetId());
-        if (set == null) {
-            throw new SynchronizeFXException("AddToSet command with unknown list id recived. " + command.getSetId());
-        }
+        final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
+
         final ObservedValue value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {
@@ -268,7 +262,8 @@ public class CommandListExecutor {
 
     private void execute(final RemoveFromSet command) {
         @SuppressWarnings("unchecked")
-        final Set<Object> set = (Set<Object>) parent.getById(command.getSetId());
+        final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
+        
         final ObservedValue value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {
@@ -280,7 +275,7 @@ public class CommandListExecutor {
     }
 
     private void execute(final SetRootElement command) {
-        final Object root = this.parent.getById(command.getRootElementId());
+        final Object root = objectRegistry.getByIdOrFail(command.getRootElementId());
         this.parent.setRoot(root);
     }
 }
