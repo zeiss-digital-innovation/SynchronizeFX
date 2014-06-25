@@ -1,23 +1,6 @@
-/**
- * This file is part of SynchronizeFX.
- * 
- * Copyright (C) 2013-2014 Saxonia Systems AG
- *
- * SynchronizeFX is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * SynchronizeFX is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
- */
 
-package de.saxsys.synchronizefx.netty;
+
+package de.saxsys.synchronizefx.netty.bak;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -43,7 +26,6 @@ import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
 /**
  * A client that can send and recive objects over the network when connected to a server.
  * 
- * This class is intended to be used as input for {@link SynchronizeFxClient}.
  * 
  * @author raik.bieniek
  */
@@ -58,20 +40,6 @@ public class NettyClient extends NettyEndPoint implements MessageTransferClient 
 
     private boolean disconnectByServer = true;
 
-    /**
-     * Takes the required informations to connect to a server but doesn't actually connect to it.
-     * 
-     * The opening of the connection is done by {@link SynchronizeFxClient}.
-     * 
-     * @param serverAdress The domain name or IP address of a server to connect to.
-     * @param port The port of the server to connect to.
-     * @param serializer The serializer that should be used to serialize SynchronizeFX messages.
-     */
-    public NettyClient(final String serverAdress, final int port, final Serializer serializer) {
-        super(serializer);
-        this.serverAdress = serverAdress;
-        this.port = port;
-    }
 
     @Override
     public void setTopologyCallback(final NetworkToTopologyCallbackClient callback) {
@@ -88,8 +56,7 @@ public class NettyClient extends NettyEndPoint implements MessageTransferClient 
         // Set up the pipeline factory.
         client.setPipelineFactory(new ChannelPipelineFactory() {
             public ChannelPipeline getPipeline() throws Exception {
-                return Channels.pipeline(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4),
-                        handler, new LengthFieldPrepender(4));
+                return Channels.pipeline(
             }
         });
 

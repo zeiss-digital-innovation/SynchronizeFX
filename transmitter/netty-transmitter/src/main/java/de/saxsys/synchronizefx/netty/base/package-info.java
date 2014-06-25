@@ -18,6 +18,7 @@
  */
 
 /**
- * Transfers messages produced by the SynchronizeFX with the help of the netty networking library.
+ * Contains the code common to all Netty based client and server implementations
+ * provided in this module.
  */
-package de.saxsys.synchronizefx.netty;
+package de.saxsys.synchronizefx.netty.base;

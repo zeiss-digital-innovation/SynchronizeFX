@@ -1,23 +1,6 @@
-/**
- * This file is part of SynchronizeFX.
- * 
- * Copyright (C) 2013-2014 Saxonia Systems AG
- *
- * SynchronizeFX is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * SynchronizeFX is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
- */
 
-package de.saxsys.synchronizefx.netty;
+
+package de.saxsys.synchronizefx.netty.bak;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -59,18 +42,6 @@ public class NettyServer extends NettyEndPoint implements MessageTransferServer 
     private Channel serverChannel;
     private ChannelGroup clients = new DefaultChannelGroup();
 
-    /**
-     * Takes the required informations needed to start the server but doesn't actually start it.
-     * 
-     * The starting of the server is done by {@link SynchronizeFxServer}.
-     * 
-     * @param port The port to which to listen for new connections.
-     * @param serializer The serializer that should be used to serialize SynchronizeFX messages.
-     */
-    public NettyServer(final int port, final Serializer serializer) {
-        super(serializer);
-        this.port = port;
-    }
 
     @Override
     public void setTopologyLayerCallback(final NetworkToTopologyCallbackServer callback) {

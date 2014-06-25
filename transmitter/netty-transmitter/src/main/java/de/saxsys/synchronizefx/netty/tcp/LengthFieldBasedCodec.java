@@ -17,7 +17,18 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Transfers messages produced by the SynchronizeFX with the help of the netty networking library.
- */
-package de.saxsys.synchronizefx.netty;
+package de.saxsys.synchronizefx.netty.tcp;
+
+import de.saxsys.synchronizefx.netty.base.Codec;
+
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+
+class LengthFieldBasedCodec implements Codec {
+    @Override
+    public void addToPipeline(final ChannelPipeline pipeline) {
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+        pipeline.addLast(new LengthFieldPrepender(4));
+    }
+}

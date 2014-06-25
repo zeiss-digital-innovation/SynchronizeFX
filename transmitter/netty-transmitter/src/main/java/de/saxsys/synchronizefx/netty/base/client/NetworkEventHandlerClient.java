@@ -17,7 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.nettywebsocket;
+package de.saxsys.synchronizefx.netty.base.client;
 
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
@@ -36,9 +36,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Raik Bieniek <raik.bieniek@saxsys.de>
  */
-class NetworkEventHandler extends ChannelDuplexHandler {
+class NetworkEventHandlerClient extends ChannelDuplexHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NetworkEventHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NetworkEventHandlerClient.class);
     private final NetworkToTopologyCallbackClient callback;
     private boolean clientInitiatedClose;
 
@@ -47,7 +47,7 @@ class NetworkEventHandler extends ChannelDuplexHandler {
      * 
      * @param callback The callback to in inform of errors.
      */
-    public NetworkEventHandler(final NetworkToTopologyCallbackClient callback) {
+    public NetworkEventHandlerClient(final NetworkToTopologyCallbackClient callback) {
         this.callback = callback;
     }
 

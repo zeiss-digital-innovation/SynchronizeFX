@@ -17,36 +17,35 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.nettywebsocket;
+package de.saxsys.synchronizefx.netty.base.server;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
- * This class represents the websocket connection to the server.
+ * Handles messages received from clients.
  * 
- * For the protocol used see the class Javadoc of de.saxsys.synchronizefx.tomcat.SynchronizeFXTomcatServlet in the
- * module tomcat-transmitter.
+ * @author Raik Bieniek <raik.bieniek@saxsys.de>
  */
-class InboundCommandHandler extends SimpleChannelInboundHandler<List<Object>> {
+class InboundCommandHandlerServer extends SimpleChannelInboundHandler<List<Object>> {
 
-    private NetworkToTopologyCallbackClient callback;
+    private final NetworkToTopologyCallbackServer callback;
 
     /**
-     * Inititalizes the connection.
+     * Initializes an instance with its dependencies.
      * 
-     * @param callback The callback to the upper layer to inform it on new messages and errors.
+     * @param callback The callback to inform on received commands.
      */
-    public InboundCommandHandler(final NetworkToTopologyCallbackClient callback) {
+    InboundCommandHandlerServer(final NetworkToTopologyCallbackServer callback) {
         this.callback = callback;
     }
 
     @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, final List<Object> msg) throws Exception {
-        callback.recive(msg);
+    protected void channelRead0(final ChannelHandlerContext client, final List<Object> commands) throws Exception {
+        callback.recive(commands, client.channel());
     }
 }

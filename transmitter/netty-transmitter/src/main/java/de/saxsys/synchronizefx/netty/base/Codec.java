@@ -17,7 +17,12 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Transfers messages produced by the SynchronizeFX with the help of the netty networking library.
- */
-package de.saxsys.synchronizefx.netty;
+package de.saxsys.synchronizefx.netty.base;
+
+import io.netty.channel.ChannelPipeline;
+
+public interface Codec {
+
+    void addToPipeline(ChannelPipeline pipeline);
+
+}

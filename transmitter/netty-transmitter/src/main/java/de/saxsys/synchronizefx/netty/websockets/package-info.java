@@ -18,8 +18,8 @@
  */
 
 /**
- * Transferes messages produced by the SynchronizeFX with the help of the netty library over websockets.
+ * Contains a codec for sending and recieving messages in a websocket conform way. 
  * 
  * At the moment only the client side is implemented. For the server side you can use the tomcat-transmitter.
  */
-package de.saxsys.synchronizefx.nettywebsocket;
+package de.saxsys.synchronizefx.netty.websockets;

@@ -17,7 +17,6 @@
 		<module>synchronizefx</module>
 		<module>transmitter/netty-transmitter</module>
 		<module>transmitter/tomcat-transmitter</module>
-		<module>transmitter/netty-websocket-transmitter</module>
 		<module>demos/pinboarddemo-client</module>
 		<module>demos/pinboarddemo-server</module>
 		<module>demos/sliderdemo</module>
@@ -145,14 +144,7 @@
 			</dependency>
 			<dependency>
 				<groupId>io.netty</groupId>
-				<artifactId>netty</artifactId>
-				<version>3.6.2.Final</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
-				<!--Websockt Clients are not supported in 3.x -->
 				<version>4.0.13.Final</version>
 			</dependency>
 			<dependency>

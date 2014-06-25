@@ -17,16 +17,13 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.nettywebsocket;
+package de.saxsys.synchronizefx.netty.base.client;
 
-import java.net.URI;
-import java.util.HashMap;
+import java.net.SocketAddress;
 import java.util.List;
-import java.util.Map;
 
 import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 import io.netty.bootstrap.Bootstrap;
@@ -41,58 +38,40 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * A client side transmitter implementation for SynchronizeFX that uses Netty and transfers messages over WebSockets.
- * 
- * <p>
- * Both, encrypted and unencrypted web socket connections are supported with this transmitter. The transmitter does
- * however not validate the server certificate for encrypetd connections.
- * </p>
- * 
+ * Contains the base client implementation for all Netty based {@link MessageTransferClient}s.
  */
-public class NettyWebsocketClient implements MessageTransferClient {
+public abstract class NettyBasicClient implements MessageTransferClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NettyWebsocketClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NettyBasicClient.class);
     /**
      * The timeout for connection attempts in milliseconds.
      */
     private static final int TIMEOUT = 10000;
 
-    private Serializer serializer;
-    private URI serverUri;
-    private Map<String, Object> httpHeaders;
-    private NetworkToTopologyCallbackClient callback;
+    private final SocketAddress address;
 
+    private NetworkToTopologyCallbackClient callback;
     private EventLoopGroup eventLoopGroup;
 
     private Channel channel;
 
     /**
-     * Initializes the transmitter.
+     * Initializes the client.
      * 
-     * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
-     *            websocket connection and <code>wss</code> for a HTTPS based connection.
-     * @param serializer The serializer to use to serialize SynchronizeFX messages.
+     * @param address The address to {@link #connect()} to.
      */
-    public NettyWebsocketClient(final URI serverUri, final Serializer serializer) {
-        this.serverUri = serverUri;
-        this.serializer = serializer;
+    public NettyBasicClient(final SocketAddress address) {
+        this.address = address;
     }
 
     /**
-     * Initializes the transmitter.
+     * Creates an channel pipeline implementation with data codecs specific to the concrete implementation of this
+     * base client.
      * 
-     * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
-     *            websocket connection and <code>wss</code> for a HTTPS based connection.
-     * @param serializer The serializer to use to serialize SynchronizeFX messages.
-     * @param httpHeaders header parameter for the http connection
+     * @return The created initializer
      */
-    public NettyWebsocketClient(final URI serverUri, final Serializer serializer,
-            final Map<String, Object> httpHeaders) {
-        this(serverUri, serializer);
-        this.httpHeaders = new HashMap<>(httpHeaders);
-    }
+    protected abstract BasicChannelInitializerClient createChannelInitializer();
 
     @Override
     public void setTopologyCallback(final NetworkToTopologyCallbackClient callback) {
@@ -102,16 +81,17 @@ public class NettyWebsocketClient implements MessageTransferClient {
     @Override
     public void connect() throws SynchronizeFXException {
         this.eventLoopGroup = new NioEventLoopGroup();
+        BasicChannelInitializerClient channelInitializer = createChannelInitializer();
+        channelInitializer.setTopologyCallback(callback);
+
         Bootstrap bootstrap = new Bootstrap();
-        WebsocketChannelInitializer initializer =
-                new WebsocketChannelInitializer(serverUri, httpHeaders, serializer, callback);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(initializer);
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, TIMEOUT).handler(channelInitializer);
 
         LOG.info("Connecting to server");
         try {
-            ChannelFuture future = bootstrap.connect(serverUri.getHost(), serverUri.getPort());
+            ChannelFuture future = bootstrap.connect(address);
             if (!future.await(TIMEOUT)) {
                 disconnect();
                 throw new SynchronizeFXException("Timeout while trying to connect to the server.");

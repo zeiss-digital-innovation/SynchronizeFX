@@ -27,7 +27,7 @@ import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
-import de.saxsys.synchronizefx.netty.NettyClient;
+import de.saxsys.synchronizefx.netty.tcp.NettyClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

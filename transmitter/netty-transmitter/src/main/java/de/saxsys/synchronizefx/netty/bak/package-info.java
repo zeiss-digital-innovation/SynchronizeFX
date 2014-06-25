@@ -18,6 +18,6 @@
  */
 
 /**
- * Transfers messages produced by the SynchronizeFX with the help of the netty networking library.
+ * Provides an adapter between the kryonet network library and the client / server module.
  */
-package de.saxsys.synchronizefx.netty;
+package de.saxsys.synchronizefx.netty.bak;
