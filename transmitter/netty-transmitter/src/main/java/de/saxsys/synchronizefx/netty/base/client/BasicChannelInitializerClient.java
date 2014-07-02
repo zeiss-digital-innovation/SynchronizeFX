@@ -33,15 +33,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Initializes all channel handlers for the socket channel to the server.
  */
 public class BasicChannelInitializerClient extends ChannelInitializer<SocketChannel> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BasicChannelInitializerClient.class);
     /**
      * If no data was received from the server in this time (in milliseconds) a Ping Frame is send as keep alive.
      */
@@ -56,7 +52,8 @@ public class BasicChannelInitializerClient extends ChannelInitializer<SocketChan
     /**
      * @param serializer The implementation for serializing and deserializing <code>byte[]</code> to SynchronizeFX
      *            commands.
-     * @param callback The callback to the upper layer to inform it on new messages and errors.
+     * @param codec The codec used to collect incomming data blocks to parts that can be deserialized together.
+     * @param useSSL <code>true</code> when the connection should be TLS encrypted, <code>false</code> when not.
      */
     public BasicChannelInitializerClient(final Serializer serializer, final Codec codec, final boolean useSSL) {
         this.codec = codec;
@@ -66,6 +63,7 @@ public class BasicChannelInitializerClient extends ChannelInitializer<SocketChan
 
     /**
      * @see MessageTransferClient#setTopologyCallback(NetworkToTopologyCallbackClient)
+     * @param callback see MessageTransferClient#setTopologyCallback(NetworkToTopologyCallbackClient)
      */
     void setTopologyCallback(final NetworkToTopologyCallbackClient callback) {
         this.callback = callback;

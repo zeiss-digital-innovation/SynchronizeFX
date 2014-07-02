@@ -19,10 +19,31 @@
 
 package de.saxsys.synchronizefx.netty.base;
 
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelPipeline;
 
+/**
+ * A codec that collects all data of a message created by a {@link Serializer} and passes it to the next pipeline
+ * stage.
+ * 
+ * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ */
 public interface Codec {
 
+    /**
+     * Adds the neccessary handler to the pipeline that ensure that coherent messages created by {@link Serializer}
+     * are passed as on unit to the next pipeline stage.
+     * 
+     * <p>
+     * Data recieved over the network enteres the handlers as it comes in in the form of {@link ByteBuf}s. Usually a
+     * large message will be recieved in multiple small chunks. A chunk can also contain data of multiple messages.
+     * The handlers added to this pipeline must ensure that further handlers recieve coherent {@link Serializer}
+     * messages in form of {@link ByteBuf}s.
+     * </p>
+     * 
+     * @param pipeline The pipeline to add the handler to.
+     */
     void addToPipeline(ChannelPipeline pipeline);
-
 }

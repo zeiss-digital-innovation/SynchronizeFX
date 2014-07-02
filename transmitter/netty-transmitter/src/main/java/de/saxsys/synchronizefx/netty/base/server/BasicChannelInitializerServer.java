@@ -41,6 +41,13 @@ public class BasicChannelInitializerServer extends ChannelInitializer<SocketChan
 
     private NetworkToTopologyCallbackServer userCallback;
 
+
+    /**
+     * @param serializer The implementation for serializing and deserializing <code>byte[]</code> to SynchronizeFX
+     *            commands.
+     * @param codec The codec used to collect incomming data blocks to parts that can be deserialized together.
+     * @param useSSL <code>true</code> when the connection should be TLS encrypted, <code>false</code> when not.
+     */
     public BasicChannelInitializerServer(final Serializer serializer, final Codec codec, final boolean useSSL) {
         this.serializer = serializer;
         this.codec = codec;

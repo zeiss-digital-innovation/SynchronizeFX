@@ -21,6 +21,7 @@ package de.saxsys.synchronizefx.netty.base.server;
 
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;

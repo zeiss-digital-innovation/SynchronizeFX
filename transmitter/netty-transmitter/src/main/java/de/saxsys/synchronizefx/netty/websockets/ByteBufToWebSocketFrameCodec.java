@@ -34,10 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Encodes and decodes list of SynchronizeFX commands to web socket frames using a user supplied serializer.
+ * A codec that collects coherent messages as {@link ByteBuf}s by using {@link BinaryWebSocketFrame}s.
  * 
  * @author Raik Bieniek <raik.bieniek@saxsys.de>
- * 
  */
 class ByteBufToWebSocketFrameCodec extends MessageToMessageCodec<WebSocketFrame, ByteBuf> {
 

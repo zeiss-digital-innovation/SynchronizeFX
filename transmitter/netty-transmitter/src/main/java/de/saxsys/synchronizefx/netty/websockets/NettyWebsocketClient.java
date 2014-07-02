@@ -51,9 +51,8 @@ public class NettyWebsocketClient extends NettyBasicClient {
      * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
      *            websocket connection and <code>wss</code> for a HTTPS based connection.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
-     * @throws SynchronizeFXException 
      */
-    public NettyWebsocketClient(final URI serverUri, final Serializer serializer) throws SynchronizeFXException {
+    public NettyWebsocketClient(final URI serverUri, final Serializer serializer) {
         this(serverUri, serializer, null);
     }
 
@@ -64,9 +63,9 @@ public class NettyWebsocketClient extends NettyBasicClient {
      *            websocket connection and <code>wss</code> for a HTTPS based connection.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      * @param httpHeaders header parameter for the http connection
-     * @throws SynchronizeFXException 
      */
-    public NettyWebsocketClient(final URI serverUri, final Serializer serializer, final Map<String, Object> httpHeaders) throws SynchronizeFXException {
+    public NettyWebsocketClient(final URI serverUri, final Serializer serializer,
+            final Map<String, Object> httpHeaders) {
         super(new InetSocketAddress(serverUri.getHost(), serverUri.getPort()));
         this.serverUri = serverUri;
         this.serializer = serializer;

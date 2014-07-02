@@ -18,6 +18,10 @@
  */
 
 /**
- * Provides an adapter between the kryonet network library and the client / server module.
+ * Provides server and client implementations that use plain TCP sockets.
+ * 
+ * <p>
+ * Message chunking is done by prepending the length of a coherent message before the message itself.
+ * </p>
  */
-package de.saxsys.synchronizefx.netty.bak;
+package de.saxsys.synchronizefx.netty.tcp;

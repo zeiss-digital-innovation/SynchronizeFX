@@ -25,6 +25,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 
+/**
+ * A codec that collects coherent messages by prepending the size of the message to the message itself.
+ * 
+ * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ */
 class LengthFieldBasedCodec implements Codec {
     @Override
     public void addToPipeline(final ChannelPipeline pipeline) {

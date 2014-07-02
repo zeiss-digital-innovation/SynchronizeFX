@@ -37,6 +37,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+/**
+ * Contains the base server implementation for all Netty based {@link MessageTransferServer}s.
+ */
 public abstract class NettyBasicServer implements MessageTransferServer {
 
     private NioEventLoopGroup connectionAccptorGroup;
@@ -56,6 +59,12 @@ public abstract class NettyBasicServer implements MessageTransferServer {
         this.port = port;
     }
 
+    /**
+     * Creates an channel pipeline implementation with data codecs specific to the concrete implementation of this
+     * base server.
+     * 
+     * @return The created initializer
+     */
     protected abstract BasicChannelInitializerServer createChannelInitializer();
 
     @Override
@@ -86,17 +95,17 @@ public abstract class NettyBasicServer implements MessageTransferServer {
 
     @Override
     public void sendToAll(final List<Object> messages) {
-        clients.write(messages);
+        clients.flushAndWrite(messages);
     }
 
     @Override
     public void send(final List<Object> messages, final Object client) {
-        ((Channel) client).write(messages);
+        ((Channel) client).writeAndFlush(messages);
     }
 
     @Override
     public void sendToAllExcept(final List<Object> messages, final Object nonReciver) {
-        clients.write(messages, new ChannelMatcher() {
+        clients.flushAndWrite(messages, new ChannelMatcher() {
             @Override
             public boolean matches(final Channel candidate) {
                 return candidate != nonReciver;
