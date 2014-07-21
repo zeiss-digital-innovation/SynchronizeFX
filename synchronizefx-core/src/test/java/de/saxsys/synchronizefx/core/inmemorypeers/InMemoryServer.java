@@ -38,13 +38,12 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Raik Bieniek <raik.bieniek@saxsys.de>
  *
- * @param <T>
- *            The type of the domain model.
+ * @param <T> The type of the domain model.
  */
 public class InMemoryServer<T> implements MessageTransferServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryServer.class);
-    
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<InMemoryClient<T>> clients = new ArrayList<>();
 
@@ -53,8 +52,7 @@ public class InMemoryServer<T> implements MessageTransferServer {
     private NetworkToTopologyCallbackServer callback;
 
     /**
-     * @param model
-     *            The model that should be served to {@link InMemoryClient}s
+     * @param model The model that should be served to {@link InMemoryClient}s
      */
     public InMemoryServer(final T model) {
         this.model = model;
@@ -113,20 +111,20 @@ public class InMemoryServer<T> implements MessageTransferServer {
     /**
      * Schedules a runnable to be executed in the servers thread.
      * 
-     * @param runnable
-     *            The execution to schedule
+     * @param runnable The execution to schedule
      */
     public void executeInServerThread(final Runnable runnable) {
         executor.execute(runnable);
     }
-    
+
     /**
      * Starts a {@link SynchronizeFxServer} with this object as client implementation.
-     *  
-     *  <p>
-     *  The startup is not done in Server thread but in the thread of the method caller. 
-     *  </p>
-     *  
+     * 
+     * <p>
+     * The startup is not done in Server thread but in the thread of the method caller. All changes done to
+     * properties by SynchronizeFX are done using the client thread.
+     * </p>
+     * 
      * @return The started {@link SynchronizeFxServer}
      */
     public SynchronizeFxServer startSynchronizeFxServer() {
@@ -135,7 +133,7 @@ public class InMemoryServer<T> implements MessageTransferServer {
             public void onError(final SynchronizeFXException error) {
                 LOG.error("An SynchronizeFX exception occured. ", error);
             }
-        });
+        }, executor);
         server.start();
         return server;
     }
@@ -152,8 +150,7 @@ public class InMemoryServer<T> implements MessageTransferServer {
     /**
      * Connects a new client.
      * 
-     * @param client
-     *            The client that wants to connect.
+     * @param client The client that wants to connect.
      */
     void connect(final InMemoryClient<T> client) {
         executeInServerThread(new Runnable() {
@@ -167,8 +164,7 @@ public class InMemoryServer<T> implements MessageTransferServer {
     /**
      * Disconnects a client.
      * 
-     * @param client
-     *            The client to disconnect.
+     * @param client The client to disconnect.
      */
     void disconnect(final InMemoryClient<T> client) {
         executeInServerThread(new Runnable() {
@@ -178,7 +174,7 @@ public class InMemoryServer<T> implements MessageTransferServer {
             }
         });
     }
-    
+
     /**
      * Receive messages from a client.
      * 

@@ -19,9 +19,10 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
+import java.util.concurrent.Executor;
+
 import org.junit.Test;
 import org.mockito.InOrder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -85,7 +86,7 @@ public class SilentChangeExecutorTest {
     /**
      * Stores the last {@link Runnable} that was passed and executes when required.
      */
-    private static class DelayedModelChangeExecutor implements SilentChangeExecutor.ModelChangeExecutor {
+    private static class DelayedModelChangeExecutor implements Executor {
 
         private Runnable runnable;
 

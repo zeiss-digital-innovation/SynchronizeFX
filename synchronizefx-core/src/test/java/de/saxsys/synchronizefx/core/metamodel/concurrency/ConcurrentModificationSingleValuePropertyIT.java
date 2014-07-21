@@ -26,6 +26,7 @@ import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryClient;
 import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryServer;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,9 +62,10 @@ public class ConcurrentModificationSingleValuePropertyIT {
     }
 
     /**
-     * Checks that a property that is changed on multiple clients at nearly the same time is eventually synchron on all
-     * clients and the server.
+     * Checks that a property that is changed on multiple clients at nearly the same time is eventually synchron on
+     * all clients and the server.
      */
+    @Ignore("Shows a part of the problem of bug #16")
     @Test
     public void valueOfSingleValuePropertyShouldBeEventuallyConsistent() {
         client1.executeInClientThread(new Runnable() {
@@ -82,8 +84,10 @@ public class ConcurrentModificationSingleValuePropertyIT {
 
         waitForConsistency();
 
-        assertThat(server.getModel().exemplaryProperty).isEqualTo(client1.getModel().exemplaryProperty).isEqualTo(
-                client2.getModel().exemplaryProperty);
+        final ExemplaryModel unchangedModel = new ExemplaryModel();
+
+        assertThat(server.getModel()).isEqualTo(client1.getModel()).isEqualTo(client2.getModel())
+                .isNotEqualTo(unchangedModel);
     }
 
     private void waitForConsistency() {
@@ -99,5 +103,30 @@ public class ConcurrentModificationSingleValuePropertyIT {
      */
     public static final class ExemplaryModel {
         private final IntegerProperty exemplaryProperty = new SimpleIntegerProperty(INITIAL_VALUE);
+        
+        @Override
+        public int hashCode() {
+            return exemplaryProperty.get();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ExemplaryModel other = (ExemplaryModel) obj;
+            return exemplaryProperty.get() == other.exemplaryProperty.get();
+        }
+
+        @Override
+        public String toString() {
+            return "ExemplaryModel [exemplaryProperty=" + exemplaryProperty.get() + "]";
+        }
     }
 }

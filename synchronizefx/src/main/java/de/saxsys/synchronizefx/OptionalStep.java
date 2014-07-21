@@ -19,7 +19,7 @@
 
 package de.saxsys.synchronizefx;
 
-import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import com.esotericsoftware.kryo.Serializer;
 
@@ -49,7 +49,7 @@ public interface OptionalStep<K> {
      * </p>
      * 
      * <p>
-     * A efficient serializer for {@link UUID} is already registered.
+     * An efficient serializer for {@link java.util.UUID} is already registered.
      * </p>
      * 
      * @param clazz The class for that the serializer should be registered.
@@ -58,4 +58,27 @@ public interface OptionalStep<K> {
      * @return The builder to provide a fluent API.
      */
     <T> K customSerializer(final Class<T> clazz, final Serializer<T> serializer);
+
+    /**
+     * Sets a custom executor for changes done on the domain model.
+     * 
+     * <p>
+     * This method allows to set a custom executor that should be used by SynchronizeFX for all changes done to the
+     * JavaFX properties in the domain model.
+     * </p>
+     * 
+     * <p>
+     * If this method is not used, SynchronizeFX will uses an {@link Executor} for clients that executes all changes
+     * in the JavaFX thread (see {@link javafx.application.Platform#runLater(Runnable)}. For servers an
+     * {@link Executor} is used, that executes all changes in the network thread that received them.
+     * </p>
+     * 
+     * <p>
+     * This functionality is useful for Non-GUI clients that do not have a JavaFX thread for example.
+     * </p>
+     * 
+     * @param executor The executor to user for changes done on the domain model.
+     * @return The builder to provide a fluent API.
+     */
+    K modelChangeExecutor(final Executor executor);
 }

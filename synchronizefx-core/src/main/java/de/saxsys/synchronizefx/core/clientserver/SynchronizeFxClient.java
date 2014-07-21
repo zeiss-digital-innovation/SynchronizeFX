@@ -19,6 +19,8 @@
 
 package de.saxsys.synchronizefx.core.clientserver;
 
+import java.util.concurrent.Executor;
+
 import javafx.beans.property.Property;
 
 /**
@@ -36,7 +38,10 @@ public class SynchronizeFxClient {
     /**
      * Sets up everything that is needed to to get the domain model instance from the server.
      * 
-     * This method doesn't connect to the server. Use {@link SynchronizeFxClient#connect()} for that.
+     * <p>
+     * This method doesn't connect to the server. Use {@link SynchronizeFxClient#connect()} for that. Using this
+     * constructor all changes done to JavaFX properties will be executed in the JavaFX GUI Thread.
+     * </p>
      * 
      * @param networkLayer An object that does the serialization and the network transfer of the data generated to
      *            keep models synchron.
@@ -46,6 +51,27 @@ public class SynchronizeFxClient {
      */
     public SynchronizeFxClient(final MessageTransferClient networkLayer, final ClientCallback listener) {
         impl = new DomainModelClient(networkLayer, listener);
+    }
+
+    /**
+     * Sets up everything that is needed to to get the domain model instance from the server.
+     * 
+     * <p>
+     * This method doesn't connect to the server. Use {@link SynchronizeFxClient#connect()} for that. Using this
+     * constructor all changes done to JavaFX properties will be executed using the {@link Executor} passed as
+     * argument.
+     * </p>
+     * 
+     * @param networkLayer An object that does the serialization and the network transfer of the data generated to
+     *            keep models synchron.
+     * @param listener Used to inform the user of this class on errors and when the initial transfer of the domain
+     *            model is ready. The methods in the callback are not called before you call
+     *            {@link SynchronizeFxClient#connect()}
+     * @param changeExecutor An executor that is used for all changes done to JavaFX properties.
+     */
+    public SynchronizeFxClient(final MessageTransferClient networkLayer, final ClientCallback listener,
+            final Executor changeExecutor) {
+        impl = new DomainModelClient(networkLayer, listener, changeExecutor);
     }
 
     /**

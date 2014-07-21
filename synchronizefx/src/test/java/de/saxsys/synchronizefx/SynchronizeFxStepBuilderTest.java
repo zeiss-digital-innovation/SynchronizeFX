@@ -19,6 +19,8 @@
 
 package de.saxsys.synchronizefx;
 
+import java.util.concurrent.Executor;
+
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
@@ -44,6 +46,8 @@ public class SynchronizeFxStepBuilderTest {
     private Serializer<Double> doubleSerializer;
     private Serializer<Integer> integerSerializer;
 
+    private Executor changeExecutor;
+
     /**
      * Mainly initializes mocks for callbacks and serializers.
      */
@@ -59,6 +63,8 @@ public class SynchronizeFxStepBuilderTest {
         doubleSerializer = mock(Serializer.class);
 
         integerSerializer = mock(Serializer.class);
+
+        changeExecutor = mock(Executor.class);
     }
 
     /**
@@ -89,7 +95,8 @@ public class SynchronizeFxStepBuilderTest {
     @Test
     public void testSimplestPossibleServer() {
         final SynchronizeFxServer server =
-                SynchronizeFxBuilder.create().server().model(modelObject).callback(serverCallback).build();
+                SynchronizeFxBuilder.create().server().model(modelObject).callback(serverCallback)
+                        .modelChangeExecutor(changeExecutor).build();
         Assert.assertNotNull(server);
     }
 
@@ -101,7 +108,7 @@ public class SynchronizeFxStepBuilderTest {
         final SynchronizeFxServer server =
                 SynchronizeFxBuilder.create().server().model(modelObject).callback(serverCallback)
                         .customSerializer(Double.class, doubleSerializer).port(16789)
-                        .customSerializer(Integer.class, integerSerializer).build();
+                        .customSerializer(Integer.class, integerSerializer).modelChangeExecutor(changeExecutor).build();
         Assert.assertNotNull(server);
     }
 }

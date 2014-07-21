@@ -20,6 +20,7 @@
 package de.saxsys.synchronizefx.core.clientserver;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
@@ -40,9 +41,9 @@ import org.slf4j.LoggerFactory;
 class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLayerCallback {
     private static final Logger LOG = LoggerFactory.getLogger(DomainModelServer.class);
 
-    private MessageTransferServer networkLayer;
-    private MetaModel meta;
-    private ServerCallback serverCallback;
+    private final MessageTransferServer networkLayer;
+    private final MetaModel meta;
+    private final ServerCallback serverCallback;
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
@@ -51,13 +52,33 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
      * @param networkLayer see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
-     * @param serverCallback {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     * @param serverCallback see
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
      */
-    public DomainModelServer(final Object model, final MessageTransferServer networkLayer, final ServerCallback serverCallback) {
+    public DomainModelServer(final Object model, final MessageTransferServer networkLayer,
+            final ServerCallback serverCallback) {
         // CHECKSTYLE:ON
+        this(model, networkLayer, serverCallback, new DirectExecutor());
+    }
+
+    // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
+    /**
+     * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
+     * @param model see
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     * @param networkLayer see
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     * @param serverCallback see
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     * @param changeExecutor see
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     */
+    // CHECKSTYLE:ON
+    public DomainModelServer(final Object model, final MessageTransferServer networkLayer,
+            final ServerCallback serverCallback, final Executor changeExecutor) {
         this.networkLayer = networkLayer;
         this.serverCallback = serverCallback;
-        this.meta = new MetaModel(this, model);
+        this.meta = new MetaModel(this, model, changeExecutor);
         networkLayer.setTopologyLayerCallback(this);
     }
 
@@ -108,8 +129,9 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
                 networkLayer.send(commands, newClient);
             }
         });
-        // TODO networkLayer onConnectFinished(); javadoc that networklayer should then enable sendToAll for new client.
-        
+        // TODO networkLayer onConnectFinished(); javadoc that networklayer should then enable sendToAll for new
+        // client.
+
     }
 
     /**
@@ -148,5 +170,15 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      */
     public void shutdown() {
         networkLayer.shutdown();
+    }
+
+    /**
+     * Executes changes to the users domain model in the thread that reports a change message.
+     */
+    private static class DirectExecutor implements Executor {
+        @Override
+        public void execute(final Runnable change) {
+            change.run();
+        }
     }
 }

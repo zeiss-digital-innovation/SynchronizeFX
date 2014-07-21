@@ -19,6 +19,8 @@
 
 package de.saxsys.synchronizefx;
 
+import java.util.concurrent.Executor;
+
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
@@ -36,6 +38,7 @@ class ClientBuilder implements ClientCallbackStep, OptionalClientStep, ClientAdd
     private String address = "localhost";
     private final KryoSerializer serializer = new KryoSerializer();
     private ClientCallback callback;
+    private Executor changeExecutor;
 
 
     @Override
@@ -60,10 +63,20 @@ class ClientBuilder implements ClientCallbackStep, OptionalClientStep, ClientAdd
         this.serializer.registerSerializableClass(clazz, serializer);
         return this;
     }
+    
+    @Override
+    public OptionalClientStep modelChangeExecutor(final Executor executor) {
+        this.changeExecutor = executor;
+        return this;
+    }
 
     @Override
     public SynchronizeFxClient build() {
         final NettyClient netty = new NettyClient(address, port, serializer);
-        return new SynchronizeFxClient(netty, callback);
+        if (changeExecutor == null) {
+            return new SynchronizeFxClient(netty, callback);
+        } else {
+            return new SynchronizeFxClient(netty, callback, changeExecutor);
+        }
     }
 }

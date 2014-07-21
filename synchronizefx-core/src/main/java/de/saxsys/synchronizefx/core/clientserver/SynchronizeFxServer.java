@@ -19,6 +19,8 @@
 
 package de.saxsys.synchronizefx.core.clientserver;
 
+import java.util.concurrent.Executor;
+
 import javafx.beans.property.Property;
 
 /**
@@ -35,7 +37,10 @@ public class SynchronizeFxServer {
     /**
      * Sets up everything that is needed to serve a domain model.
      * 
-     * This method doesn't start the server. Use {@link SynchronizeFxServer#start()} for that.
+     * <p>
+     * This method doesn't start the server. Use {@link SynchronizeFxServer#start()} for that. Using this
+     * constructor, all changes done to JavaFX properties will be executed directly in the current thread.
+     * </p>
      * 
      * @param model The root object of the domain model to serve.
      * @param networkLayer An object that does the network transfer and optionally the serialization of the data
@@ -46,6 +51,26 @@ public class SynchronizeFxServer {
     public SynchronizeFxServer(final Object model, final MessageTransferServer networkLayer,
             final ServerCallback callback) {
         impl = new DomainModelServer(model, networkLayer, callback);
+    }
+
+    /**
+     * Sets up everything that is needed to serve a domain model.
+     * 
+     * <p>
+     * This method doesn't start the server. Use {@link SynchronizeFxServer#start()} for that. Using this
+     * constructor, all changes done to JavaFX properties will be executed directly in the current thread.
+     * </p>
+     * 
+     * @param model The root object of the domain model to serve.
+     * @param networkLayer An object that does the network transfer and optionally the serialization of the data
+     *            generated to keep models synchron.
+     * @param callback Used to inform the user of this class on errors. The methods in the callback are not called
+     *            before you call {@link SynchronizeFxServer#start()}.
+     * @param changeExecutor An executor used to execute all changes done to JavaFX properties.
+     */
+    public SynchronizeFxServer(final Object model, final MessageTransferServer networkLayer,
+            final ServerCallback callback, final Executor changeExecutor) {
+        impl = new DomainModelServer(model, networkLayer, callback, changeExecutor);
     }
 
     /**

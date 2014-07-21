@@ -19,6 +19,8 @@
 
 package de.saxsys.synchronizefx;
 
+import java.util.concurrent.Executor;
+
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.kryo.KryoSerializer;
@@ -36,6 +38,8 @@ class ServerBuilder implements ServerModelStep, ServerCallbackStep, OptionalServ
     private final KryoSerializer serializer = new KryoSerializer();
     private ServerCallback callback;
     private Object model;
+
+    private Executor changeExecutor;
 
     @Override
     public OptionalServerStep port(final int port) {
@@ -62,8 +66,19 @@ class ServerBuilder implements ServerModelStep, ServerCallbackStep, OptionalServ
     }
 
     @Override
+    public OptionalServerStep modelChangeExecutor(final Executor executor) {
+        this.changeExecutor = executor;
+        return this;
+    }
+
+    @Override
     public SynchronizeFxServer build() {
         final NettyServer netty = new NettyServer(port, serializer);
-        return new SynchronizeFxServer(model, netty, callback);
+        
+        if (changeExecutor == null) {
+            return new SynchronizeFxServer(model, netty, callback);
+        } else {
+            return new SynchronizeFxServer(model, netty, callback, changeExecutor); 
+        }
     }
 }

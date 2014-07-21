@@ -20,20 +20,17 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.List;
-
-import javafx.application.Platform;
+import java.util.concurrent.Executor;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
-import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor.ModelChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 
 /**
  * Generates and applies commands necessary to keep domain models synchronous.
  */
 public class MetaModel {
-
-    private boolean doChangesInJavaFxThread;
+    
     private Object root;
 
     private final CommandListCreator creator;
@@ -46,12 +43,11 @@ public class MetaModel {
     /**
      * Creates a {@link MetaModel} where the root object of the domain model is received from another node.
      * 
-     * @param topology
-     *            used to interact with the lower layer which is probably represented by the class that called this
-     *            constructor.
+     * @param topology used to interact with the lower layer which is probably represented by the class that called
+     *            this constructor.
+     * @param changeExecutor The executor to use for all changes done to JavaFX properties.
      */
-    public MetaModel(final TopologyLayerCallback topology) {
-        this.doChangesInJavaFxThread = false;
+    public MetaModel(final TopologyLayerCallback topology, final Executor changeExecutor) {
         this.topology = topology;
 
         final WeakObjectRegistry objectRegistry = new WeakObjectRegistry();
@@ -61,22 +57,21 @@ public class MetaModel {
         this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer);
 
-        final SilentChangeExecutor changeExecutor = new SilentChangeExecutor(listeners,
-                new MaybeExecuteInJavaFXThread());
-        this.executor = new CommandListExecutor(this, objectRegistry, listeners, changeExecutor, valueMapper);
+        final SilentChangeExecutor silentChangeExecutor =
+                new SilentChangeExecutor(listeners, changeExecutor);
+        this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper);
     }
 
     /**
      * Creates a {@link MetaModel} which serves a new domain model.
      * 
      * @see MetaModel#MetaModel(TopologyLayerCallback)
-     * @param topology
-     *            see {@link MetaModel#MetaModel(TopologyLayerCallback)}
-     * @param root
-     *            The root object of the domain model that should be served.
+     * @param topology see {@link MetaModel#MetaModel(TopologyLayerCallback)}
+     * @param root The root object of the domain model that should be served.
+     * @param changeExecutor The executor to use for all changes done to JavaFX properties.
      */
-    public MetaModel(final TopologyLayerCallback topology, final Object root) {
-        this(topology);
+    public MetaModel(final TopologyLayerCallback topology, final Object root, final Executor changeExecutor) {
+        this(topology, changeExecutor);
         this.root = root;
         try {
             // to register all objects in the id map
@@ -94,24 +89,6 @@ public class MetaModel {
     }
 
     /**
-     * 
-     * @return {@code true} when all changes to the user domain model have to be done in the JavaFX thread and false
-     *         otherwise.
-     */
-    public boolean isDoChangesInJavaFxThread() {
-        return doChangesInJavaFxThread;
-    }
-
-    /**
-     * @see MetaModel#isDoChangesInJavaFxThread()
-     * @param doChangesInJavaFxThread
-     *            the new value
-     */
-    public void setDoChangesInJavaFxThread(final boolean doChangesInJavaFxThread) {
-        this.doChangesInJavaFxThread = doChangesInJavaFxThread;
-    }
-
-    /**
      * Executes commands to change the domain model of the user.
      * 
      * <p>
@@ -121,17 +98,17 @@ public class MetaModel {
      * </p>
      * 
      * <p>
-     * If you need to send these commands to other peers e.g. when you are the server in an client/server environment,
-     * please call this method first an than redistribute the commands. This call blocks when one of your threads called
-     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and hasn't finished yet. When this
-     * happens, the commands you've passed as argument to this method will not be incorporated into the command list
-     * returned by your {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and so you may want to
-     * also redistribute them to the new client that's the reason you've called
+     * If you need to send these commands to other peers e.g. when you are the server in an client/server
+     * environment, please call this method first an than redistribute the commands. This call blocks when one of
+     * your threads called {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and hasn't
+     * finished yet. When this happens, the commands you've passed as argument to this method will not be
+     * incorporated into the command list returned by your
+     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and so you may want to also
+     * redistribute them to the new client that's the reason you've called
      * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)}.
      * </p>
      * 
-     * @param commands
-     *            The commands that should be executed.
+     * @param commands The commands that should be executed.
      */
     public void execute(final List<Object> commands) {
         try {
@@ -152,15 +129,15 @@ public class MetaModel {
      * This method creates the commands necessary to reproduce the entire domain model.
      * 
      * <p>
-     * The API of this method may looks a bit odd as the commands produced are returned via a callback instead of return
-     * but this is necessary to ensure that no updated are lost for newly connecting peers.
+     * The API of this method may looks a bit odd as the commands produced are returned via a callback instead of
+     * return but this is necessary to ensure that no updated are lost for newly connecting peers.
      * </p>
      * 
      * <p>
-     * Make sure that commands you receive via {@link TopologyLayerCallback#sendCommands(List)} are not send to the peer
-     * you've requested this initial set of commands for before your callback is called. Make also sure that future
-     * calls of {@link TopologyLayerCallback#sendCommands(List)} will send the changes to this new peer before your
-     * callback returns.
+     * Make sure that commands you receive via {@link TopologyLayerCallback#sendCommands(List)} are not send to the
+     * peer you've requested this initial set of commands for before your callback is called. Make also sure that
+     * future calls of {@link TopologyLayerCallback#sendCommands(List)} will send the changes to this new peer before
+     * your callback returns.
      * </p>
      * 
      * <p>
@@ -168,8 +145,7 @@ public class MetaModel {
      * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} returns.
      * </p>
      * 
-     * @param callback
-     *            The callback that takes the commands.
+     * @param callback The callback that takes the commands.
      */
     public void commandsForDomainModel(final CommandsForDomainModelCallback callback) {
         if (this.root == null) {
@@ -192,8 +168,7 @@ public class MetaModel {
      * 
      * This is usably called on an {@link SetRootElement} message.
      * 
-     * @param root
-     *            the new root object.
+     * @param root the new root object.
      */
     void setRoot(final Object root) {
         this.root = root;
@@ -217,25 +192,9 @@ public class MetaModel {
      * Execute a single command to change the domain model of the user.
      * 
      * @see MetaModel#execute(List)
-     * @param command
-     *            The command that should be executed.
+     * @param command The command that should be executed.
      */
     private void execute(final Object command) {
         executor.execute(command);
-    }
-
-    /**
-     * Executes changes to the users domain model in the JavaFX Thread if {@link MetaModel#doChangesInJavaFxThread} is
-     * <code>true</code>. Executes them directly otherwise.
-     */
-    private class MaybeExecuteInJavaFXThread implements ModelChangeExecutor {
-        @Override
-        public void execute(final Runnable change) {
-            if (doChangesInJavaFxThread) {
-                Platform.runLater(change);
-            } else {
-                change.run();
-            }
-        }
     }
 }

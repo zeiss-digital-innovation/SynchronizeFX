@@ -20,6 +20,7 @@
 package de.saxsys.synchronizefx.core.clientserver;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import javafx.application.Platform;
 
@@ -40,9 +41,11 @@ import org.slf4j.LoggerFactory;
 class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLayerCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(DomainModelClient.class);
-    private ClientCallback clientCallback;
-    private MetaModel meta = new MetaModel(this);
-    private MessageTransferClient networkLayer;
+
+    private final ClientCallback clientCallback;
+    private final MetaModel meta;
+    private final MessageTransferClient networkLayer;
+    private final Executor changeExecutor;
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
@@ -54,9 +57,28 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
      */
     // CHECKSTYLE:ON
     public DomainModelClient(final MessageTransferClient networkLayer, final ClientCallback clientCallback) {
+        this(networkLayer, clientCallback, new ExecuteInJavaFXThread());
+    }
+
+    // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
+    /**
+     * @see SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)
+     * @param networkLayer see
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     * @param clientCallback see
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     * @param changeExecutor see
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, ClientCallback, Executor)}
+     */
+    // CHECKSTYLE:ON
+    public DomainModelClient(final MessageTransferClient networkLayer, final ClientCallback clientCallback,
+            final Executor changeExecutor) {
         this.clientCallback = clientCallback;
         this.networkLayer = networkLayer;
+        this.changeExecutor = changeExecutor;
         networkLayer.setTopologyCallback(this);
+
+        meta = new MetaModel(this, changeExecutor);
     }
 
     @Override
@@ -82,18 +104,17 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
 
     @Override
     public void onServerDisconnect() {
-        clientCallback.onServerDisconnect(); 
+        clientCallback.onServerDisconnect();
     }
 
     @Override
     public void domainModelChanged(final Object root) {
-        Platform.runLater(new Runnable() {
+        changeExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 clientCallback.modelReady(root);
             }
         });
-        meta.setDoChangesInJavaFxThread(true);
     }
 
     /**
@@ -112,5 +133,15 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
      */
     public void disconnect() {
         networkLayer.disconnect();
+    }
+
+    /**
+     * Executes changes to the users domain model in the JavaFX Thread.
+     */
+    private static class ExecuteInJavaFXThread implements Executor {
+        @Override
+        public void execute(final Runnable change) {
+            Platform.runLater(change);
+        }
     }
 }

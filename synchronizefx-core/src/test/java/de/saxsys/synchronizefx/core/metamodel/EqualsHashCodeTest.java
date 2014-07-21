@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.core.metamodel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
+import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
@@ -52,10 +53,10 @@ public class EqualsHashCodeTest {
     public void init() {
         root = new MessedUpHashCodeEqualsClass();
         cb = new SaveParameterCallback();
-        meta = new MetaModel(cb, root);
+        meta = new MetaModel(cb, root, new DirectExecutor());
 
         copyCb = new SaveParameterCallback();
-        copyMeta = new MetaModel(copyCb);
+        copyMeta = new MetaModel(copyCb, new DirectExecutor());
         copyMeta.execute(EasyCommandsForDomainModel.commandsForDomainModel(meta));
         copyRoot = (MessedUpHashCodeEqualsClass) copyCb.getRoot();
     }

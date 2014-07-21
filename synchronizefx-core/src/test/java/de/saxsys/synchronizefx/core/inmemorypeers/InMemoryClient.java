@@ -37,12 +37,16 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Raik Bieniek <raik.bieniek@saxsys.de>
  *
- * @param <T>
- *            The type of the domain model.
+ * @param <T> The type of the domain model.
  */
 public class InMemoryClient<T> implements MessageTransferClient {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryClient.class);
+
+    /**
+     * The time to wait for the domain model to get ready.
+     */
+    private static final long WAIT_FOR_DOMAIN_MODEL = 1000;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final InMemoryServer<T> server;
@@ -51,8 +55,7 @@ public class InMemoryClient<T> implements MessageTransferClient {
     private NetworkToTopologyCallbackClient callback;
 
     /**
-     * @param server
-     *            The server to connect to.
+     * @param server The server to connect to.
      */
     public InMemoryClient(final InMemoryServer<T> server) {
         this.server = server;
@@ -77,43 +80,46 @@ public class InMemoryClient<T> implements MessageTransferClient {
     public void disconnect() {
         server.disconnect(this);
     }
-    
+
     /**
      * Starts a {@link SynchronizeFxClient} with this object as client implementation.
-     *  
-     *  <p>
-     *  The startup is not done in Client thread but in the thread of the method caller. 
-     *  </p>
-     *  
+     * 
+     * <p>
+     * The startup is not done in Client thread but in the thread of the method caller. All changes done to
+     * properties by SynchronizeFX are done using the client thread.
+     * </p>
+     * 
      * @return The started {@link SynchronizeFxClient}
      */
     public SynchronizeFxClient startSynchronizeFxClient() {
+        final Object waitForDomainModel = new Object();
         final SynchronizeFxClient client = new SynchronizeFxClient(this, new ClientCallback() {
             @Override
             public void onServerDisconnect() {
                 // do nothing
             }
-            
+
             @Override
             public void onError(final SynchronizeFXException error) {
                 LOG.error("An SynchronizeFX exception occured. ", error);
             }
-            
+
             @SuppressWarnings("unchecked")
             @Override
             public void modelReady(final Object model) {
                 InMemoryClient.this.model = (T) model;
+                notifyDomainModelReady(waitForDomainModel);
             }
-        });
+        }, executor);
         client.connect();
+        waitForDomainModelReady(waitForDomainModel);
         return client;
     }
 
     /**
      * Schedules a runnable to be executed in the clients thread.
      * 
-     * @param runnable
-     *            The execution to schedule
+     * @param runnable The execution to schedule
      */
     public void executeInClientThread(final Runnable runnable) {
         executor.execute(runnable);
@@ -131,8 +137,7 @@ public class InMemoryClient<T> implements MessageTransferClient {
     /**
      * Recives messages from the server.
      * 
-     * @param messages
-     *            The messages the client should receive.
+     * @param messages The messages the client should receive.
      */
     void recieve(final List<Object> messages) {
         executeInClientThread(new Runnable() {
@@ -153,5 +158,21 @@ public class InMemoryClient<T> implements MessageTransferClient {
                 callback.onServerDisconnect();
             }
         });
+    }
+
+    private void notifyDomainModelReady(final Object waitObject) {
+        synchronized (waitObject) {
+            waitObject.notify();
+        }
+    }
+
+    private void waitForDomainModelReady(final Object waitObject) {
+        synchronized (waitObject) {
+            try {
+                waitObject.wait(WAIT_FOR_DOMAIN_MODEL);
+            } catch (final InterruptedException e) {
+                throw new RuntimeException("Could not wait for the domain model from the server.", e);
+            }
+        }
     }
 }

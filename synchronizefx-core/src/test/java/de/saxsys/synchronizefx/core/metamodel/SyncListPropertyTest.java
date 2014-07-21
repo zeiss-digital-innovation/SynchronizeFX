@@ -33,13 +33,13 @@ import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -64,7 +64,7 @@ public class SyncListPropertyTest {
     public void init() {
         root = new Root();
         cb = new SaveParameterCallback();
-        model = new MetaModel(cb, root);
+        model = new MetaModel(cb, root, new DirectExecutor());
     }
 
     /**
@@ -160,7 +160,7 @@ public class SyncListPropertyTest {
     @Test
     public void testApplyGeneratedMessages() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
-        MetaModel copy = new MetaModel(copyCb);
+        MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
 
         copy.execute(EasyCommandsForDomainModel.commandsForDomainModel(model));
         Root copyRoot = (Root) copyCb.getRoot();
