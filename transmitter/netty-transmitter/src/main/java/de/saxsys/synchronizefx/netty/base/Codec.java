@@ -28,7 +28,7 @@ import io.netty.channel.ChannelPipeline;
  * A codec that collects all data of a message created by a {@link Serializer} and passes it to the next pipeline
  * stage.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 public interface Codec {
 

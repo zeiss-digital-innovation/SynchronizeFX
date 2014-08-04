@@ -24,10 +24,10 @@ import java.util.List;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 
 /**
- * This is an callback interface for the network library to inform the upper layer of incoming events like messages or
- * new clients.
+ * This is an callback interface for the network library to inform the upper layer of incoming events like messages
+ * or new clients.
  * 
- * This is the interface for the server side. For the client side use {@link IncommingEventHandlerClient}.
+ * This is the interface for the server side. For the client side use {@link NetworkToTopologyCallbackClient}.
  * 
  * @author raik.bieniek
  * 
@@ -52,8 +52,9 @@ public interface NetworkToTopologyCallbackServer {
     /**
      * An error in the connection to some client occurred.
      * 
-     * When this method is called, the connection to the problematic client has to be already be terminated. The server
-     * must still be working. If not use {@link NetworkToTopologyCallbackServer#onFatalError()} instead.
+     * When this method is called, the connection to the problematic client has to be already be terminated. The
+     * server must still be working. If not use
+     * {@link NetworkToTopologyCallbackServer#onFatalError(SynchronizeFXException)} instead.
      * 
      * @param e an exception that describes the problem.
      */
@@ -65,8 +66,8 @@ public interface NetworkToTopologyCallbackServer {
      * When this method is called, the server came across an error that made it impossible to continue the normal
      * operation. The connection to all remaining clients must already be closed and the server be shutdown.
      * 
-     * This method must only be called after the server successfully started. If an error occurred while trying to start
-     * up, throw an exception there.
+     * This method must only be called after the server successfully started. If an error occurred while trying to
+     * start up, throw an exception there.
      * 
      * @param e an exception that describes the problem.
      */

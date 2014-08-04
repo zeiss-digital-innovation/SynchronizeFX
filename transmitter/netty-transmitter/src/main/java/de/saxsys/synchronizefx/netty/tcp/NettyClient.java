@@ -34,7 +34,7 @@ import de.saxsys.synchronizefx.netty.base.client.NettyBasicClient;
  * This class is intended to be used as input for {@link SynchronizeFxClient}.
  * </p>
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 public class NettyClient extends NettyBasicClient {
 

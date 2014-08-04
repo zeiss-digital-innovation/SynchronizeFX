@@ -95,7 +95,7 @@ public abstract class NettyBasicServer implements MessageTransferServer {
 
     @Override
     public void sendToAll(final List<Object> messages) {
-        clients.flushAndWrite(messages);
+        clients.writeAndFlush(messages);
     }
 
     @Override
@@ -105,7 +105,7 @@ public abstract class NettyBasicServer implements MessageTransferServer {
 
     @Override
     public void sendToAllExcept(final List<Object> messages, final Object nonReciver) {
-        clients.flushAndWrite(messages, new ChannelMatcher() {
+        clients.writeAndFlush(messages, new ChannelMatcher() {
             @Override
             public boolean matches(final Channel candidate) {
                 return candidate != nonReciver;

@@ -31,7 +31,7 @@ import io.netty.handler.codec.MessageToMessageCodec;
 /**
  * Translates Netty {@link ByteBuf}s to {@link List}s of SynchronizeFX commands using a {@link Serializer}.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 public class CommandToBinaryByteBuf extends MessageToMessageCodec<ByteBuf, List<Object>> {
 

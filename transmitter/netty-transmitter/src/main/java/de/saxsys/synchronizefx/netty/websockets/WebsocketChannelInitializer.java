@@ -36,7 +36,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 /**
  * Sets up a {@link SocketChannel} for client side, web socket based SynchronizeFX communication.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 class WebsocketChannelInitializer implements Codec {
 

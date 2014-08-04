@@ -37,7 +37,7 @@ public class AddToSet implements Command {
     }
 
     /**
-     * @see AddToSet#getListId()
+     * @see AddToSet#getSetId()
      * @param setId The id
      */
     public void setSetId(final UUID setId) {

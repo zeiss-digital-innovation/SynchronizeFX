@@ -26,7 +26,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 /**
  * This is an callback interface for the network library to inform the upper layer of incomming messages.
  * 
- * This is the interface for the client side. For the server side use {@link IncommingEventHandlerServer}.
+ * This is the interface for the client side. For the server side use {@link NetworkToTopologyCallbackServer}.
  * 
  * @author raik.bieniek
  * 

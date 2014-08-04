@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A factory for {@link SSLEngine}s which doesn't validate the SSL certificate of the server.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 public final class NonValidatingSSLEngineFactory {
 

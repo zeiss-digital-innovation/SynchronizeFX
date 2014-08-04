@@ -28,7 +28,7 @@ import io.netty.handler.codec.LengthFieldPrepender;
 /**
  * A codec that collects coherent messages by prepending the size of the message to the message itself.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 class LengthFieldBasedCodec implements Codec {
     @Override

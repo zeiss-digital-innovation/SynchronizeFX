@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Handles all events that where triggered through inbound network events except for message received events.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 class NetworkEventHandlerServer extends ChannelDuplexHandler {
 

@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A codec that collects coherent messages as {@link ByteBuf}s by using {@link BinaryWebSocketFrame}s.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 class ByteBufToWebSocketFrameCodec extends MessageToMessageCodec<WebSocketFrame, ByteBuf> {
 

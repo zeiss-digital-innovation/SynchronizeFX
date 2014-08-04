@@ -32,7 +32,7 @@ import de.saxsys.synchronizefx.netty.base.server.NettyBasicServer;
  * This class is intended to be used as input for {@link SynchronizeFxServer}.
  * </p>
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 public class NettyServer extends NettyBasicServer {
 

@@ -29,7 +29,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 /**
  * Handles messages received from clients.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 class InboundCommandHandlerServer extends SimpleChannelInboundHandler<List<Object>> {
 

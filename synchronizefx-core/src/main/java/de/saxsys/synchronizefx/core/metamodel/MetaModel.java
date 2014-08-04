@@ -65,8 +65,8 @@ public class MetaModel {
     /**
      * Creates a {@link MetaModel} which serves a new domain model.
      * 
-     * @see MetaModel#MetaModel(TopologyLayerCallback)
-     * @param topology see {@link MetaModel#MetaModel(TopologyLayerCallback)}
+     * @see MetaModel#MetaModel(TopologyLayerCallback, Executor)
+     * @param topology see {@link MetaModel#MetaModel(TopologyLayerCallback, Executor)}
      * @param root The root object of the domain model that should be served.
      * @param changeExecutor The executor to use for all changes done to JavaFX properties.
      */

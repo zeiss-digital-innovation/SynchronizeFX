@@ -130,7 +130,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     }
 
     /**
-     * Sends {@link WsKryoTomcatHandler#kryobuffer} to a destination.
+     * Sends send the result of {@link Serializer#serialize(List)} to a destination.
      * 
      * @param buffer the bytes to send.
      * @param destination The peer to send to.
@@ -151,8 +151,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
                 // CHECKSTYLE:OFF
             } catch (IOException e1) {
                 // Maybe the connection is already closed. This is no exceptional state but rather the default in
-                // this
-                // case. So it's safe to ignore this exception.
+                // this case. So it's safe to ignore this exception.
             }
             // CHECKSTYLE:ON
             connectionCloses((SynchronizeFXTomcatConnection) destination);

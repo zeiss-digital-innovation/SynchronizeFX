@@ -43,7 +43,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
  * </p>
  * 
  * <p>
- * It is guaranteed that {@link MessageTransferServer#setTopologyLayerCallback(NetworkToTopologyCallbackServer) is only
+ * It is guaranteed that {@link MessageTransferServer#setTopologyLayerCallback(NetworkToTopologyCallbackServer)} is only
  * called before {@link MessageTransferServer#start()} and the send methods only after
  * {@link MessageTransferServer#start()} (maybe multiple times). It is also guaranteed that no more methods are called
  * after {@link MessageTransferServer#shutdown()} was called.
