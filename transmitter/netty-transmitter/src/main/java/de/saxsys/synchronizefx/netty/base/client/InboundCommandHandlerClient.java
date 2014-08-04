@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.netty.base.client;
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -29,7 +30,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 /**
  * Passes received messages to the core parts of SynchronizeFX.
  */
-class InboundCommandHandlerClient extends SimpleChannelInboundHandler<List<Object>> {
+class InboundCommandHandlerClient extends SimpleChannelInboundHandler<List<Command>> {
 
     private NetworkToTopologyCallbackClient callback;
 
@@ -43,7 +44,7 @@ class InboundCommandHandlerClient extends SimpleChannelInboundHandler<List<Objec
     }
 
     @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, final List<Object> msg) throws Exception {
+    protected void channelRead0(final ChannelHandlerContext ctx, final List<Command> msg) throws Exception {
         callback.recive(msg);
     }
 }

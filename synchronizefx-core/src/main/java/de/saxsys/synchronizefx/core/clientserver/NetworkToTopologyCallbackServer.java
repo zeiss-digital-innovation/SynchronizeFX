@@ -22,25 +22,25 @@ package de.saxsys.synchronizefx.core.clientserver;
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 /**
- * This is an callback interface for the network library to inform the upper layer of incoming events like messages
+ * This is an callback interface for the network library to inform the upper layer of incoming events like commands
  * or new clients.
  * 
  * This is the interface for the server side. For the client side use {@link NetworkToTopologyCallbackClient}.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public interface NetworkToTopologyCallbackServer {
 
     /**
-     * Messages were received.
+     * Commands were received.
      * 
-     * @param messages The messages received.
-     * @param sender An object that represents the sender of the messages.
+     * @param commands The commands received.
+     * @param sender An object that represents the sender of the commands.
      */
-    void recive(List<Object> messages, Object sender);
+    void recive(List<Command> commands, Object sender);
 
     /**
      * A new client connected.

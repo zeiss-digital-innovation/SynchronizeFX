@@ -29,12 +29,14 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -43,8 +45,8 @@ import static org.junit.Assert.fail;
  * 
  * As the user should not be constrained to do only {@code synchronize}d changes on his domain model, it is hard to
  * ensure that the model is kept synchronous while a client is connected. That is because at the time of writing this
- * test, the messages to reproduce the current state of the domain model are produced by walking through the whole
- * domain model via reflection. This messages are than send to a connecting client. When changes on the server side are
+ * test, the commands to reproduce the current state of the domain model are produced by walking through the whole
+ * domain model via reflection. This commands are than send to a connecting client. When changes on the server side are
  * done while this "walking" process is active to the part which has already been walked through, this changes are lost.
  * The purpose of this test is to reproduce this problem and show if it has been solved or not.
  * 
@@ -63,7 +65,7 @@ public class ChangeWhileConnectTest {
     private boolean propertyVisitorThreadShouldWakeUp;
     private boolean testThreadShouldWakeUp;
 
-    private List<Object> commands;
+    private List<Command> commands;
 
     /**
      * Initializes an example domain object and the meta model.
@@ -149,7 +151,7 @@ public class ChangeWhileConnectTest {
      * 
      * <p>
      * This test produces a change that removes C while the walker is at A. This change is safed until the walking has
-     * finished. The walker did'nt create a message to create C. If the message to remove C would be send to the client,
+     * finished. The walker did'nt create a command to create C. If the command to remove C would be send to the client,
      * an error would occur that an unknown object should be removed. This test checks if this happens.
      * </p>
      */
@@ -172,7 +174,7 @@ public class ChangeWhileConnectTest {
         // check if command list can be executed without errors.
         executeCommandsAndCompare(null);
     }
-    
+
     /**
      * This list ensures that {@link ConcurrentModificationException} thrown by a list iterator in the property walker
      * don't result in incorrect results.
@@ -256,7 +258,7 @@ public class ChangeWhileConnectTest {
         final Domain child1 = root.list.get(0);
         child1.waitingProperty.set(40);
         child1.waitingProperty.set(5781);
-        final List<Object> simulatedIncommingChanges = cb.getCommands();
+        final List<Command> simulatedIncommingChanges = cb.getCommands();
         child1.waitingProperty.set(40);
 
         // simulate the problem
@@ -367,16 +369,16 @@ public class ChangeWhileConnectTest {
     /**
      * Executes the generated commands and checks if the resulting domain model is identical to the original one.
      * 
-     * @param additionalCommands
+     * @param simulatedIncommingChanges
      *            additional commands that should be executed on the copy model. This can be {@code null}.
      */
-    private void executeCommandsAndCompare(final List<Object> additionalCommands) {
+    private void executeCommandsAndCompare(final List<Command> simulatedIncommingChanges) {
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copyMeta = new MetaModel(copyCb, new DirectExecutor());
         copyMeta.execute(commands);
         copyMeta.execute(cb.getCommands());
-        if (additionalCommands != null) {
-            copyMeta.execute(additionalCommands);
+        if (simulatedIncommingChanges != null) {
+            copyMeta.execute(simulatedIncommingChanges);
         }
         assertEquals(root, copyCb.getRoot());
     }
@@ -433,7 +435,7 @@ public class ChangeWhileConnectTest {
     private class BlockingCommandsForDomainModelCallback implements CommandsForDomainModelCallback {
 
         @Override
-        public void commandsReady(final List<Object> theCommands) {
+        public void commandsReady(final List<Command> theCommands) {
             blockUserThread();
             commands = theCommands;
         }

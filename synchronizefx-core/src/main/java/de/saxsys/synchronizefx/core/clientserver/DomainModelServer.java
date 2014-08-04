@@ -26,6 +26,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
 import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +36,12 @@ import org.slf4j.LoggerFactory;
  * 
  * The purpose of this class is to hide methods that are meant to be used by the framework from the user.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLayerCallback {
     private static final Logger LOG = LoggerFactory.getLogger(DomainModelServer.class);
 
-    private final MessageTransferServer networkLayer;
+    private final CommandTransferServer networkLayer;
     private final MetaModel meta;
     private final ServerCallback serverCallback;
 
@@ -49,13 +49,13 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
      * @param model see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      * @param networkLayer see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      * @param serverCallback see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
-    public DomainModelServer(final Object model, final MessageTransferServer networkLayer,
+    public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback serverCallback) {
         // CHECKSTYLE:ON
         this(model, networkLayer, serverCallback, new DirectExecutor());
@@ -65,16 +65,16 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
      * @param model see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      * @param networkLayer see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      * @param serverCallback see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      * @param changeExecutor see
-     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, ServerCallback)}
+     *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
     // CHECKSTYLE:ON
-    public DomainModelServer(final Object model, final MessageTransferServer networkLayer,
+    public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback serverCallback, final Executor changeExecutor) {
         this.networkLayer = networkLayer;
         this.serverCallback = serverCallback;
@@ -83,17 +83,17 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     }
 
     @Override
-    public void recive(final List<Object> messages, final Object sender) {
+    public void recive(final List<Command> commands, final Object sender) {
         if (LOG.isTraceEnabled()) {
-            LOG.trace("Server recived commands " + messages);
+            LOG.trace("Server recived commands " + commands);
         }
 
-        meta.execute(messages);
-        networkLayer.sendToAllExcept(messages, sender);
+        meta.execute(commands);
+        networkLayer.sendToAllExcept(commands, sender);
     }
 
     @Override
-    public void sendCommands(final List<Object> commands) {
+    public void sendCommands(final List<Command> commands) {
         networkLayer.sendToAll(commands);
         if (LOG.isTraceEnabled()) {
             LOG.trace("Server sent commands " + commands);
@@ -124,7 +124,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     public void onConnect(final Object newClient) {
         meta.commandsForDomainModel(new CommandsForDomainModelCallback() {
             @Override
-            public void commandsReady(final List<Object> commands) {
+            public void commandsReady(final List<Command> commands) {
                 networkLayer.onConnectFinished(newClient);
                 networkLayer.send(commands, newClient);
             }
@@ -173,7 +173,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     }
 
     /**
-     * Executes changes to the users domain model in the thread that reports a change message.
+     * Executes changes to the users domain model in the thread that reports a change command.
      */
     private static class DirectExecutor implements Executor {
         @Override

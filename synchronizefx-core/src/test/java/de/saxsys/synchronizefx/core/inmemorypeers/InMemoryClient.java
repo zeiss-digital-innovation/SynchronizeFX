@@ -24,10 +24,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T> The type of the domain model.
  */
-public class InMemoryClient<T> implements MessageTransferClient {
+public class InMemoryClient<T> implements CommandTransferClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryClient.class);
 
@@ -67,8 +68,8 @@ public class InMemoryClient<T> implements MessageTransferClient {
     }
 
     @Override
-    public void send(final List<Object> messages) {
-        server.recive(this, messages);
+    public void send(final List<Command> commands) {
+        server.recive(this, commands);
     }
 
     @Override
@@ -135,15 +136,15 @@ public class InMemoryClient<T> implements MessageTransferClient {
     }
 
     /**
-     * Recives messages from the server.
+     * Recives commands from the server.
      * 
-     * @param messages The messages the client should receive.
+     * @param commands The commands the client should receive.
      */
-    void recieve(final List<Object> messages) {
+    void recieve(final List<Command> commands) {
         executeInClientThread(new Runnable() {
             @Override
             public void run() {
-                callback.recive(messages);
+                callback.recive(commands);
             }
         });
     }

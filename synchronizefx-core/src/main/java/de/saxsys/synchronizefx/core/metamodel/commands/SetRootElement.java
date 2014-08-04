@@ -22,12 +22,11 @@ package de.saxsys.synchronizefx.core.metamodel.commands;
 import java.util.UUID;
 
 /**
- * A message that tells which object should be treated as the root object of the domain model.
+ * A {@link Command} that tells which object should be treated as the root object of the domain model.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
-public class SetRootElement {
+public class SetRootElement implements Command {
     private UUID rootElementId;
 
     /**
@@ -40,7 +39,8 @@ public class SetRootElement {
     /**
      * 
      * @see SetRootElement#getRootElementId()
-     * @param rootElementId the id
+     * @param rootElementId
+     *            the id
      */
     public void setRootElementId(final UUID rootElementId) {
         this.rootElementId = rootElementId;

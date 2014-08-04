@@ -24,11 +24,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T> The type of the domain model.
  */
-public class InMemoryServer<T> implements MessageTransferServer {
+public class InMemoryServer<T> implements CommandTransferServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryServer.class);
 
@@ -64,23 +65,23 @@ public class InMemoryServer<T> implements MessageTransferServer {
     }
 
     @Override
-    public void sendToAll(final List<Object> messages) {
-        sendToAllExcept(messages, null);
+    public void sendToAll(final List<Command> commands) {
+        sendToAllExcept(commands, null);
     }
 
     @Override
-    public void sendToAllExcept(final List<Object> messages, final Object nonReciver) {
+    public void sendToAllExcept(final List<Command> commands, final Object nonReciver) {
         for (final InMemoryClient<T> client : clients) {
             if (!client.equals(nonReciver)) {
-                send(messages, client);
+                send(commands, client);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void send(final List<Object> messages, final Object client) {
-        ((InMemoryClient<T>) client).recieve(messages);
+    public void send(final List<Command> commands, final Object client) {
+        ((InMemoryClient<T>) client).recieve(commands);
     }
 
     @SuppressWarnings("unchecked")
@@ -176,16 +177,16 @@ public class InMemoryServer<T> implements MessageTransferServer {
     }
 
     /**
-     * Receive messages from a client.
+     * Receive commands from a client.
      * 
      * @param client The client that send the changes.
-     * @param messages The changes that where received.
+     * @param commands The changes that where received.
      */
-    void recive(final InMemoryClient<T> client, final List<Object> messages) {
+    void recive(final InMemoryClient<T> client, final List<Command> commands) {
         executeInServerThread(new Runnable() {
             @Override
             public void run() {
-                callback.recive(messages, client);
+                callback.recive(commands, client);
             }
         });
     }

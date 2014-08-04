@@ -117,7 +117,7 @@ public class CommandListExecutor {
         } else if (command instanceof SetRootElement) {
             execute((SetRootElement) command);
         } else {
-            LOG.warn("Unknown message recived. Ignoring it");
+            LOG.warn("Unknown command recived. Ignoring it");
         }
     }
 
@@ -145,7 +145,7 @@ public class CommandListExecutor {
                 }
                 if (!fieldFound) {
                     throw new SynchronizeFXException(
-                            "A message with a field name was recived which doesn't exist in the related class."
+                            "A commadn with a field name was recived which doesn't exist in the related class."
                                     + " Maybe you have different versions of the domain objects"
                                     + " in your clients and the server?");
                 }

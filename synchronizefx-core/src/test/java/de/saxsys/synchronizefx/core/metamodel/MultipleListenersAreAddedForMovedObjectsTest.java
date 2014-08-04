@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.core.metamodel;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Sprint;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Story;
@@ -32,6 +33,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -84,7 +86,7 @@ public class MultipleListenersAreAddedForMovedObjectsTest {
 
         final Sprint sprintB = new Sprint();
         
-        final List<Object> commands = new ArrayList<>();
+        final List<Command> commands = new ArrayList<>();
         originalDomainModel.getSprints().add(sprintA);
         commands.addAll(originalCb.getCommands());
         originalDomainModel.getSprints().add(sprintB);
@@ -140,7 +142,7 @@ public class MultipleListenersAreAddedForMovedObjectsTest {
         assertEquals(originalDomainModel.getSprints(), copyDomainModel.getSprints());
 
 
-        final List<Object> commands = new ArrayList<>();
+        final List<Command> commands = new ArrayList<>();
         final Story copyStoryA = copyDomainModel.getSprints().get(0).getStories().get(0);
         final Story removedStory = sprintA.getStories().remove(0);
         commands.addAll(originalCb.getCommands());

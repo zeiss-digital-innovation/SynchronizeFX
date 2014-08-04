@@ -48,7 +48,7 @@ public class SynchronizeFxServer {
      * @param callback Used to inform the user of this class on errors. The methods in the callback are not called
      *            before you call {@link SynchronizeFxServer#start()}.
      */
-    public SynchronizeFxServer(final Object model, final MessageTransferServer networkLayer,
+    public SynchronizeFxServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback callback) {
         impl = new DomainModelServer(model, networkLayer, callback);
     }
@@ -68,7 +68,7 @@ public class SynchronizeFxServer {
      *            before you call {@link SynchronizeFxServer#start()}.
      * @param changeExecutor An executor used to execute all changes done to JavaFX properties.
      */
-    public SynchronizeFxServer(final Object model, final MessageTransferServer networkLayer,
+    public SynchronizeFxServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback callback, final Executor changeExecutor) {
         impl = new DomainModelServer(model, networkLayer, callback, changeExecutor);
     }

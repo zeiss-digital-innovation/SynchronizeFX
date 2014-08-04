@@ -28,7 +28,7 @@ import java.util.UUID;
  * 
  * @author raik.bieniek
  */
-public class CreateObservableObject {
+public class CreateObservableObject implements Command {
     private UUID objectId;
     private String className;
     private Map<String, UUID> propertyNameToId = new HashMap<>();

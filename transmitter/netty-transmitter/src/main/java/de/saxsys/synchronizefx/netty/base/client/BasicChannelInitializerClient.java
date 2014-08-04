@@ -21,7 +21,7 @@ package de.saxsys.synchronizefx.netty.base.client;
 
 import java.util.concurrent.TimeUnit;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.netty.base.Codec;
@@ -62,7 +62,7 @@ public class BasicChannelInitializerClient extends ChannelInitializer<SocketChan
     }
 
     /**
-     * @see MessageTransferClient#setTopologyCallback(NetworkToTopologyCallbackClient)
+     * @see CommandTransferClient#setTopologyCallback(NetworkToTopologyCallbackClient)
      * @param callback see MessageTransferClient#setTopologyCallback(NetworkToTopologyCallbackClient)
      */
     void setTopologyCallback(final NetworkToTopologyCallbackClient callback) {

@@ -32,10 +32,9 @@ import javafx.beans.property.Property;
  * leaks this set has to be emptied to make the objects garbage collectible when they are no longer used by the user.
  * This is done by this command.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
-public class ClearReferences {
+public class ClearReferences implements Command {
 
     @Override
     public String toString() {

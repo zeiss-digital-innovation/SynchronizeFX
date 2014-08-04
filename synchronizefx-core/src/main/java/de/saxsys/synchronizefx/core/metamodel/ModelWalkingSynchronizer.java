@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * via reflection.
  * </p>
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 class ModelWalkingSynchronizer {
 
@@ -63,9 +63,9 @@ class ModelWalkingSynchronizer {
          */
         LOCAL_PROPERTY_CHANGES,
         /**
-         * Incoming messages from other peers that need to be executed.
+         * Incoming commands from other peers that need to be executed.
          */
-        INCOMMING_MESSAGES,
+        INCOMMING_COMMANDS,
         /**
          * A model walking process.
          */

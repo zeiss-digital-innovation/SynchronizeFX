@@ -19,7 +19,6 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-
 import java.util.HashSet;
 import java.util.List;
 
@@ -31,6 +30,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
@@ -40,6 +40,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -67,11 +68,11 @@ public class SyncSetPropertyTest {
     }
 
     /**
-     * Tests that correct messages are generated for a domain model that contains {@link SetProperty}s.
+     * Tests that correct commands are generated for a domain model that contains {@link SetProperty}s.
      */
     @Test
     public void testManualCreate() {
-        List<Object> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
+        List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
         CreateObservableObject msg = (CreateObservableObject) commands.get(0);
 
         assertEquals(2, msg.getPropertyNameToId().size());
@@ -130,7 +131,7 @@ public class SyncSetPropertyTest {
      * Tests that two model instances can be keep synchronous when change commands are applied.
      */
     @Test
-    public void testApplyGeneratedMessages() {
+    public void testApplyGeneratedCommands() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
 

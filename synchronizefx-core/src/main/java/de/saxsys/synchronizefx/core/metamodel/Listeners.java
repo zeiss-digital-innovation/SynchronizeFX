@@ -44,6 +44,7 @@ import javafx.collections.WeakSetChangeListener;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +173,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
             return;
         }
         try {
-            final List<Object> commands = creator.setPropertyValue(objectRegistry.getIdOrFail(property), newValue);
+            final List<Command> commands = creator.setPropertyValue(objectRegistry.getIdOrFail(property), newValue);
             if (newValue != null) {
                 registerListenersOnEverything(newValue);
             }
@@ -192,7 +193,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         try {
             final UUID listId = objectRegistry.getIdOrFail(list);
             while (event.next()) {
-                List<Object> commands = null;
+                List<Command> commands = null;
                 if (event.wasPermutated()) {
                     LOG.warn("Got an ListChangeListener.Change event that permutates the list."
                             + " This case is not implemented and is not synchronized.");
@@ -208,7 +209,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
                         LOG.warn("BUG: An add and remove operation can be in the same event."
                                 + " That case is not handled by the software");
                     }
-                    commands = new LinkedList<Object>();
+                    commands = new LinkedList<>();
                     for (int i = event.getFrom(); i < event.getTo(); i++) {
                         final Object elem = list.get(i);
                         final Optional<UUID> id = objectRegistry.getId(elem);
@@ -247,7 +248,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         try {
             final UUID setId = objectRegistry.getIdOrFail(set);
 
-            List<Object> commands = null;
+            List<Command> commands = null;
             if (change.wasAdded()) {
                 final Object value = change.getElementAdded();
                 commands = creator.addToSet(setId, value);
@@ -273,7 +274,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
             final Object key = change.getKey();
             if (change.wasAdded()) {
                 final Object value = change.getValueAdded();
-                final List<Object> commands = creator.putToMap(mapId, key, value);
+                final List<Command> commands = creator.putToMap(mapId, key, value);
                 registerListenersOnEverything(key);
                 if (value != null) {
                     registerListenersOnEverything(value);
@@ -291,7 +292,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
      * Prevents the listeners of this object to be executed for a specific object.
      * 
      * This can be useful if you want to apply changes from other peers to the domain model. If the listeners wouldn't
-     * be disabled in this case, they would generate change messages which than would be send amongst others to the
+     * be disabled in this case, they would generate change commands which than would be send amongst others to the
      * client that generated the changes in the first place. The result would be an endless loop.
      * 
      * @param value
@@ -312,7 +313,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
         disabledFor.remove(value);
     }
 
-    private void distributeCommands(final List<Object> commands) {
+    private void distributeCommands(final List<Command> commands) {
         synchronizer.doWhenModelWalkerFinished(ActionType.LOCAL_PROPERTY_CHANGES, new Runnable() {
             @Override
             public void run() {

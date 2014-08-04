@@ -21,9 +21,10 @@ package de.saxsys.synchronizefx.netty.base.server;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -38,9 +39,9 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 /**
- * Contains the base server implementation for all Netty based {@link MessageTransferServer}s.
+ * Contains the base server implementation for all Netty based {@link CommandTransferServer}s.
  */
-public abstract class NettyBasicServer implements MessageTransferServer {
+public abstract class NettyBasicServer implements CommandTransferServer {
 
     private NioEventLoopGroup connectionAccptorGroup;
     private NioEventLoopGroup clientConnectionGroup;
@@ -94,18 +95,18 @@ public abstract class NettyBasicServer implements MessageTransferServer {
     }
 
     @Override
-    public void sendToAll(final List<Object> messages) {
-        clients.writeAndFlush(messages);
+    public void sendToAll(final List<Command> commands) {
+        clients.writeAndFlush(commands);
     }
 
     @Override
-    public void send(final List<Object> messages, final Object client) {
-        ((Channel) client).writeAndFlush(messages);
+    public void send(final List<Command> commands, final Object client) {
+        ((Channel) client).writeAndFlush(commands);
     }
 
     @Override
-    public void sendToAllExcept(final List<Object> messages, final Object nonReciver) {
-        clients.writeAndFlush(messages, new ChannelMatcher() {
+    public void sendToAllExcept(final List<Command> commands, final Object nonReciver) {
+        clients.writeAndFlush(commands, new ChannelMatcher() {
             @Override
             public boolean matches(final Channel candidate) {
                 return candidate != nonReciver;

@@ -27,6 +27,7 @@ import javafx.application.Platform;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * 
  * The purpose of this class is to hide methods that are meant to be used by the framework from the user.
  * 
- * @author raik.bieniek
+ * @author Raik Bieniek
  */
 class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLayerCallback {
 
@@ -44,34 +45,34 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
 
     private final ClientCallback clientCallback;
     private final MetaModel meta;
-    private final MessageTransferClient networkLayer;
+    private final CommandTransferClient networkLayer;
     private final Executor changeExecutor;
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
-     * @see SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)
+     * @see SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)
      * @param networkLayer see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)}
      * @param clientCallback see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)}
      */
     // CHECKSTYLE:ON
-    public DomainModelClient(final MessageTransferClient networkLayer, final ClientCallback clientCallback) {
+    public DomainModelClient(final CommandTransferClient networkLayer, final ClientCallback clientCallback) {
         this(networkLayer, clientCallback, new ExecuteInJavaFXThread());
     }
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
-     * @see SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)
+     * @see SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)
      * @param networkLayer see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)}
      * @param clientCallback see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, Serializer, ClientCallback)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)}
      * @param changeExecutor see
-     *            {@link SynchronizeFxClient#SynchronizeFxClient(MessageTransferClient, ClientCallback, Executor)}
+     *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, ClientCallback, Executor)}
      */
     // CHECKSTYLE:ON
-    public DomainModelClient(final MessageTransferClient networkLayer, final ClientCallback clientCallback,
+    public DomainModelClient(final CommandTransferClient networkLayer, final ClientCallback clientCallback,
             final Executor changeExecutor) {
         this.clientCallback = clientCallback;
         this.networkLayer = networkLayer;
@@ -82,15 +83,15 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
     }
 
     @Override
-    public void recive(final List<Object> messages) {
+    public void recive(final List<Command> commands) {
         if (LOG.isTraceEnabled()) {
-            LOG.trace("Client recived commands " + messages);
+            LOG.trace("Client recived commands " + commands);
         }
-        meta.execute(messages);
+        meta.execute(commands);
     }
 
     @Override
-    public void sendCommands(final List<Object> commands) {
+    public void sendCommands(final List<Command> commands) {
         networkLayer.send(commands);
         if (LOG.isTraceEnabled()) {
             LOG.trace("Client sent commands " + commands);

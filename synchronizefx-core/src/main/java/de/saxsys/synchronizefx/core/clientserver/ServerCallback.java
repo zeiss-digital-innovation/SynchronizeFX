@@ -32,7 +32,7 @@ public interface ServerCallback {
     /**
      * Called when an error occurred in the synchronization code.
      * 
-     * This includes errors occurred in the {@link MessageTransferServer} implementation.
+     * This includes errors occurred in the {@link CommandTransferServer} implementation.
      * 
      * @param error the exception that describes the error.
      */

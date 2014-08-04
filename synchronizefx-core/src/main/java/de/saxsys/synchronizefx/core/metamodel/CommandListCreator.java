@@ -39,6 +39,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
@@ -92,14 +93,14 @@ class CommandListCreator {
 
         SetRootElement msg = new SetRootElement();
         msg.setRootElementId(objectRegistry.getIdOrFail(root));
-        // prepend it to ClearReferences message
+        // prepend it to the ClearReferences command
         state.commands.add(state.commands.size() - 1, msg);
 
         callback.commandsReady(state.commands);
     }
 
     /**
-     * Creates the messages necessary to set a new value for a property.
+     * Creates the commands necessary to set a new value for a property.
      * 
      * @param propertyId
      *            The id of the property where the new value should be set.
@@ -109,7 +110,7 @@ class CommandListCreator {
      *             When creation of the commands failed.
      * @return The commands.
      */
-    public List<Object> setPropertyValue(final UUID propertyId, final Object value) throws SynchronizeFXException {
+    public List<Command> setPropertyValue(final UUID propertyId, final Object value) throws SynchronizeFXException {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -132,7 +133,7 @@ class CommandListCreator {
      *            The new size the list has after this command has been executed on it.
      * @return a list with commands necessary to recreate this add to list command.
      */
-    public List<Object> addToList(final UUID listId, final int position, final Object value, final int newSize) {
+    public List<Command> addToList(final UUID listId, final int position, final Object value, final int newSize) {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -151,7 +152,7 @@ class CommandListCreator {
      *            The object that should be added to the set.
      * @return a set with commands necessary to recreate this add to set command.
      */
-    public List<Object> addToSet(final UUID setId, final Object value) {
+    public List<Command> addToSet(final UUID setId, final Object value) {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -172,7 +173,7 @@ class CommandListCreator {
      *            the value of the new mapping.
      * @return the list with the commands.
      */
-    public List<Object> putToMap(final UUID mapId, final Object key, final Object value) {
+    public List<Command> putToMap(final UUID mapId, final Object key, final Object value) {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -193,12 +194,12 @@ class CommandListCreator {
      *            The size the list will have after this command has been applied.
      * @return The command list.
      */
-    public List<Object> removeFromList(final UUID listId, final int position, final int newSize) {
+    public List<Command> removeFromList(final UUID listId, final int position, final int newSize) {
         RemoveFromList msg = new RemoveFromList();
         msg.setListId(listId);
         msg.setPosition(position);
         msg.setNewSize(newSize);
-        List<Object> commands = new ArrayList<>(1);
+        List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
     }
@@ -212,7 +213,7 @@ class CommandListCreator {
      *            the key of the mapping that should be removed.
      * @return the list with the commands.
      */
-    public List<Object> removeFromMap(final UUID mapId, final Object key) {
+    public List<Command> removeFromMap(final UUID mapId, final Object key) {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -239,7 +240,7 @@ class CommandListCreator {
      *            The element that should be removed.
      * @return The command list.
      */
-    public List<Object> removeFromSet(final UUID setId, final Object value) {
+    public List<Command> removeFromSet(final UUID setId, final Object value) {
         State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
@@ -415,14 +416,14 @@ class CommandListCreator {
     }
 
     /**
-     * The state that must be keeped for the creation of depend messages.
+     * The state that must be keeped for the creation of depend commands.
      */
     private static class State {
         /**
          * only {@code synchronized} access allowed.
          */
         private final Map<Object, Object> alreadyVisited = new IdentityHashMap<>();
-        private final List<Object> commands = new LinkedList<>();
+        private final List<Command> commands = new LinkedList<>();
         private final boolean skipKnown;
         /**
          * Holds the return value of the last invocation of

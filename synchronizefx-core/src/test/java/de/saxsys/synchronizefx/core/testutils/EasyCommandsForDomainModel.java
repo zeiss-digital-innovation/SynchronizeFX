@@ -23,6 +23,7 @@ import java.util.List;
 
 import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
 import de.saxsys.synchronizefx.core.metamodel.MetaModel;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 /**
  * A tool to simplify
@@ -30,18 +31,18 @@ import de.saxsys.synchronizefx.core.metamodel.MetaModel;
  * test that can ensure thread safety in other ways.
  */
 public final class EasyCommandsForDomainModel {
-    private List<Object> commands;
+    private List<Command> commands;
     private MetaModel model;
 
     private EasyCommandsForDomainModel(final MetaModel model) {
         this.model = model;
     }
     
-    private List<Object> commandsForDomainModel() {
+    private List<Command> commandsForDomainModel() {
         model.commandsForDomainModel(new CommandsForDomainModelCallback() {
             
             @Override
-            public void commandsReady(final List<Object> initialCommands) {
+            public void commandsReady(final List<Command> initialCommands) {
                 commands = initialCommands;
             }
         });
@@ -56,7 +57,7 @@ public final class EasyCommandsForDomainModel {
      * @param model the MetaModel for the domain model that the commands should be created.
      * @return The commands
      */
-    public static List<Object> commandsForDomainModel(final MetaModel model) {
+    public static List<Command> commandsForDomainModel(final MetaModel model) {
         return new EasyCommandsForDomainModel(model).commandsForDomainModel();
     }
 }

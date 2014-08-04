@@ -31,11 +31,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import org.apache.catalina.websocket.MessageInbound;
 import org.apache.catalina.websocket.StreamInbound;
@@ -50,15 +51,14 @@ import org.slf4j.LoggerFactory;
  * 
  * Clients wishing to connect to this implementation the Websocket sub-protocol used must be
  * "v1.websocket.synchronizefx.saxsys.de". It must be ensured that this server and the client use {@link Serializer}
- * implementations that are compatible. Ideally both sides use the same implementations. Each message that is created
+ * implementations that are compatible. Ideally both sides use the same implementations. Each command that is created
  * by {@link Serializer#serialize(java.util.List)} must be send as is in a single websocket binary frame. Each
  * content binary frames must be passed through {@link Serializer#deserialize(byte[])} to reproduce the SynchronizeFX
- * messages.
+ * commands.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
-public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implements MessageTransferServer {
+public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implements CommandTransferServer {
     private static final long serialVersionUID = -1859780171572536501L;
 
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeFXTomcatServlet.class);
@@ -69,7 +69,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     private Serializer serializer;
 
     /**
-     * Returns a serializer that should be used to serialize and deserialize the messages of the SynchronizeFX
+     * Returns a serializer that should be used to serialize and deserialize the commands of the SynchronizeFX
      * framework.
      * 
      * This method is called only once so you can use <code>new</code> for the serializer object (e.g.
@@ -99,7 +99,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
      * 
      * @param req see {@link HttpServlet#doGet(HttpServletRequest, HttpServletResponse)}
      * @param resp see {@link HttpServlet#doGet(HttpServletRequest, HttpServletResponse)}
-     * @throws ServletException When no {@link SynchronizeFxServer} listens for messages until now.
+     * @throws ServletException When no {@link SynchronizeFxServer} listens for commands until now.
      * @throws IOException see {@link HttpServlet#doGet(HttpServletRequest, HttpServletResponse)}
      * @see HttpServlet
      */
@@ -161,7 +161,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     // Used by SynchronizeFXTomcatConnection objects
 
     /**
-     * Informs this {@link MessageTransferServer} that a new client connection is ready.
+     * Informs this {@link CommandTransferServer} that a new client connection is ready.
      * 
      * @param connection The connection that just got ready.
      */
@@ -171,9 +171,9 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     }
 
     /**
-     * Informs this {@link MessageTransferServer} that a client received a message.
+     * Informs this {@link CommandTransferServer} that a client received a command.
      * 
-     * @param message The message that was received.
+     * @param message The message containing the received command.
      * @param sender The connection that received the message.
      */
     void recivedMessage(final ByteBuffer message, final SynchronizeFXTomcatConnection sender) {
@@ -181,9 +181,9 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             LOG.trace("Received a message in thread: id: " + Thread.currentThread().getName() + ", name: "
                     + Thread.currentThread().getName());
         }
-        List<Object> messages;
+        List<Command> commands;
         try {
-            messages = getSerializerInternal().deserialize(message.array());
+            commands = getSerializerInternal().deserialize(message.array());
         } catch (SynchronizeFXException e) {
             try {
                 sender.getWsOutbound().close(0, null);
@@ -193,11 +193,11 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             callback.onClientConnectionError(e);
             return;
         }
-        callback.recive(messages, sender);
+        callback.recive(commands, sender);
     }
 
     /**
-     * Informs this {@link MessageTransferServer} that a client connection got closed.
+     * Informs this {@link CommandTransferServer} that a client connection got closed.
      * 
      * @param connection The connection that was closed
      */
@@ -206,7 +206,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
         connections.remove(connection);
     }
 
-    // MessageTransferServer
+    // CommandTransferServer
 
     @Override
     public void onConnectFinished(final Object client) {
@@ -219,10 +219,10 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     }
 
     @Override
-    public void send(final List<Object> messages, final Object destination) {
+    public void send(final List<Command> commands, final Object destination) {
         byte[] buffer;
         try {
-            buffer = getSerializerInternal().serialize(messages);
+            buffer = getSerializerInternal().serialize(commands);
         } catch (SynchronizeFXException e) {
             shutdown();
             callback.onFatalError(e);
@@ -232,15 +232,15 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     }
 
     @Override
-    public void sendToAll(final List<Object> messages) {
-        sendToAllExcept(messages, null);
+    public void sendToAll(final List<Command> commands) {
+        sendToAllExcept(commands, null);
     }
 
     @Override
-    public void sendToAllExcept(final List<Object> messages, final Object nonReciver) {
+    public void sendToAllExcept(final List<Command> commands, final Object nonReciver) {
         byte[] buffer;
         try {
-            buffer = getSerializerInternal().serialize(messages);
+            buffer = getSerializerInternal().serialize(commands);
         } catch (SynchronizeFXException e) {
             shutdown();
             callback.onFatalError(e);

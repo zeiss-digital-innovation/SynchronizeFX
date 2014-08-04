@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.netty.base;
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -29,11 +30,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 
 /**
- * Translates Netty {@link ByteBuf}s to {@link List}s of SynchronizeFX commands using a {@link Serializer}.
+ * Translates Netty {@link ByteBuf}s to {@link List}s of SynchronizeFX {@link Command}s using a {@link Serializer}.
  * 
  * @author Raik Bieniek
  */
-public class CommandToBinaryByteBuf extends MessageToMessageCodec<ByteBuf, List<Object>> {
+public class CommandToBinaryByteBuf extends MessageToMessageCodec<ByteBuf, List<Command>> {
 
     private final Serializer serializer;
 
@@ -61,7 +62,7 @@ public class CommandToBinaryByteBuf extends MessageToMessageCodec<ByteBuf, List<
     }
 
     @Override
-    protected void encode(final ChannelHandlerContext ctx, final List<Object> msg, final List<Object> out)
+    protected void encode(final ChannelHandlerContext ctx, final List<Command> msg, final List<Object> out)
         throws Exception {
         final ByteBuf buffer = Unpooled.wrappedBuffer(serializer.serialize(msg));
         buffer.retain();

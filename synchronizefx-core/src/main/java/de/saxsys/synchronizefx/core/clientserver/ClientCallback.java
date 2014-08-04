@@ -39,7 +39,7 @@ public interface ClientCallback {
     /**
      * Called when an error occurred in the synchronization code.
      * 
-     * This includes errors occurred in the {@link MessageTransferClient} implementation. When this method is called,
+     * This includes errors occurred in the {@link CommandTransferClient} implementation. When this method is called,
      * the connection to the server has to be already closed.
      * 
      * @param error the exception that describes the error.

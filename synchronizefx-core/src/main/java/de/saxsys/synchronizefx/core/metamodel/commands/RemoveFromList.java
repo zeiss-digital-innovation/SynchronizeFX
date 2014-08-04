@@ -24,10 +24,9 @@ import java.util.UUID;
 /**
  * Command to remove an element in a list.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
-public class RemoveFromList {
+public class RemoveFromList implements Command {
     private UUID listId;
     private int position;
     private int newSize;

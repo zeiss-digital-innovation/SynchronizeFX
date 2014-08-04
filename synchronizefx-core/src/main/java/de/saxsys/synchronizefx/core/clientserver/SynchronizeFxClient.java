@@ -49,7 +49,7 @@ public class SynchronizeFxClient {
      *            model is ready. The methods in the callback are not called before you call
      *            {@link SynchronizeFxClient#connect()}
      */
-    public SynchronizeFxClient(final MessageTransferClient networkLayer, final ClientCallback listener) {
+    public SynchronizeFxClient(final CommandTransferClient networkLayer, final ClientCallback listener) {
         impl = new DomainModelClient(networkLayer, listener);
     }
 
@@ -69,7 +69,7 @@ public class SynchronizeFxClient {
      *            {@link SynchronizeFxClient#connect()}
      * @param changeExecutor An executor that is used for all changes done to JavaFX properties.
      */
-    public SynchronizeFxClient(final MessageTransferClient networkLayer, final ClientCallback listener,
+    public SynchronizeFxClient(final CommandTransferClient networkLayer, final ClientCallback listener,
             final Executor changeExecutor) {
         impl = new DomainModelClient(networkLayer, listener, changeExecutor);
     }

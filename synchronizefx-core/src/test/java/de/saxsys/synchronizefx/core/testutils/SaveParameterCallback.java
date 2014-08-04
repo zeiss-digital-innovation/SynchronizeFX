@@ -23,6 +23,7 @@ import java.util.List;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import static org.junit.Assert.fail;
 
@@ -31,10 +32,10 @@ import static org.junit.Assert.fail;
  */
 public class SaveParameterCallback implements TopologyLayerCallback {
     private Object root;
-    private List<Object> commands;
+    private List<Command> commands;
 
     @Override
-    public void sendCommands(final List<Object> commands) {
+    public void sendCommands(final List<Command> commands) {
         this.commands = commands;
     }
 
@@ -53,7 +54,7 @@ public class SaveParameterCallback implements TopologyLayerCallback {
      * 
      * @return The list or null if no commands where received yet.
      */
-    public List<Object> getCommands() {
+    public List<Command> getCommands() {
         return commands;
     }
 

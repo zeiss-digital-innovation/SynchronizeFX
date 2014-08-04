@@ -24,6 +24,7 @@ import java.util.concurrent.Executor;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 
 /**
@@ -77,7 +78,7 @@ public class MetaModel {
             // to register all objects in the id map
             commandsForDomainModel(new CommandsForDomainModelCallback() {
                 @Override
-                public void commandsReady(final List<Object> commands) {
+                public void commandsReady(final List<Command> commands) {
                     // the commands are not needed.
                 }
             });
@@ -110,13 +111,13 @@ public class MetaModel {
      * 
      * @param commands The commands that should be executed.
      */
-    public void execute(final List<Object> commands) {
+    public void execute(final List<Command> commands) {
         try {
-            modelWalkingSynchronizer.doWhenModelWalkerFinished(ActionType.INCOMMING_MESSAGES, new Runnable() {
+            modelWalkingSynchronizer.doWhenModelWalkerFinished(ActionType.INCOMMING_COMMANDS, new Runnable() {
                 @Override
                 public void run() {
-                    for (Object message : commands) {
-                        execute(message);
+                    for (Object command : commands) {
+                        execute(command);
                     }
                 }
             });
@@ -166,7 +167,7 @@ public class MetaModel {
     /**
      * Set's a new object as the root object for the domain model.
      * 
-     * This is usably called on an {@link SetRootElement} message.
+     * This is usably called on an {@link SetRootElement} command.
      * 
      * @param root the new root object.
      */

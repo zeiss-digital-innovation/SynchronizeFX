@@ -19,7 +19,7 @@
 
 package de.saxsys.synchronizefx.netty.base.server;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.netty.base.Codec;
@@ -74,7 +74,7 @@ public class BasicChannelInitializerServer extends ChannelInitializer<SocketChan
      * See MessageTransferServer#setTopologyLayerCallback(NetworkToTopologyCallbackServer).
      * 
      * @param callback the callback to set
-     * @see MessageTransferServer#setTopologyLayerCallback(NetworkToTopologyCallbackServer)
+     * @see CommandTransferServer#setTopologyLayerCallback(NetworkToTopologyCallbackServer)
      */
     void setTopologyCallback(final NetworkToTopologyCallbackServer callback) {
         this.userCallback = callback;

@@ -30,6 +30,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
@@ -40,6 +41,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -49,8 +51,7 @@ import static org.junit.Assert.fail;
 /**
  * Test if {@link ListPropery} fields in observable objects are synchronized properly.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public class SyncListPropertyTest {
     private MetaModel model;
@@ -72,7 +73,7 @@ public class SyncListPropertyTest {
      */
     @Test
     public void testManualCreate() {
-        List<Object> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
+        List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
         CreateObservableObject msg = (CreateObservableObject) commands.get(0);
 
         assertEquals(3, msg.getPropertyNameToId().size());
@@ -129,7 +130,7 @@ public class SyncListPropertyTest {
         root.childList.add(new Child(1));
         root.childList.add(new Child(2));
 
-        // check for the correct positions in the generated messages
+        // check for the correct positions in the generated commands
         root.wrappedList.remove("Test Value 2");
         RemoveFromList msg0 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(2, msg0.getPosition());
@@ -158,7 +159,7 @@ public class SyncListPropertyTest {
      * before this changes the original and the copy should be equal again.
      */
     @Test
-    public void testApplyGeneratedMessages() {
+    public void testApplyGeneratedCommands() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
 
@@ -204,14 +205,14 @@ public class SyncListPropertyTest {
         // produce changes on child
         someChild.someInt.set(924);
 
-        // check messages
+        // check commands
         SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
         assertEquals(924, msg.getValue().getSimpleObjectValue());
         assertNull(msg.getValue().getObservableObjectId());
     }
 
     /**
-     * Tests that the correct messages are generated when the list in a {@link ListProperty} is exchanged.
+     * Tests that the correct commands are generated when the list in a {@link ListProperty} is exchanged.
      */
     @Test
     @Ignore
@@ -238,9 +239,9 @@ public class SyncListPropertyTest {
         final ListProperty<Child> childList = new SimpleListProperty<>(FXCollections.<Child> observableArrayList());
 
         public Root() {
-            
+
         }
-        
+
         @Override
         public int hashCode() {
             final int prime = 31;

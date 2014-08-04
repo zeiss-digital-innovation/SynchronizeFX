@@ -32,6 +32,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
@@ -40,6 +41,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -50,8 +52,7 @@ import static org.junit.Assert.assertTrue;
  * Tests if {@link Property} fields that aren't {@link ListProperty}, {@link MapProperty}, or {@link SetProperty} are
  * synchronized correctly.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public class SyncSingleValuePropertyTest {
 
@@ -78,7 +79,7 @@ public class SyncSingleValuePropertyTest {
         root.someString.set("Test");
 
         // create commands
-        List<Object> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
+        List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
 
         // check created commands
         boolean createRootObject = false;
@@ -109,7 +110,7 @@ public class SyncSingleValuePropertyTest {
     }
 
     /**
-     * Tests that appropriate messages are generated when the value of a property is changed.
+     * Tests that appropriate commands are generated when the value of a property is changed.
      */
     @Test
     public void testSetProperty() {
@@ -145,12 +146,12 @@ public class SyncSingleValuePropertyTest {
     }
 
     /**
-     * Tests that the generated messages can be a applied on copies of the domain model.
+     * Tests that the generated commands can be a applied on copies of the domain model.
      * 
      * When done so, the copies should be equal to the original.
      */
     @Test
-    public void testApplyGeneratedMessages() {
+    public void testApplyGeneratedCommands() {
         // setup
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copyMeta = new MetaModel(copyCb, new DirectExecutor());

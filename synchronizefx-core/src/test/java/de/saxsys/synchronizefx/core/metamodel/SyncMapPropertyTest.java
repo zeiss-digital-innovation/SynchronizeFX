@@ -30,6 +30,7 @@ import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
@@ -40,6 +41,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -50,8 +52,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test if {@link MapPropery} fields in observable objects are synchronized properly.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public class SyncMapPropertyTest {
     private MetaModel model;
@@ -77,24 +78,24 @@ public class SyncMapPropertyTest {
         String testString = "testString";
         root.map.put(testId, testString);
 
-        List<Object> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
+        List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
         CreateObservableObject msg = (CreateObservableObject) commands.get(0);
 
         assertEquals(2, msg.getPropertyNameToId().size());
         assertNotNull(msg.getPropertyNameToId().get("map"));
         assertNotNull(msg.getPropertyNameToId().get("otherMap"));
 
-        // test that some PutToMap messages puts "testString" as value
-        boolean correctSetValueMessageFound = false;
+        // test that some PutToMap commands puts "testString" as value
+        boolean correctSetValueCommandFound = false;
         for (Object command : commands) {
             if (command instanceof PutToMap) {
                 if ("testString".equals(((PutToMap) command).getValue().getSimpleObjectValue())) {
-                    correctSetValueMessageFound = true;
+                    correctSetValueCommandFound = true;
                     break;
                 }
             }
         }
-        assertTrue(correctSetValueMessageFound);
+        assertTrue(correctSetValueCommandFound);
     }
 
     /**
@@ -107,7 +108,7 @@ public class SyncMapPropertyTest {
         String testString = "testString";
 
         root.map.put(testId, testString);
-        List<Object> commands1 = cb.getCommands();
+        List<Command> commands1 = cb.getCommands();
         PutToMap msg1 = (PutToMap) commands1.get(0);
 
         assertNotNull(msg1.getMapId());
@@ -120,7 +121,7 @@ public class SyncMapPropertyTest {
         Child value = new Child();
 
         root.otherMap.put(key, value);
-        List<Object> commands2 = cb.getCommands();
+        List<Command> commands2 = cb.getCommands();
         // new commands should have been generated
         assertNotSame(commands1, commands2);
 
@@ -172,7 +173,7 @@ public class SyncMapPropertyTest {
      * before this changes the original and the copy should be equal again.
      */
     @Test
-    public void testApplyGeneratedMessages() {
+    public void testApplyGeneratedCommands() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
         MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
         UUID uuid = UUID.randomUUID();

@@ -24,13 +24,15 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Serializes SynchronizeFX messages by using the Kryo library.
+ * Serializes SynchronizeFX {@link Command}s by using the Kryo library.
  * 
  */
 public class KryoSerializer implements de.saxsys.synchronizefx.core.clientserver.Serializer {
@@ -53,18 +55,18 @@ public class KryoSerializer implements de.saxsys.synchronizefx.core.clientserver
     }
 
     /**
-     * Serializes SyncronizeFX messages to bytes.
+     * Serializes SyncronizeFX {@link Command}s to bytes.
      * 
      * To deserialize them, use {@link KryoSerializer#deserialize(byte[])}. This method is thread safe.
      * 
-     * @param messages The messages to serialize.
-     * @return The messages in serialized form.
+     * @param commands The commands to serialize.
+     * @return The commands in serialized form.
      */
     @Override
-    public byte[] serialize(final List<Object> messages) {
+    public byte[] serialize(final List<Command> commands) {
         final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         final Output output = new Output(outStream);
-        kryo.get().writeObject(output, messages);
+        kryo.get().writeObject(output, commands);
         output.close();
         byte[] bytes = outStream.toByteArray();
         try {
@@ -77,17 +79,17 @@ public class KryoSerializer implements de.saxsys.synchronizefx.core.clientserver
     }
 
     /**
-     * Deserializes {@code byte []} to SynchronizeFX messages.
+     * Deserializes {@code byte []} to SynchronizeFX {@link Command}s.
      * 
      * This method is thread save.
      * 
-     * @param messages The serialized form of SynchronizeFX messages that was created by
+     * @param commands The serialized form of SynchronizeFX {@link Command}s that was created by
      *            {@link KryoSerializer#serialize(List)}.
-     * @return The original messages.
+     * @return The original {@link Command}s.
      */
     @Override
     @SuppressWarnings("unchecked")
-    public List<Object> deserialize(final byte[] messages) {
-        return kryo.get().readObject(new Input(messages), LinkedList.class);
+    public List<Command> deserialize(final byte[] commands) {
+        return kryo.get().readObject(new Input(commands), LinkedList.class);
     }
 }

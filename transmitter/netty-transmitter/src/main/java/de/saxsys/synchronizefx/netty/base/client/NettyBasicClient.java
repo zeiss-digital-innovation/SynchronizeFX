@@ -22,9 +22,10 @@ package de.saxsys.synchronizefx.netty.base.client;
 import java.net.SocketAddress;
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.clientserver.MessageTransferClient;
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -39,9 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Contains the base client implementation for all Netty based {@link MessageTransferClient}s.
+ * Contains the base client implementation for all Netty based {@link CommandTransferClient}s.
  */
-public abstract class NettyBasicClient implements MessageTransferClient {
+public abstract class NettyBasicClient implements CommandTransferClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(NettyBasicClient.class);
     /**
@@ -108,8 +109,8 @@ public abstract class NettyBasicClient implements MessageTransferClient {
     }
 
     @Override
-    public void send(final List<Object> messages) {
-        channel.writeAndFlush(messages);
+    public void send(final List<Command> commands) {
+        channel.writeAndFlush(commands);
     }
 
     @Override

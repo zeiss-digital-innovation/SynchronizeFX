@@ -8,7 +8,7 @@ The library consist of the following layers.
 	Callback\/          ||                      | DomanModelClient/Server
 	                     |    Topology Layer    |<------------- 
 	                     |                      | UserCallbackClient/Server
-	Message  | Network /\|                      |-------------->  O
+	Command  | Network /\|                      |-------------->  O
 	Transfer | To       |+----------------------+                \|/
 	Client/ \/ Topology ||                      | <Implementat-> / \
 	Server     Client/   |    Network Layer     | <ion specific> User
@@ -22,7 +22,7 @@ The names next to the arrows are the names of Java classes and interfaces that a
 
 ## Thread safety in SynchronizeFX
 When a new peer connects it is normally required to "walk" through the domain model of the user via reflection. 
-This way the messages are created this new peer needs to reproduce the current state of the domain model.
+This way the commands are created this new peer needs to reproduce the current state of the domain model.
 In the client/server topology layer implementation this is the case when a new client connects to the server.  
 In this case it would be helpful to lock the entire domain model so that no changes can occur while this walking process is active.
 Unfortunately this is not possible if the user should not be forced to `synchronize() {}` every access to his domain model.

@@ -21,6 +21,8 @@ package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.List;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+
 /**
  * A callback that is informed when the commands that where requested via
  * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} are ready.
@@ -37,5 +39,5 @@ public interface CommandsForDomainModelCallback {
      * 
      * @param commands the commands
      */
-    void commandsReady(List<Object> commands);
+    void commandsReady(List<Command> commands);
 }
