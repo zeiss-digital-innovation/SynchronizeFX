@@ -15,22 +15,34 @@ Our view class extends from VBox so that it can be placed inside the SceneGraph 
 		
 		private final Slider slider;	
 		
-		public View() {
-			this.setSpacing(20);
-			this.setPadding(new Insets(20));
-
-			final Text header = TextBuilder.create().text("SynchronizeFX Example").fill(Color.DIMGRAY)
-				.style("-fx-font-size:24").build();
-
-			slider = SliderBuilder.create().min(0).max(100).showTickLabels(true).showTickMarks(true)
-				.majorTickUnit(20).minorTickCount(5).snapToTicks(true).build();
-
-			final Label valueLabel = LabelBuilder.create().textFill(Color.DIMGRAY).style("-fx-font-size:15").build();
-
-			valueLabel.textProperty().bind(Bindings.format("Current Value: %1$.1f", slider.valueProperty()));
-
-			this.getChildren().addAll(header, slider, valueLabel);
-		}
+        public View() {
+            setSpacing(20);
+            setPadding(new Insets(20));
+    
+            final Text header = new Text("SynchronizeFX Example");
+            header.setFill(Color.DIMGRAY);
+            header.setStyle("-fx-font-size:24");
+            
+            slider = new Slider();
+            slider.setMin(0);
+            slider.setMax(100);
+            slider.setShowTickLabels(true);
+            slider.setShowTickMarks(true);
+            slider.setMajorTickUnit(20);
+            slider.setMinorTickCount(5);
+            slider.setSnapToTicks(true);
+    
+    
+            final Label valueLabel = new Label();
+            valueLabel.setTextFill(Color.DIMGRAY);
+            valueLabel.setStyle("-fx-font-size:15");
+    
+            valueLabel.textProperty()
+                    .bind(Bindings.format("Current Value: %1$.1f",
+                            slider.valueProperty()));
+    
+            getChildren().addAll(header, slider, valueLabel);
+        }
 
 		public DoubleProperty sliderValue(){
 			return slider.valueProperty();
@@ -113,13 +125,15 @@ After we have started the server we create a while loop that is waiting for the 
 			System.out.println("starting server");
 			final Model model = new Model();
 
-			final SynchronizeFxServer syncFxServer = SynchronizeFxBuilder.create().buildServer(model,
-				new ServerCallback() {
-					@Override
-					public void onError(final SynchronizeFXException exception) {
-						System.out.println("Server Error:" + exception.getLocalizedMessage());
-					}
-				});
+            final SynchronizeFxServer syncFxServer =
+                SynchronizeFxBuilder.create().server().model(model).callback(new ServerCallback() {
+
+                    @Override
+                    public void onError(final SynchronizeFXException exception) {
+                        System.out.println("Server Error:" + exception.getLocalizedMessage());
+                    }
+
+                }).build();
 
 			syncFxServer.start();
 
@@ -172,24 +186,24 @@ Now the full ClientApp class looks like this:
 			final View view = new View();
 			stage.setScene(new Scene(view, 400, 200));
 
-			client = SynchronizeFxBuilder.create().buildClient(SERVER, new ClientCallback() {
-				@Override
-				public void modelReady(final Object object) {
-					model = (Model) object;
-
-					view.sliderValue().bindBidirectional(model.sliderValueProperty());
-				}
-
-				@Override
-				public void onError(final SynchronizeFXException exception) {
-					System.out.println("Client Error: " + exception.getLocalizedMessage());
-				}
-
-				@Override
-				public void onServerDisconnect() {
-					System.out.println("Server disconnected");
-				}
-			});
+            client = SynchronizeFxBuilder.create().client().address(SERVER).callback(new ClientCallback() {
+                @Override
+                public void modelReady(final Object object) {
+                    model = (Model) object;
+    
+                    view.sliderValue().bindBidirectional(model.sliderValueProperty());
+                }
+    
+                @Override
+                public void onError(final SynchronizeFXException exception) {
+                    System.out.println("Client Error: " + exception.getLocalizedMessage());
+                }
+    
+                @Override
+                public void onServerDisconnect() {
+                    System.out.println("Server disconnected");
+                }
+            }).build();
 
 			client.connect();
 
@@ -208,7 +222,7 @@ Now the full ClientApp class looks like this:
 	}
 
 
-Thats all. To view our example in action we need to first start our server. After that we can start two or more clients that are all connected to our server. When we change the slider of one of the clients, all other clients are synchronized automatically. 
+That's all. To view our example in action we need to first start our server. After that we can start two or more clients that are all connected to our server. When we change the slider of one of the clients, all other clients are synchronized automatically. 
 
 
 
