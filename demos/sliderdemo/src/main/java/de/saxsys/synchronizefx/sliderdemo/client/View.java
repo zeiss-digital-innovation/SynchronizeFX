@@ -4,13 +4,10 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.LabelBuilder;
 import javafx.scene.control.Slider;
-import javafx.scene.control.SliderBuilder;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextBuilder;
 
 /**
  * The javafx view component.
@@ -29,15 +26,23 @@ public class View extends VBox {
         setSpacing(20);
         setPadding(new Insets(20));
 
-        final Text header = TextBuilder.create().text("SynchronizeFX Example")
-                .fill(Color.DIMGRAY).style("-fx-font-size:24").build();
+        final Text header = new Text("SynchronizeFX Example");
+        header.setFill(Color.DIMGRAY);
+        header.setStyle("-fx-font-size:24");
 
-        slider = SliderBuilder.create().min(0).max(100).showTickLabels(true)
-                .showTickMarks(true).majorTickUnit(20).minorTickCount(5)
-                .snapToTicks(true).build();
+        slider = new Slider();
+        slider.setMin(0);
+        slider.setMax(100);
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(20);
+        slider.setMinorTickCount(5);
+        slider.setSnapToTicks(true);
 
-        final Label valueLabel = LabelBuilder.create().textFill(Color.DIMGRAY)
-                .style("-fx-font-size:15").build();
+
+        final Label valueLabel = new Label();
+        valueLabel.setTextFill(Color.DIMGRAY);
+        valueLabel.setStyle("-fx-font-size:15");
 
         valueLabel.textProperty()
                 .bind(Bindings.format("Current Value: %1$.1f",
