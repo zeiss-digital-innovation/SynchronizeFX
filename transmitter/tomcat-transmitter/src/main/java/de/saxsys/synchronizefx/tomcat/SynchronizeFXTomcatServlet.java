@@ -80,6 +80,15 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     protected abstract Serializer getSerializer();
 
     /**
+     * The amount of clients that are currently connected to this servlet.
+     * 
+     * @return The client count
+     */
+    public int getCurrentlyConnectedClientCount() {
+        return connections.size();
+    }
+    
+    /**
      * This method ensures that this object calls {@link SynchronizeFXTomcatServlet#getSerializer()} only once.
      * 
      * @return The serializer instance.
