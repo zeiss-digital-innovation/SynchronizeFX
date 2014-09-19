@@ -29,9 +29,6 @@ import java.util.UUID;
 
 import javafx.beans.property.Property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
@@ -44,7 +41,9 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
-import de.saxsys.synchronizefx.core.metamodel.commands.Value;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Applies commands on a {@link MetaModel} to synchronize it's domain objects with other instances.
@@ -74,7 +73,8 @@ public class CommandListExecutor {
      * @param listeners The listeners that should be registered on new properties.
      * @param changeExecutor Used to prevent generation of change commands when doing changes to the users domain
      *            model.
-     * @param valueMapper Used to translate {@link Value} messages to the real values the represent.
+     * @param valueMapper Used to translate {@link de.saxsys.synchronizefx.core.metamodel.commands.Value} messages to
+     *            the real values the represent.
      */
     public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
             final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {

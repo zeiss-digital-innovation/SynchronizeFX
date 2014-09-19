@@ -30,7 +30,7 @@ import java.util.UUID;
 public interface ListCommand extends Command {
 
     /**
-     * @return The id of the list where an element should be added.
+     * @return The id of the list where a elements should be modified.
      */
     UUID getListId();
 

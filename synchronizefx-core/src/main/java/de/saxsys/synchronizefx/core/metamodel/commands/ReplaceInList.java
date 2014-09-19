@@ -19,14 +19,12 @@
 
 package de.saxsys.synchronizefx.core.metamodel.commands;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
  * A command to replace elements in a list.
  * 
- * @see {@link List#set(int, Object)}
- * 
+ * @see java.util.List#set(int, Object)
  * @author michael.thiele
  *
  */
@@ -57,7 +55,7 @@ public class ReplaceInList implements ListCommand {
     }
 
     /**
-     * @return The value to add to the list.
+     * @return The value to set in the specified position in the list.
      */
     public Value getValue() {
         return value;
