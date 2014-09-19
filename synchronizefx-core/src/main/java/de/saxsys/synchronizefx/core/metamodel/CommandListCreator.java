@@ -34,7 +34,6 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SetProperty;
-
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
@@ -45,6 +44,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
+import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
@@ -61,12 +61,9 @@ class CommandListCreator {
     /**
      * Initializes the creator.
      * 
-     * @param objectRegistry
-     *            used to lookup and set ids for objects.
-     * @param valueMapper
-     *            used to create {@link Value} messages.
-     * @param topology
-     *            The user callback used to report errors.
+     * @param objectRegistry used to lookup and set ids for objects.
+     * @param valueMapper used to create {@link Value} messages.
+     * @param topology The user callback used to report errors.
      */
     public CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
             final TopologyLayerCallback topology) {
@@ -78,20 +75,19 @@ class CommandListCreator {
     /**
      * @see MetaModel#commandsForDomainModel()
      * 
-     * @param root
-     *            The root object of the domain model.
-     * @param callback
-     *            The callback that takes the commands necessary to rebuild the domain model at it's current state.
+     * @param root The root object of the domain model.
+     * @param callback The callback that takes the commands necessary to rebuild the domain model at it's current
+     *            state.
      */
     public void commandsForDomainModel(final Object root, final CommandsForDomainModelCallback callback) {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 createObservableObject(root, state);
             }
         }, false);
 
-        SetRootElement msg = new SetRootElement();
+        final SetRootElement msg = new SetRootElement();
         msg.setRootElementId(objectRegistry.getIdOrFail(root));
         // prepend it to the ClearReferences command
         state.commands.add(state.commands.size() - 1, msg);
@@ -102,16 +98,13 @@ class CommandListCreator {
     /**
      * Creates the commands necessary to set a new value for a property.
      * 
-     * @param propertyId
-     *            The id of the property where the new value should be set.
-     * @param value
-     *            The value that should be set.
-     * @throws SynchronizeFXException
-     *             When creation of the commands failed.
+     * @param propertyId The id of the property where the new value should be set.
+     * @param value The value that should be set.
+     * @throws SynchronizeFXException When creation of the commands failed.
      * @return The commands.
      */
     public List<Command> setPropertyValue(final UUID propertyId, final Object value) throws SynchronizeFXException {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 setPropertyValue(propertyId, value, state);
@@ -123,18 +116,14 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary for an add to list action.
      * 
-     * @param listId
-     *            The ID of the list where the element should be added.
-     * @param position
-     *            The position in the list at which the value object should be added.
-     * @param value
-     *            The object that should be added to the list.
-     * @param newSize
-     *            The new size the list has after this command has been executed on it.
+     * @param listId The ID of the list where the element should be added.
+     * @param position The position in the list at which the value object should be added.
+     * @param value The object that should be added to the list.
+     * @param newSize The new size the list has after this command has been executed on it.
      * @return a list with commands necessary to recreate this add to list command.
      */
     public List<Command> addToList(final UUID listId, final int position, final Object value, final int newSize) {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 addToList(listId, position, value, newSize, state);
@@ -146,14 +135,12 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary for an add to set action.
      * 
-     * @param setId
-     *            The ID of the set where the element should be added.
-     * @param value
-     *            The object that should be added to the set.
+     * @param setId The ID of the set where the element should be added.
+     * @param value The object that should be added to the set.
      * @return a set with commands necessary to recreate this add to set command.
      */
     public List<Command> addToSet(final UUID setId, final Object value) {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 addToSet(setId, value, state);
@@ -165,16 +152,13 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to put a mapping into a map.
      * 
-     * @param mapId
-     *            the id of the map where the mapping should be added.
-     * @param key
-     *            the key of the new mapping.
-     * @param value
-     *            the value of the new mapping.
+     * @param mapId the id of the map where the mapping should be added.
+     * @param key the key of the new mapping.
+     * @param value the value of the new mapping.
      * @return the list with the commands.
      */
     public List<Command> putToMap(final UUID mapId, final Object key, final Object value) {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 putToMap(mapId, key, value, state);
@@ -186,20 +170,17 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a list.
      * 
-     * @param listId
-     *            The ID of the list where an element should be removed.
-     * @param position
-     *            The position of the element in the list which should be removed.
-     * @param newSize
-     *            The size the list will have after this command has been applied.
+     * @param listId The ID of the list where an element should be removed.
+     * @param position The position of the element in the list which should be removed.
+     * @param newSize The size the list will have after this command has been applied.
      * @return The command list.
      */
     public List<Command> removeFromList(final UUID listId, final int position, final int newSize) {
-        RemoveFromList msg = new RemoveFromList();
+        final RemoveFromList msg = new RemoveFromList();
         msg.setListId(listId);
         msg.setPosition(position);
         msg.setNewSize(newSize);
-        List<Command> commands = new ArrayList<>(1);
+        final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
     }
@@ -207,26 +188,24 @@ class CommandListCreator {
     /**
      * Creates the list with command necessary to remove a mapping from a map.
      * 
-     * @param mapId
-     *            the map where the mapping should be removed.
-     * @param key
-     *            the key of the mapping that should be removed.
+     * @param mapId the map where the mapping should be removed.
+     * @param key the key of the mapping that should be removed.
      * @return the list with the commands.
      */
     public List<Command> removeFromMap(final UUID mapId, final Object key) {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 createObservableObject(key, state);
             }
         }, false);
 
-        boolean keyIsObservableObject = state.lastObjectWasObservable;
+        final boolean keyIsObservableObject = state.lastObjectWasObservable;
 
-        RemoveFromMap msg = new RemoveFromMap();
+        final RemoveFromMap msg = new RemoveFromMap();
         msg.setMapId(mapId);
         msg.setKey(valueMapper.map(new ObservedValue(key, keyIsObservableObject)));
-        
+
         state.commands.add(state.commands.size() - 1, msg);
         return state.commands;
     }
@@ -234,23 +213,21 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a set.
      * 
-     * @param setId
-     *            The ID of the set where an element should be removed.
-     * @param value
-     *            The element that should be removed.
+     * @param setId The ID of the set where an element should be removed.
+     * @param value The element that should be removed.
      * @return The command list.
      */
     public List<Command> removeFromSet(final UUID setId, final Object value) {
-        State state = createCommandList(new WithCommandType() {
+        final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
                 createObservableObject(value, state);
             }
         }, false);
 
-        boolean keyIsObservableObject = state.lastObjectWasObservable;
+        final boolean keyIsObservableObject = state.lastObjectWasObservable;
 
-        RemoveFromSet msg = new RemoveFromSet();
+        final RemoveFromSet msg = new RemoveFromSet();
         msg.setSetId(setId);
         msg.setValue(valueMapper.map(new ObservedValue(value, keyIsObservableObject)));
 
@@ -258,11 +235,36 @@ class CommandListCreator {
         return state.commands;
     }
 
+    /**
+     * Creates the list of commands necessary to replace an object in a list.
+     * 
+     * @param listId the ID of the list where the element should be replaced
+     * @param position the position of the element that should be replaced
+     * @param value the new value
+     * @return the command list
+     */
+    public List<Command> replaceInList(final UUID listId, final int position, final Object value) {
+        final State state = createCommandList(new WithCommandType() {
+            @Override
+            public void invoke(final State state) {
+                final ReplaceInList replaceInList = new ReplaceInList();
+                replaceInList.setListId(listId);
+                replaceInList.setPosition(position);
+                final boolean isObservableObject = createObservableObject(value, state);
+                replaceInList.setValue(valueMapper.map(new ObservedValue(value, isObservableObject)));
+
+                state.commands.add(replaceInList);
+            }
+        }, true);
+
+        return state.commands;
+    }
+
     private void setPropertyValue(final UUID propertyId, final Object value, final State state) {
-        SetPropertyValue msg = new SetPropertyValue();
+        final SetPropertyValue msg = new SetPropertyValue();
         msg.setPropertyId(propertyId);
 
-        boolean isObservableObject = createObservableObject(value, state);
+        final boolean isObservableObject = createObservableObject(value, state);
         msg.setValue(valueMapper.map(new ObservedValue(value, isObservableObject)));
 
         state.commands.add(msg);
@@ -270,37 +272,37 @@ class CommandListCreator {
 
     private void addToList(final UUID listId, final int position, final Object value, final int newSize,
             final State state) {
-        AddToList msg = new AddToList();
+        final AddToList msg = new AddToList();
         msg.setListId(listId);
         msg.setPosition(position);
         msg.setNewSize(newSize);
 
-        boolean isObservableObject = createObservableObject(value, state);
+        final boolean isObservableObject = createObservableObject(value, state);
         msg.setValue(valueMapper.map(new ObservedValue(value, isObservableObject)));
 
         state.commands.add(msg);
     }
 
     private void addToSet(final UUID setId, final Object value, final State state) {
-        AddToSet msg = new AddToSet();
+        final AddToSet msg = new AddToSet();
         msg.setSetId(setId);
 
-        boolean isObservableObject = createObservableObject(value, state);
+        final boolean isObservableObject = createObservableObject(value, state);
         msg.setValue(valueMapper.map(new ObservedValue(value, isObservableObject)));
 
         state.commands.add(msg);
     }
 
     private void putToMap(final UUID mapId, final Object key, final Object value, final State state) {
-        PutToMap msg = new PutToMap();
+        final PutToMap msg = new PutToMap();
         msg.setMapId(mapId);
 
-        boolean keyIsObservableObject = createObservableObject(key, state);
-        boolean valueIsObservableObject = createObservableObject(value, state);
+        final boolean keyIsObservableObject = createObservableObject(key, state);
+        final boolean valueIsObservableObject = createObservableObject(value, state);
 
         msg.setKey(valueMapper.map(new ObservedValue(key, keyIsObservableObject)));
         msg.setValue(valueMapper.map(new ObservedValue(value, valueIsObservableObject)));
-        
+
         state.commands.add(msg);
     }
 
@@ -309,12 +311,9 @@ class CommandListCreator {
      * 
      * If {@code value} isn't an observable object, then nothing is added to the commandList.
      * 
-     * @param value
-     *            The object for which the commands should be created.
-     * @param commandList
-     *            The list where the commands should be added to.
-     * @param state
-     *            The state of this domain model parsing.
+     * @param value The object for which the commands should be created.
+     * @param commandList The list where the commands should be added to.
+     * @param state The state of this domain model parsing.
      * @return true if value is an observable object and false otherwise.
      */
     private boolean createObservableObject(final Object value, final State state) {
@@ -334,24 +333,24 @@ class CommandListCreator {
         }
 
         final CreateObservableObject msg = new CreateObservableObject();
-        int currentSize = state.commands.size();
+        final int currentSize = state.commands.size();
 
         try {
             new PropertyVisitor(value) {
                 @Override
                 protected boolean visitSingleValueProperty(final Property<?> fieldValue) {
-                    UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
+                    final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
                     setPropertyValue(fieldId, fieldValue.getValue(), state);
                     return false;
                 }
 
                 @Override
                 protected boolean visitCollectionProperty(final ListProperty<?> fieldValue) {
-                    UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
-                    ListIterator<?> it = fieldValue.listIterator();
+                    final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
+                    final ListIterator<?> it = fieldValue.listIterator();
                     int index = 0;
                     while (it.hasNext()) {
-                        Object o = it.next();
+                        final Object o = it.next();
                         addToList(fieldId, index, o, index + 1, state);
                         index++;
                     }
@@ -360,8 +359,8 @@ class CommandListCreator {
 
                 @Override
                 protected boolean visitCollectionProperty(final MapProperty<?, ?> fieldValue) {
-                    UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
-                    for (Entry<?, ?> entry : fieldValue.entrySet()) {
+                    final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
+                    for (final Entry<?, ?> entry : fieldValue.entrySet()) {
                         putToMap(fieldId, entry.getKey(), entry.getValue(), state);
                     }
                     return false;
@@ -369,8 +368,8 @@ class CommandListCreator {
 
                 @Override
                 protected boolean visitCollectionProperty(final SetProperty<?> fieldValue) {
-                    UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
-                    for (Object entry : fieldValue) {
+                    final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
+                    for (final Object entry : fieldValue) {
                         addToSet(fieldId, entry, state);
                     }
                     return false;
@@ -378,14 +377,14 @@ class CommandListCreator {
 
                 private UUID registerPropertyAndParent(final Field field, final Property<?> fieldValue) {
                     msg.setObjectId(objectRegistry.registerIfUnknown(value));
-                    UUID fieldId = objectRegistry.registerIfUnknown(fieldValue);
+                    final UUID fieldId = objectRegistry.registerIfUnknown(fieldValue);
                     msg.getPropertyNameToId().put(field.getName(), fieldId);
                     return fieldId;
                 }
             };
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             topology.onError(new SynchronizeFXException(e));
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             topology.onError(new SynchronizeFXException(
                     "Maybe you're JVM doesn't allow reflection for this application?", e));
         }
@@ -400,14 +399,14 @@ class CommandListCreator {
     }
 
     private State createCommandList(final WithCommandType type, final boolean skipKnown) {
-        State state = new State(skipKnown);
+        final State state = new State(skipKnown);
         boolean restart = true;
         while (restart) {
             restart = false;
             state.reset();
             try {
                 type.invoke(state);
-            } catch (ConcurrentModificationException e) {
+            } catch (final ConcurrentModificationException e) {
                 restart = true;
             }
         }

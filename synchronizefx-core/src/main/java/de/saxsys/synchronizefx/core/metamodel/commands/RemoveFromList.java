@@ -26,39 +26,27 @@ import java.util.UUID;
  * 
  * @author Raik Bieniek
  */
-public class RemoveFromList implements Command {
+public class RemoveFromList implements ListCommand {
     private UUID listId;
     private int position;
     private int newSize;
 
-    /**
-     * @return The id of the list where an element should be removed.
-     */
+    @Override
     public UUID getListId() {
         return listId;
     }
 
-    /**
-     * 
-     * @see RemoveFromList#getListId()
-     * @param listId the id
-     */
+    @Override
     public void setListId(final UUID listId) {
         this.listId = listId;
     }
 
-    /**
-     * @return The index of the element that should be removed in the list.
-     */
+    @Override
     public int getPosition() {
         return position;
     }
 
-    /**
-     * 
-     * @see RemoveFromList#getPosition()
-     * @param position the position
-     */
+    @Override
     public void setPosition(final int position) {
         this.position = position;
     }

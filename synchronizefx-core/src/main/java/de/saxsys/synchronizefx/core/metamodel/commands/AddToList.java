@@ -27,30 +27,35 @@ import java.util.UUID;
  * @author raik.bieniek
  * 
  */
-public class AddToList implements Command {
+public class AddToList implements ListCommand {
 
     private UUID listId;
     private Value value;
     private int position;
     private int newSize;
 
-    /**
-     * @return The id of the list where an element should be added.
-     */
+    @Override
     public UUID getListId() {
         return listId;
     }
 
-    /**
-     * @see AddToList#getListId()
-     * @param listId the id
-     */
+    @Override
     public void setListId(final UUID listId) {
         this.listId = listId;
     }
 
+    @Override
+    public int getPosition() {
+        return position;
+    }
+
+    @Override
+    public void setPosition(final int position) {
+        this.position = position;
+    }
+
     /**
-     * @return The value to add to the list. 
+     * @return The value to add to the list.
      */
     public Value getValue() {
         return value;
@@ -62,15 +67,6 @@ public class AddToList implements Command {
      */
     public void setValue(final Value value) {
         this.value = value;
-    }
-
-    /**
-     * @return The index the new element will have in the list when it's added. The index of all items in the list thats
-     *         index is greater or equal to the value returned here has to be incremented by 1 to make this index
-     *         available.
-     */
-    public int getPosition() {
-        return position;
     }
 
     /**
@@ -88,14 +84,6 @@ public class AddToList implements Command {
      */
     public void setNewSize(final int newSize) {
         this.newSize = newSize;
-    }
-    
-    /**
-     * @see AddToList#getPosition()
-     * @param position the position
-     */
-    public void setPosition(final int position) {
-        this.position = position;
     }
 
     @Override

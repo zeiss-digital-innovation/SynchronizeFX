@@ -19,6 +19,13 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,24 +36,19 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
-import de.saxsys.synchronizefx.core.metamodel.commands.Command;
-import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
-import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
-import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
-import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
-import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
-import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
+import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
+import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
+import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
+import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
+import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
 /**
  * Test if {@link ListPropery} fields in observable objects are synchronized properly.
@@ -73,8 +75,8 @@ public class SyncListPropertyTest {
      */
     @Test
     public void testManualCreate() {
-        List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
-        CreateObservableObject msg = (CreateObservableObject) commands.get(0);
+        final List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
+        final CreateObservableObject msg = (CreateObservableObject) commands.get(0);
 
         assertEquals(3, msg.getPropertyNameToId().size());
         assertNotNull(msg.getPropertyNameToId().get("wrappedList"));
@@ -89,7 +91,7 @@ public class SyncListPropertyTest {
     public void testAdd() {
         // test adding of a simple object
         root.wrappedList.add("Test Value 257");
-        AddToList msg1 = (AddToList) cb.getCommands().get(0);
+        final AddToList msg1 = (AddToList) cb.getCommands().get(0);
         assertEquals("Test Value 257", msg1.getValue().getSimpleObjectValue());
         assertNull(msg1.getValue().getObservableObjectId());
         assertEquals(0, msg1.getPosition());
@@ -97,9 +99,9 @@ public class SyncListPropertyTest {
 
         // test adding of a observable object
         root.childList.add(new Child());
-        CreateObservableObject msg2 = (CreateObservableObject) cb.getCommands().get(0);
+        final CreateObservableObject msg2 = (CreateObservableObject) cb.getCommands().get(0);
         // get(1) = SetPropertyValue for setting someInt property of Child to 0.
-        AddToList msg3 = (AddToList) cb.getCommands().get(2);
+        final AddToList msg3 = (AddToList) cb.getCommands().get(2);
 
         assertEquals(Child.class.getName(), msg2.getClassName());
         assertNull(msg3.getValue().getSimpleObjectValue());
@@ -109,7 +111,7 @@ public class SyncListPropertyTest {
         // test that the position is set correctly
         root.wrappedList.add("some text");
         root.wrappedList.add(1, "some more text");
-        AddToList msg4 = (AddToList) cb.getCommands().get(0);
+        final AddToList msg4 = (AddToList) cb.getCommands().get(0);
         assertEquals(1, msg4.getPosition());
         assertEquals(3, msg4.getNewSize());
 
@@ -120,36 +122,55 @@ public class SyncListPropertyTest {
      */
     @Test
     public void testRemove() {
-        // first, add some test data
-        root.wrappedList.add("Test Value 0");
-        root.wrappedList.add("Test Value 1");
-        root.wrappedList.add("Test Value 2");
-        root.wrappedList.add("Test Value 3");
-
-        root.childList.add(new Child(0));
-        root.childList.add(new Child(1));
-        root.childList.add(new Child(2));
+        simpleTestData();
 
         // check for the correct positions in the generated commands
         root.wrappedList.remove("Test Value 2");
-        RemoveFromList msg0 = (RemoveFromList) cb.getCommands().get(0);
+        final RemoveFromList msg0 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(2, msg0.getPosition());
         assertEquals(3, msg0.getNewSize());
 
         root.wrappedList.remove("Test Value 0");
-        RemoveFromList msg1 = (RemoveFromList) cb.getCommands().get(0);
+        final RemoveFromList msg1 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(0, msg1.getPosition());
         assertEquals(2, msg1.getNewSize());
 
         root.childList.remove(new Child(2));
-        RemoveFromList msg2 = (RemoveFromList) cb.getCommands().get(0);
+        final RemoveFromList msg2 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(2, msg2.getPosition());
         assertEquals(2, msg2.getNewSize());
 
         root.childList.remove(1);
-        RemoveFromList msg3 = (RemoveFromList) cb.getCommands().get(0);
+        final RemoveFromList msg3 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(1, msg3.getPosition());
         assertEquals(1, msg3.getNewSize());
+    }
+
+    /**
+     * Tests whether the replace operation (List#set(int, T)) correctly creates replace commands.
+     */
+    @Test
+    public void testReplace() {
+        simpleTestData();
+
+        root.wrappedList.set(0, "42");
+
+        final Command command = cb.getCommands().get(0);
+        assertTrue(command instanceof ReplaceInList);
+        final ReplaceInList replaceCommand = (ReplaceInList) command;
+        assertEquals(0, replaceCommand.getPosition());
+        assertEquals("42", replaceCommand.getValue().getSimpleObjectValue());
+
+        final Child child42 = new Child(42);
+        root.childList.set(2, child42);
+
+        // create and set are first 2 commands
+        final Command command2 = cb.getCommands().get(2);
+        assertTrue(command2 instanceof ReplaceInList);
+        final ReplaceInList replaceCommand2 = (ReplaceInList) command2;
+        assertEquals(2, replaceCommand2.getPosition());
+        assertNull(replaceCommand2.getValue().getSimpleObjectValue());
+        assertNotNull(replaceCommand2.getValue().getObservableObjectId());
     }
 
     /**
@@ -160,11 +181,11 @@ public class SyncListPropertyTest {
      */
     @Test
     public void testApplyGeneratedCommands() {
-        SaveParameterCallback copyCb = new SaveParameterCallback();
-        MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
+        final SaveParameterCallback copyCb = new SaveParameterCallback();
+        final MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
 
         copy.execute(EasyCommandsForDomainModel.commandsForDomainModel(model));
-        Root copyRoot = (Root) copyCb.getRoot();
+        final Root copyRoot = (Root) copyCb.getRoot();
 
         assertEquals(root, copyRoot);
 
@@ -199,14 +220,14 @@ public class SyncListPropertyTest {
     @Test
     public void testChangesOnChilds() {
         // setup
-        Child someChild = new Child();
+        final Child someChild = new Child();
         root.childList.add(someChild);
 
         // produce changes on child
         someChild.someInt.set(924);
 
         // check commands
-        SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
+        final SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
         assertEquals(924, msg.getValue().getSimpleObjectValue());
         assertNull(msg.getValue().getObservableObjectId());
     }
@@ -218,6 +239,18 @@ public class SyncListPropertyTest {
     @Ignore
     public void testExchangeList() {
         fail("not yet supported by the software.");
+    }
+
+    private void simpleTestData() {
+        // first, add some test data
+        root.wrappedList.add("Test Value 0");
+        root.wrappedList.add("Test Value 1");
+        root.wrappedList.add("Test Value 2");
+        root.wrappedList.add("Test Value 3");
+
+        root.childList.add(new Child(0));
+        root.childList.add(new Child(1));
+        root.childList.add(new Child(2));
     }
 
     /**
@@ -264,7 +297,7 @@ public class SyncListPropertyTest {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            Root other = (Root) obj;
+            final Root other = (Root) obj;
             if (childList.get() == null) {
                 if (other.childList.get() != null) {
                     return false;
@@ -323,7 +356,7 @@ public class SyncListPropertyTest {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            Child other = (Child) obj;
+            final Child other = (Child) obj;
             if (someInt.get() != other.someInt.get()) {
                 return false;
             }
