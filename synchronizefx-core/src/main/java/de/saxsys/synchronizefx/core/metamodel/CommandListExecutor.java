@@ -29,6 +29,9 @@ import java.util.UUID;
 
 import javafx.beans.property.Property;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
@@ -38,12 +41,10 @@ import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
+import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Applies commands on a {@link MetaModel} to synchronize it's domain objects with other instances.
@@ -68,16 +69,12 @@ public class CommandListExecutor {
     /**
      * Initializes the executor.
      * 
-     * @param parent
-     *            used to set up the root object
-     * @param objectRegistry
-     *            used for id to object lookup
-     * @param listeners
-     *            The listeners that should be registered on new properties.
-     * @param changeExecutor
-     *            Used to prevent generation of change commands when doing changes to the users domain model.
-     * @param valueMapper
-     *            Used to translate {@link Value} messages to the real values the represent.
+     * @param parent used to set up the root object
+     * @param objectRegistry used for id to object lookup
+     * @param listeners The listeners that should be registered on new properties.
+     * @param changeExecutor Used to prevent generation of change commands when doing changes to the users domain
+     *            model.
+     * @param valueMapper Used to translate {@link Value} messages to the real values the represent.
      */
     public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
             final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
@@ -90,10 +87,8 @@ public class CommandListExecutor {
 
     /**
      * @see MetaModel#execute(Object)
-     * @param command
-     *            The command to execute.
-     * @throws SynchronizeFXException
-     *             when the execution of an command failed.
+     * @param command The command to execute.
+     * @throws SynchronizeFXException when the execution of an command failed.
      */
     public void execute(final Object command) throws SynchronizeFXException {
         if (command instanceof CreateObservableObject) {
@@ -104,6 +99,8 @@ public class CommandListExecutor {
             execute((AddToList) command);
         } else if (command instanceof RemoveFromList) {
             execute((RemoveFromList) command);
+        } else if (command instanceof ReplaceInList) {
+            execute((ReplaceInList) command);
         } else if (command instanceof PutToMap) {
             execute((PutToMap) command);
         } else if (command instanceof RemoveFromMap) {
@@ -203,7 +200,7 @@ public class CommandListExecutor {
     private void execute(final RemoveFromList command) {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
-        
+
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
@@ -213,6 +210,20 @@ public class CommandListExecutor {
                     return;
                 }
                 list.remove(command.getPosition());
+            }
+        });
+    }
+
+    private void execute(final ReplaceInList command) {
+        @SuppressWarnings("unchecked")
+        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
+
+        final ObservedValue value = valueMapper.map(command.getValue());
+
+        changeExecutor.execute(list, new Runnable() {
+            @Override
+            public void run() {
+                list.set(command.getPosition(), value.getValue());
             }
         });
     }
@@ -235,7 +246,7 @@ public class CommandListExecutor {
     private void execute(final RemoveFromMap command) {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
-        
+
         final ObservedValue key = valueMapper.map(command.getKey());
 
         changeExecutor.execute(map, new Runnable() {
@@ -263,7 +274,7 @@ public class CommandListExecutor {
     private void execute(final RemoveFromSet command) {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
-        
+
         final ObservedValue value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {

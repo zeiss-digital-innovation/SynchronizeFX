@@ -19,20 +19,22 @@
 
 package de.saxsys.synchronizefx.core.metamodel.commands;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
- * A command that states that an element should be added to a list.
+ * A command to replace elements in a list.
  * 
- * @author raik.bieniek
+ * @see {@link List#set(int, Object)}
  * 
+ * @author michael.thiele
+ *
  */
-public class AddToList implements ListCommand {
+public class ReplaceInList implements ListCommand {
 
     private UUID listId;
-    private Value value;
     private int position;
-    private int newSize;
+    private Value value;
 
     @Override
     public UUID getListId() {
@@ -67,28 +69,5 @@ public class AddToList implements ListCommand {
      */
     public void setValue(final Value value) {
         this.value = value;
-    }
-
-    /**
-     * The new size the list should have after this command has been executed on it.
-     * 
-     * @return the new size
-     */
-    public int getNewSize() {
-        return newSize;
-    }
-
-    /**
-     * @see RemoveFromList#getNewSize()
-     * @param newSize the new size
-     */
-    public void setNewSize(final int newSize) {
-        this.newSize = newSize;
-    }
-
-    @Override
-    public String toString() {
-        return "AddToList [listId=" + listId + ", value=" + value + ", position=" + position + ", newSize=" + newSize
-                + "]";
     }
 }
