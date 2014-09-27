@@ -41,6 +41,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -75,9 +76,10 @@ public class SyncSetPropertyTest {
         List<Command> commands = EasyCommandsForDomainModel.commandsForDomainModel(model);
         CreateObservableObject msg = (CreateObservableObject) commands.get(0);
 
-        assertEquals(2, msg.getPropertyNameToId().size());
+        assertEquals(3, msg.getPropertyNameToId().size());
         assertNotNull(msg.getPropertyNameToId().get("set"));
         assertNotNull(msg.getPropertyNameToId().get("childSet"));
+        assertNotNull(msg.getPropertyNameToId().get("fieldWithConcreteType"));
     }
 
     /**
@@ -139,7 +141,7 @@ public class SyncSetPropertyTest {
         Root copyRoot = (Root) copyCb.getRoot();
 
         assertEquals(root, copyRoot);
-        
+
         root.set.add("someValue");
         assertFalse(root.equals(copyRoot));
         copy.execute(cb.getCommands());
@@ -172,6 +174,20 @@ public class SyncSetPropertyTest {
     }
 
     /**
+     * Usually {@link SimpleSetProperty} are assigned to {@link SetProperty} class members but even if the are assigned
+     * to {@link SimpleSetProperty} class members the synchronization should work.
+     */
+    @Test
+    public void shouldSynchronizeFieldsWithConcreteTypes() {
+        root.fieldWithConcreteType.add(53L);
+
+        assertThat(cb.getCommands()).isNotNull().hasSize(2);
+        AddToSet msg = (AddToSet) cb.getCommands().get(0);
+        assertThat(msg.getValue().getObservableObjectId()).isNull();
+        assertThat(msg.getValue().getSimpleObjectValue()).isEqualTo(53L);
+    }
+
+    /**
      * An example domain class that should be synchronized.
      * 
      * Unused fields are accessed via reflection in the framework.
@@ -182,11 +198,13 @@ public class SyncSetPropertyTest {
         final ObservableSet<String> notSynchronized = FXCollections.observableSet(new HashSet<String>());
         final SetProperty<String> set = new SimpleSetProperty<>(FXCollections.<String> observableSet());
         final SetProperty<Child> childSet = new SimpleSetProperty<>(FXCollections.<Child> observableSet());
-        
+        final SimpleSetProperty<Long> fieldWithConcreteType = new SimpleSetProperty<>(
+                FXCollections.<Long> observableSet());
+
         public Root() {
-            
+
         }
-        
+
         @Override
         public int hashCode() {
             final int prime = 31;

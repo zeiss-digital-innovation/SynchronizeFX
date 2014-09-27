@@ -23,11 +23,13 @@ import java.util.List;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.LongProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -42,6 +44,7 @@ import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -90,7 +93,7 @@ public class SyncSingleValuePropertyTest {
             if (command instanceof CreateObservableObject) {
                 CreateObservableObject cob = (CreateObservableObject) command;
                 if (Root.class.getName().equals(cob.getClassName())) {
-                    assertEquals(2, cob.getPropertyNameToId().size());
+                    assertEquals(4, cob.getPropertyNameToId().size());
                     createRootObject = true;
                 } else if (Child.class.getName().equals(cob.getClassName())) {
                     assertEquals(1, cob.getPropertyNameToId().size());
@@ -179,6 +182,33 @@ public class SyncSingleValuePropertyTest {
         assertEquals(copyRoot, root);
     }
 
+    /**
+     * Usually {@link SimpleLongProperty} are assigned to {@link LongProperty} class members but even if the are
+     * assigned to {@link SimpleLongProperty} class members the synchronization should work.
+     */
+    @Test
+    public void shouldSynchronizeFieldsWithConcreteTypes() {
+        root.fieldWithConcreteType.set(53L);
+        
+        assertThat(cb.getCommands()).isNotNull().hasSize(2);
+        SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
+        assertThat(msg.getValue().getObservableObjectId()).isNull();
+        assertThat(msg.getValue().getSimpleObjectValue()).isEqualTo(53L);
+    }
+    
+    /**
+     * Class fields of the plain {@link Property} type should also be synchronized.
+     */
+    @Test
+    public void plainPropertyFieldShouldBeSynchronized() {
+        root.shouldAlsoBeSynchronized.setValue("SomeString");
+        
+        assertThat(cb.getCommands()).isNotNull().hasSize(2);
+        SetPropertyValue msg = (SetPropertyValue) cb.getCommands().get(0);
+        assertThat(msg.getValue().getObservableObjectId()).isNull();
+        assertThat(msg.getValue().getSimpleObjectValue()).isEqualTo("SomeString");
+    }
+
     private static void assertNotEquals(final Object obj1, final Object obj2) {
         assertFalse(obj2.equals(obj1));
     }
@@ -192,11 +222,13 @@ public class SyncSingleValuePropertyTest {
         double notSynced = 2.0;
         final StringProperty someString = new SimpleStringProperty();
         final ObjectProperty<Child> someChild = new SimpleObjectProperty<>(new Child());
-
-        public Root() {
-            
-        }
+        final SimpleLongProperty fieldWithConcreteType = new SimpleLongProperty();
+        final Property<String> shouldAlsoBeSynchronized = new SimpleStringProperty();
         
+        public Root() {
+
+        }
+
         @Override
         public int hashCode() {
             final int prime = 31;
