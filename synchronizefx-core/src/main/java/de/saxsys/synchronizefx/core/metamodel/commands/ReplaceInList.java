@@ -44,12 +44,20 @@ public class ReplaceInList implements ListCommand {
         this.listId = listId;
     }
 
-    @Override
+    /**
+     * The index of the element that should be replaced.
+     * 
+     * @return the index
+     */
     public int getPosition() {
         return position;
     }
 
-    @Override
+    /**
+     * @see #getPosition()
+     * @param position
+     *            the position
+     */
     public void setPosition(final int position) {
         this.position = position;
     }
@@ -63,7 +71,8 @@ public class ReplaceInList implements ListCommand {
 
     /**
      * @see #getValue()
-     * @param value the value
+     * @param value
+     *            the value
      */
     public void setValue(final Value value) {
         this.value = value;

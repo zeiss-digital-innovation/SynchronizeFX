@@ -68,13 +68,17 @@ public class CommandListExecutor {
     /**
      * Initializes the executor.
      * 
-     * @param parent used to set up the root object
-     * @param objectRegistry used for id to object lookup
-     * @param listeners The listeners that should be registered on new properties.
-     * @param changeExecutor Used to prevent generation of change commands when doing changes to the users domain
-     *            model.
-     * @param valueMapper Used to translate {@link de.saxsys.synchronizefx.core.metamodel.commands.Value} messages to
-     *            the real values the represent.
+     * @param parent
+     *            used to set up the root object
+     * @param objectRegistry
+     *            used for id to object lookup
+     * @param listeners
+     *            The listeners that should be registered on new properties.
+     * @param changeExecutor
+     *            Used to prevent generation of change commands when doing changes to the users domain model.
+     * @param valueMapper
+     *            Used to translate {@link de.saxsys.synchronizefx.core.metamodel.commands.Value} messages to the real
+     *            values the represent.
      */
     public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
             final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
@@ -87,8 +91,10 @@ public class CommandListExecutor {
 
     /**
      * @see MetaModel#execute(Object)
-     * @param command The command to execute.
-     * @throws SynchronizeFXException when the execution of an command failed.
+     * @param command
+     *            The command to execute.
+     * @throws SynchronizeFXException
+     *             when the execution of an command failed.
      */
     public void execute(final Object command) throws SynchronizeFXException {
         if (command instanceof CreateObservableObject) {
@@ -209,7 +215,13 @@ public class CommandListExecutor {
                             + "This may be OK if you've just connected.");
                     return;
                 }
-                list.remove(command.getPosition());
+                if (command.getStartPosition() == 0 && command.getRemoveCount() == list.size()) {
+                    list.clear();
+                } else {
+                    for (int i = 0; i < command.getRemoveCount(); i++) {
+                        list.remove(command.getStartPosition());
+                    }
+                }
             }
         });
     }

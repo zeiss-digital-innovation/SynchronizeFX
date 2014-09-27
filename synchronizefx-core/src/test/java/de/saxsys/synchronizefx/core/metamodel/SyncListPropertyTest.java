@@ -19,13 +19,6 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,10 +29,6 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
@@ -49,6 +38,17 @@ import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test if {@link ListPropery} fields in observable objects are synchronized properly.
@@ -127,22 +127,26 @@ public class SyncListPropertyTest {
         // check for the correct positions in the generated commands
         root.wrappedList.remove("Test Value 2");
         final RemoveFromList msg0 = (RemoveFromList) cb.getCommands().get(0);
-        assertEquals(2, msg0.getPosition());
+        assertEquals(2, msg0.getStartPosition());
+        assertEquals(1, msg0.getRemoveCount());
         assertEquals(3, msg0.getNewSize());
 
         root.wrappedList.remove("Test Value 0");
         final RemoveFromList msg1 = (RemoveFromList) cb.getCommands().get(0);
-        assertEquals(0, msg1.getPosition());
+        assertEquals(0, msg1.getStartPosition());
+        assertEquals(1, msg1.getRemoveCount());
         assertEquals(2, msg1.getNewSize());
 
         root.childList.remove(new Child(2));
         final RemoveFromList msg2 = (RemoveFromList) cb.getCommands().get(0);
-        assertEquals(2, msg2.getPosition());
+        assertEquals(2, msg2.getStartPosition());
+        assertEquals(1, msg2.getRemoveCount());
         assertEquals(2, msg2.getNewSize());
 
         root.childList.remove(1);
         final RemoveFromList msg3 = (RemoveFromList) cb.getCommands().get(0);
-        assertEquals(1, msg3.getPosition());
+        assertEquals(1, msg3.getStartPosition());
+        assertEquals(1, msg3.getRemoveCount());
         assertEquals(1, msg3.getNewSize());
     }
 
@@ -171,6 +175,23 @@ public class SyncListPropertyTest {
         assertEquals(2, replaceCommand2.getPosition());
         assertNull(replaceCommand2.getValue().getSimpleObjectValue());
         assertNotNull(replaceCommand2.getValue().getObservableObjectId());
+    }
+    
+    /**
+     * Tests whether the {@link List#clear()} operation removes all elements from the list.
+     */
+    @Test
+    public void testClear() {
+        simpleTestData();
+        
+        root.wrappedList.clear();
+
+        final Command command = cb.getCommands().get(0);
+        assertTrue(command instanceof RemoveFromList);
+        final RemoveFromList replaceCommand = (RemoveFromList) command;
+        assertEquals(0, replaceCommand.getStartPosition());
+        assertEquals(4, replaceCommand.getRemoveCount());
+        assertEquals(0, replaceCommand.getNewSize());
     }
 
     /**

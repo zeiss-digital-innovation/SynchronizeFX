@@ -22,13 +22,15 @@ package de.saxsys.synchronizefx.core.metamodel.commands;
 import java.util.UUID;
 
 /**
- * Command to remove an element in a list.
+ * Command to remove elements from a list.
  * 
  * @author Raik Bieniek
  */
 public class RemoveFromList implements ListCommand {
+
     private UUID listId;
-    private int position;
+    private int startPosition;
+    private int removeCount;
     private int newSize;
 
     @Override
@@ -41,14 +43,40 @@ public class RemoveFromList implements ListCommand {
         this.listId = listId;
     }
 
-    @Override
-    public int getPosition() {
-        return position;
+    /**
+     * The index of the first element in the list that should be removed.
+     * 
+     * @return The index
+     */
+    public int getStartPosition() {
+        return startPosition;
     }
 
-    @Override
-    public void setPosition(final int position) {
-        this.position = position;
+    /**
+     * @see #getStartPosition()
+     * @param startPosition
+     *            the position
+     */
+    public void setStartPosition(final int startPosition) {
+        this.startPosition = startPosition;
+    }
+
+    /**
+     * The amount of elements starting from {@link #getStartPosition()} that should be removed.
+     * 
+     * @return The element amount to delete.
+     */
+    public int getRemoveCount() {
+        return removeCount;
+    }
+
+    /**
+     * @see #getRemoveCount()
+     * @param removeCount
+     *            The count
+     */
+    public void setRemoveCount(final int removeCount) {
+        this.removeCount = removeCount;
     }
 
     /**
@@ -62,7 +90,8 @@ public class RemoveFromList implements ListCommand {
 
     /**
      * @see RemoveFromList#getNewSize()
-     * @param newSize the new size
+     * @param newSize
+     *            the new size
      */
     public void setNewSize(final int newSize) {
         this.newSize = newSize;
@@ -70,7 +99,7 @@ public class RemoveFromList implements ListCommand {
 
     @Override
     public String toString() {
-        return "RemoveFromList [listId=" + listId + ", position=" + position + "]";
+        return "RemoveFromList [listId=" + listId + ", startPosition=" + startPosition + ", removeCount=" + removeCount
+                + ", newSize=" + newSize + "]";
     }
-
 }

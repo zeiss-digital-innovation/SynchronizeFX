@@ -61,9 +61,12 @@ class CommandListCreator {
     /**
      * Initializes the creator.
      * 
-     * @param objectRegistry used to lookup and set ids for objects.
-     * @param valueMapper used to create {@link Value} messages.
-     * @param topology The user callback used to report errors.
+     * @param objectRegistry
+     *            used to lookup and set ids for objects.
+     * @param valueMapper
+     *            used to create {@link Value} messages.
+     * @param topology
+     *            The user callback used to report errors.
      */
     public CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
             final TopologyLayerCallback topology) {
@@ -75,9 +78,10 @@ class CommandListCreator {
     /**
      * @see MetaModel#commandsForDomainModel()
      * 
-     * @param root The root object of the domain model.
-     * @param callback The callback that takes the commands necessary to rebuild the domain model at it's current
-     *            state.
+     * @param root
+     *            The root object of the domain model.
+     * @param callback
+     *            The callback that takes the commands necessary to rebuild the domain model at it's current state.
      */
     public void commandsForDomainModel(final Object root, final CommandsForDomainModelCallback callback) {
         final State state = createCommandList(new WithCommandType() {
@@ -98,9 +102,12 @@ class CommandListCreator {
     /**
      * Creates the commands necessary to set a new value for a property.
      * 
-     * @param propertyId The id of the property where the new value should be set.
-     * @param value The value that should be set.
-     * @throws SynchronizeFXException When creation of the commands failed.
+     * @param propertyId
+     *            The id of the property where the new value should be set.
+     * @param value
+     *            The value that should be set.
+     * @throws SynchronizeFXException
+     *             When creation of the commands failed.
      * @return The commands.
      */
     public List<Command> setPropertyValue(final UUID propertyId, final Object value) throws SynchronizeFXException {
@@ -116,10 +123,14 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary for an add to list action.
      * 
-     * @param listId The ID of the list where the element should be added.
-     * @param position The position in the list at which the value object should be added.
-     * @param value The object that should be added to the list.
-     * @param newSize The new size the list has after this command has been executed on it.
+     * @param listId
+     *            The ID of the list where the element should be added.
+     * @param position
+     *            The position in the list at which the value object should be added.
+     * @param value
+     *            The object that should be added to the list.
+     * @param newSize
+     *            The new size the list has after this command has been executed on it.
      * @return a list with commands necessary to recreate this add to list command.
      */
     public List<Command> addToList(final UUID listId, final int position, final Object value, final int newSize) {
@@ -135,8 +146,10 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary for an add to set action.
      * 
-     * @param setId The ID of the set where the element should be added.
-     * @param value The object that should be added to the set.
+     * @param setId
+     *            The ID of the set where the element should be added.
+     * @param value
+     *            The object that should be added to the set.
      * @return a set with commands necessary to recreate this add to set command.
      */
     public List<Command> addToSet(final UUID setId, final Object value) {
@@ -152,9 +165,12 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to put a mapping into a map.
      * 
-     * @param mapId the id of the map where the mapping should be added.
-     * @param key the key of the new mapping.
-     * @param value the value of the new mapping.
+     * @param mapId
+     *            the id of the map where the mapping should be added.
+     * @param key
+     *            the key of the new mapping.
+     * @param value
+     *            the value of the new mapping.
      * @return the list with the commands.
      */
     public List<Command> putToMap(final UUID mapId, final Object key, final Object value) {
@@ -170,15 +186,22 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a list.
      * 
-     * @param listId The ID of the list where an element should be removed.
-     * @param position The position of the element in the list which should be removed.
-     * @param newSize The size the list will have after this command has been applied.
+     * @param listId
+     *            The ID of the list where an element should be removed.
+     * @param startPosition
+     *            The index of the first element in the list which should be removed.
+     * @param removeCount
+     *            The element count to remove from the list, starting from <code>startPosition</code>.
+     * @param newSize
+     *            The size the list will have after this command has been applied.
      * @return The command list.
      */
-    public List<Command> removeFromList(final UUID listId, final int position, final int newSize) {
+    public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount,
+            final int newSize) {
         final RemoveFromList msg = new RemoveFromList();
         msg.setListId(listId);
-        msg.setPosition(position);
+        msg.setStartPosition(startPosition);
+        msg.setRemoveCount(removeCount);
         msg.setNewSize(newSize);
         final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
@@ -188,8 +211,10 @@ class CommandListCreator {
     /**
      * Creates the list with command necessary to remove a mapping from a map.
      * 
-     * @param mapId the map where the mapping should be removed.
-     * @param key the key of the mapping that should be removed.
+     * @param mapId
+     *            the map where the mapping should be removed.
+     * @param key
+     *            the key of the mapping that should be removed.
      * @return the list with the commands.
      */
     public List<Command> removeFromMap(final UUID mapId, final Object key) {
@@ -213,8 +238,10 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a set.
      * 
-     * @param setId The ID of the set where an element should be removed.
-     * @param value The element that should be removed.
+     * @param setId
+     *            The ID of the set where an element should be removed.
+     * @param value
+     *            The element that should be removed.
      * @return The command list.
      */
     public List<Command> removeFromSet(final UUID setId, final Object value) {
@@ -238,9 +265,12 @@ class CommandListCreator {
     /**
      * Creates the list of commands necessary to replace an object in a list.
      * 
-     * @param listId the ID of the list where the element should be replaced
-     * @param position the position of the element that should be replaced
-     * @param value the new value
+     * @param listId
+     *            the ID of the list where the element should be replaced
+     * @param position
+     *            the position of the element that should be replaced
+     * @param value
+     *            the new value
      * @return the command list
      */
     public List<Command> replaceInList(final UUID listId, final int position, final Object value) {
@@ -311,9 +341,12 @@ class CommandListCreator {
      * 
      * If {@code value} isn't an observable object, then nothing is added to the commandList.
      * 
-     * @param value The object for which the commands should be created.
-     * @param commandList The list where the commands should be added to.
-     * @param state The state of this domain model parsing.
+     * @param value
+     *            The object for which the commands should be created.
+     * @param commandList
+     *            The list where the commands should be added to.
+     * @param state
+     *            The state of this domain model parsing.
      * @return true if value is an observable object and false otherwise.
      */
     private boolean createObservableObject(final Object value, final State state) {

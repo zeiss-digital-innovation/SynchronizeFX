@@ -44,12 +44,25 @@ public class AddToList implements ListCommand {
         this.listId = listId;
     }
 
-    @Override
+    /**
+     * The index the new element will have in the list when it's added.
+     * 
+     * <p>
+     * The index of all items in the list thats index is greater or equal to the value returned here has to be
+     * incremented by 1 to make this index available.
+     * </p>
+     * 
+     * @return The index
+     */
     public int getPosition() {
         return position;
     }
 
-    @Override
+    /**
+     * @see #getPosition()
+     * @param position
+     *            The position
+     */
     public void setPosition(final int position) {
         this.position = position;
     }
@@ -63,7 +76,8 @@ public class AddToList implements ListCommand {
 
     /**
      * @see #getValue()
-     * @param value the value
+     * @param value
+     *            the value
      */
     public void setValue(final Value value) {
         this.value = value;
@@ -80,7 +94,8 @@ public class AddToList implements ListCommand {
 
     /**
      * @see RemoveFromList#getNewSize()
-     * @param newSize the new size
+     * @param newSize
+     *            the new size
      */
     public void setNewSize(final int newSize) {
         this.newSize = newSize;
