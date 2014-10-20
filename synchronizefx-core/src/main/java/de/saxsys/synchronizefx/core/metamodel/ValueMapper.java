@@ -35,8 +35,7 @@ class ValueMapper {
     /**
      * Initializes an instance.
      * 
-     * @param objectRegistry
-     *            used to retrieve observable objects from the model registry.
+     * @param objectRegistry used to retrieve observable objects from the model registry.
      */
     public ValueMapper(final WeakObjectRegistry objectRegistry) {
         this.objectRegistry = objectRegistry;
@@ -45,11 +44,9 @@ class ValueMapper {
     /**
      * Maps a {@link Value} message to an {@link ObservedValue}.
      * 
-     * @param message
-     *            the message to map
+     * @param message the message to map
      * @return The observed value
-     * @throws ObjectToIdMappingException
-     *             When the value described it he message is unknown in the {@link MetaModel}.
+     * @throws ObjectToIdMappingException When the value described it he message is unknown in the {@link MetaModel}.
      */
     public ObservedValue map(final Value message) throws ObjectToIdMappingException {
         ObservedValue value;
@@ -67,20 +64,19 @@ class ValueMapper {
     /**
      * Maps {@link ObservedValue}s to {@link Value} messages.
      * 
-     * @param value
-     *            The observed value to map.
+     * @param value The observed value to map.
      * @return The message.
-     * @throws ObjectToIdMappingException
-     *             When <code>value</code> wraps an <em>observable object</em> which has not been assigned an id yet.
+     * @throws ObjectToIdMappingException When <code>value</code> wraps an <em>observable object</em> which has not
+     *             been assigned an id yet.
      */
     public Value map(final ObservedValue value) throws ObjectToIdMappingException {
-        Value msg = new Value();
+        Value msg;
 
         if (value.isObservable()) {
-            UUID id = objectRegistry.getIdOrFail(value.getValue());
-            msg.setObservableObjectId(id);
+            final UUID id = objectRegistry.getIdOrFail(value.getValue());
+            msg = new Value(id);
         } else {
-            msg.setSimpleObjectValue(value.getValue());
+            msg = new Value(value.getValue());
         }
         return msg;
     }

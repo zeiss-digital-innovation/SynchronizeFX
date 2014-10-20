@@ -17,30 +17,29 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.kryo;
+package de.saxsys.synchronizefx.core.metamodel.executors;
 
-import java.util.UUID;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
 /**
- * Serializes and deserializes {@link UUID} instances.
+ * Executes incoming change events on single value properties.
  * 
- * @author raik.bieniek
+ * This executor handles the following change command:
  * 
+ * <ul>
+ * <li>{@link SetPropertyValue}</li>
+ * </ul>
+ * 
+ * @author Raik Bieniek
  */
-public final class UUIDSerializer extends Serializer<UUID> {
-    @Override
-    public UUID read(final Kryo kryo, final Input input, final Class<UUID> type) {
-        return new UUID(input.readLong(), input.readLong());
-    }
+public class SingleValuePropertyCommandExecutor {
 
-    @Override
-    public void write(final Kryo kryo, final Output output, final UUID object) {
-        output.writeLong(object.getMostSignificantBits());
-        output.writeLong(object.getLeastSignificantBits());
+    /**
+     * Logs a {@link SetPropertyValue} command that was send locally to the server.
+     * 
+     * @param command The command to log.
+     */
+    void logLocalCommand(final SetPropertyValue command) {
+
     }
 }

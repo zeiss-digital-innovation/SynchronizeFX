@@ -26,18 +26,22 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
+import de.saxsys.synchronizefx.core.metamodel.executors.CommandLogDispatcher;
+import de.saxsys.synchronizefx.core.metamodel.executors.SingleValuePropertyCommandExecutor;
 
 /**
  * Generates and applies commands necessary to keep domain models synchronous.
  */
 public class MetaModel {
-    
+
     private Object root;
 
     private final CommandListCreator creator;
     private final CommandListExecutor executor;
     private final Listeners listeners;
     private final ModelWalkingSynchronizer modelWalkingSynchronizer;
+    private final SingleValuePropertyCommandExecutor singleValuePropertyExecutor;
+    private final CommandLogDispatcher commandLog;
 
     private final TopologyLayerCallback topology;
 
@@ -55,11 +59,14 @@ public class MetaModel {
         final ValueMapper valueMapper = new ValueMapper(objectRegistry);
 
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
-        this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);
-        this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer);
 
-        final SilentChangeExecutor silentChangeExecutor =
-                new SilentChangeExecutor(listeners, changeExecutor);
+        this.singleValuePropertyExecutor = new SingleValuePropertyCommandExecutor();
+        this.commandLog = new CommandLogDispatcher(singleValuePropertyExecutor);
+
+        this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);
+        this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
+
+        final SilentChangeExecutor silentChangeExecutor = new SilentChangeExecutor(listeners, changeExecutor);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper);
     }
 

@@ -23,6 +23,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.metamodel.commands.Value;
+import de.saxsys.synchronizefx.kryo.serializer.SetPropertyValueSerializer;
+import de.saxsys.synchronizefx.kryo.serializer.UUIDSerializer;
+import de.saxsys.synchronizefx.kryo.serializer.ValueSerializer;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 
@@ -40,6 +46,8 @@ final class KryoInitializer extends ThreadLocal<Kryo> {
     protected Kryo initialValue() {
         Kryo kryo = new Kryo();
         kryo.register(UUID.class, new UUIDSerializer());
+        kryo.register(Value.class, new ValueSerializer());
+        kryo.register(SetPropertyValue.class, new SetPropertyValueSerializer());
 
         synchronized (customSerializers) {
             for (CustomSerializers<?> serializer : customSerializers) {

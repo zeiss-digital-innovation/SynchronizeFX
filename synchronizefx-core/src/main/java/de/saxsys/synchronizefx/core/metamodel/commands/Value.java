@@ -26,8 +26,28 @@ import java.util.UUID;
  */
 public class Value {
 
-    private UUID observableObjectId;
-    private Object simpleObjectValue;
+    private final UUID observableObjectId;
+    private final Object simpleObjectValue;
+
+    /**
+     * Initializes an instance that wrappes an <em>observable object</em>.
+     * 
+     * @param observableObjectID The id of the wrapped <em>observable object</em>.
+     */
+    public Value(final UUID observableObjectID) {
+        this.observableObjectId = observableObjectID;
+        this.simpleObjectValue = null;
+    }
+    
+    /**
+     * Initializes an instance that wrapps a <em>simple object</em>.
+     * 
+     * @param simpleObjectValue The simple object that is wrapped.
+     */
+    public Value(final Object simpleObjectValue) {
+        this.observableObjectId = null;
+        this.simpleObjectValue = simpleObjectValue;
+    }
 
     /**
      * @return If this instance denotes an <em>observable object</em> this returns the id of this object. If this
@@ -38,47 +58,49 @@ public class Value {
     }
 
     /**
-     * Sets the id of the <em>observable object</em> this instance denotes.
-     * 
-     * @throws IllegalStateException
-     *             If this instance already denotes a <em>simple object</em>. That is the case when
-     *             {@link #getSimpleObjectValue()} does not return <code>null</code>.
-     * @see Value#getObservableObjectId()
-     * @param observableObjectId
-     *            the id
-     */
-    public void setObservableObjectId(final UUID observableObjectId) throws IllegalStateException {
-        if (simpleObjectValue != null) {
-            throw new IllegalStateException(
-                    "This value already denotes a simple object and can therefor not denote an observable object");
-        }
-        this.observableObjectId = observableObjectId;
-    }
-
-    /**
-     * @return If this instance denotes a <em>simple object</em> this returns the value object. If this
-     *         instance denotes an <em>observable object</em> this method returns <code>null</code>.
+     * @return If this instance denotes a <em>simple object</em> this returns the value object. If this instance
+     *         denotes an <em>observable object</em> this method returns <code>null</code>.
      */
     public Object getSimpleObjectValue() {
         return simpleObjectValue;
     }
 
-    /**
-     * Sets the <em>simple object</em> value this instance should wrap.
-     * 
-     * @throws IllegalStateException
-     *             If this instance already denotes an <em>observable object</em>. That is the case when
-     *             {@link #getObservableObjectId()} does not return <code>null</code>.
-     * @see Value#getSimpleObjectValue()
-     * @param simpleObjectValue
-     *            the value
-     */
-    public void setSimpleObjectValue(final Object simpleObjectValue) throws IllegalStateException {
-        if (observableObjectId != null) {
-            throw new IllegalStateException(
-                    "This value already denotes an observable object and can therefor not denote a simple object");
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((observableObjectId == null) ? 0 : observableObjectId.hashCode());
+        result = prime * result + ((simpleObjectValue == null) ? 0 : simpleObjectValue.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
         }
-        this.simpleObjectValue = simpleObjectValue;
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Value other = (Value) obj;
+        if (observableObjectId == null) {
+            if (other.observableObjectId != null) {
+                return false;
+            }
+        } else if (!observableObjectId.equals(other.observableObjectId)) {
+            return false;
+        }
+        if (simpleObjectValue == null) {
+            if (other.simpleObjectValue != null) {
+                return false;
+            }
+        } else if (!simpleObjectValue.equals(other.simpleObjectValue)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

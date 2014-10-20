@@ -103,7 +103,7 @@ public class ConcurrentModificationSingleValuePropertyIT {
      */
     public static final class ExemplaryModel {
         private final IntegerProperty exemplaryProperty = new SimpleIntegerProperty(INITIAL_VALUE);
-        
+
         @Override
         public int hashCode() {
             return exemplaryProperty.get();
