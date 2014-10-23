@@ -32,17 +32,19 @@ public class Value {
     /**
      * Initializes an instance that wrappes an <em>observable object</em>.
      * 
-     * @param observableObjectID The id of the wrapped <em>observable object</em>.
+     * @param observableObjectID
+     *            The id of the wrapped <em>observable object</em>.
      */
     public Value(final UUID observableObjectID) {
         this.observableObjectId = observableObjectID;
         this.simpleObjectValue = null;
     }
-    
+
     /**
      * Initializes an instance that wrapps a <em>simple object</em>.
      * 
-     * @param simpleObjectValue The simple object that is wrapped.
+     * @param simpleObjectValue
+     *            The simple object that is wrapped.
      */
     public Value(final Object simpleObjectValue) {
         this.observableObjectId = null;
@@ -58,49 +60,20 @@ public class Value {
     }
 
     /**
-     * @return If this instance denotes a <em>simple object</em> this returns the value object. If this instance
-     *         denotes an <em>observable object</em> this method returns <code>null</code>.
+     * @return If this instance denotes a <em>simple object</em> this returns the value object. If this instance denotes
+     *         an <em>observable object</em> this method returns <code>null</code>.
      */
     public Object getSimpleObjectValue() {
         return simpleObjectValue;
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((observableObjectId == null) ? 0 : observableObjectId.hashCode());
-        result = prime * result + ((simpleObjectValue == null) ? 0 : simpleObjectValue.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        Value other = (Value) obj;
-        if (observableObjectId == null) {
-            if (other.observableObjectId != null) {
-                return false;
-            }
-        } else if (!observableObjectId.equals(other.observableObjectId)) {
-            return false;
-        }
-        if (simpleObjectValue == null) {
-            if (other.simpleObjectValue != null) {
-                return false;
-            }
-        } else if (!simpleObjectValue.equals(other.simpleObjectValue)) {
-            return false;
-        }
-        return true;
+    /**
+     * Checks if this value wrapper stores a simple object.
+     * 
+     * @return <code>true</code> if it wrapps a simple object and <code>false</code> if it wrapps an observable object.
+     */
+    public boolean isSimpleObject() {
+        return simpleObjectValue != null;
     }
 
     @Override

@@ -60,7 +60,7 @@ public class MetaModel {
 
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
 
-        this.singleValuePropertyExecutor = new SingleValuePropertyCommandExecutor();
+        this.singleValuePropertyExecutor = new SingleValuePropertyCommandExecutor(objectRegistry);
         this.commandLog = new CommandLogDispatcher(singleValuePropertyExecutor);
 
         this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);

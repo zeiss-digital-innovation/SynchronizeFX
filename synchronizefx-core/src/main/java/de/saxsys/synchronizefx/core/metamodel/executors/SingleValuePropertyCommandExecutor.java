@@ -19,6 +19,12 @@
 
 package de.saxsys.synchronizefx.core.metamodel.executors;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
+import javafx.beans.property.Property;
+
+import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
 /**
@@ -34,12 +40,50 @@ import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
  */
 public class SingleValuePropertyCommandExecutor {
 
+    private final WeakObjectRegistry objectRegistry;
+
+    private final Queue<SetPropertyValue> localCommands = new LinkedList<>();
+
+    /**
+     * Initializes the instance with all its dependencies.
+     * 
+     * @param objectRegistry
+     *            the registry that stores all known observable objects.
+     */
+    public SingleValuePropertyCommandExecutor(final WeakObjectRegistry objectRegistry) {
+        this.objectRegistry = objectRegistry;
+    }
+
     /**
      * Logs a {@link SetPropertyValue} command that was send locally to the server.
      * 
-     * @param command The command to log.
+     * @param command
+     *            The command to log.
      */
     void logLocalCommand(final SetPropertyValue command) {
+        localCommands.offer(command);
+    }
 
+    /**
+     * Executes an command that was received from an other peer if appropriate.
+     * 
+     * @param command
+     *            The received event.
+     */
+    public void executeRemoteCommand(final SetPropertyValue command) {
+        if (!localCommands.isEmpty()) {
+            if (localCommands.peek().equals(command)) {
+                localCommands.poll();
+            }
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        Property<Object> property = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
+        if (command.getValue().isSimpleObject()) {
+            property.setValue(command.getValue().getSimpleObjectValue());
+        } else {
+            property.setValue(objectRegistry.getByIdOrFail(command.getValue().getObservableObjectId()));
+        }
     }
 }

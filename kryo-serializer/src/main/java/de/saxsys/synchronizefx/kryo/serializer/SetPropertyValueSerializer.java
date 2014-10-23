@@ -38,12 +38,14 @@ public class SetPropertyValueSerializer extends Serializer<SetPropertyValue> {
 
     @Override
     public void write(final Kryo kryo, final Output output, final SetPropertyValue object) {
+        kryo.writeObject(output, object.getCommandId());
         kryo.writeObject(output, object.getPropertyId());
         kryo.writeObject(output, object.getValue());
     }
 
     @Override
     public SetPropertyValue read(final Kryo kryo, final Input input, final Class<SetPropertyValue> type) {
-        return new SetPropertyValue(kryo.readObject(input, UUID.class), kryo.readObject(input, Value.class));
+        return new SetPropertyValue(kryo.readObject(input, UUID.class), kryo.readObject(input, UUID.class),
+                kryo.readObject(input, Value.class));
     }
 }

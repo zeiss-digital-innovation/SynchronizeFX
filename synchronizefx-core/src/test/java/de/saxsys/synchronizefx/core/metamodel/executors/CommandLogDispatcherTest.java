@@ -68,7 +68,7 @@ public class CommandLogDispatcherTest {
 
         final List<Command> commands = Arrays.asList(new PutToMap(), new ReplaceInList(), msg1, new Command() {
         }, msg2);
-        
+
         cut.logLocalCommands(commands);
 
         verify(singleValue, times(2)).logLocalCommand(setPropertyValueCaptor.capture());

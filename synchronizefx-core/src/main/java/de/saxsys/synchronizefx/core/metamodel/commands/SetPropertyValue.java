@@ -32,16 +32,45 @@ public class SetPropertyValue implements Command {
 
     private final UUID propertyId;
     private final Value value;
+    private final UUID commandId;
 
     /**
-     * Initializes an instance.
+     * Creates an instance with a predefined command id.
      * 
-     * @param propertyId The id of the property thats value is set.
-     * @param value The value that is set.
+     * @param commandId
+     *            The unique id of this command.
+     * @param propertyId
+     *            The id of the property thats value is set.
+     * @param value
+     *            The value that is set.
      */
-    public SetPropertyValue(final UUID propertyId, final Value value) {
+    public SetPropertyValue(final UUID commandId, final UUID propertyId, final Value value) {
+        this.commandId = commandId;
         this.propertyId = propertyId;
         this.value = value;
+    }
+
+    /**
+     * Creates an instance with an auto-generated command id.
+     * 
+     * @param propertyId
+     *            The id of the property thats value is set.
+     * @param value
+     *            The value that is set.
+     */
+    public SetPropertyValue(final UUID propertyId, final Value value) {
+        this.commandId = UUID.randomUUID();
+        this.propertyId = propertyId;
+        this.value = value;
+    }
+
+    /**
+     * The unique id of this command.
+     * 
+     * @return The id
+     */
+    public UUID getCommandId() {
+        return commandId;
     }
 
     /**
@@ -58,15 +87,13 @@ public class SetPropertyValue implements Command {
         return propertyId;
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((propertyId == null) ? 0 : propertyId.hashCode());
-        result = prime * result + ((value == null) ? 0 : value.hashCode());
-        return result;
-    }
-
+    /**
+     * Two {@link SetPropertyValue} commands are equal when their {@link #getCommandId()}s are equal.
+     * 
+     * @param obj
+     *            The other object to compare the equality with.
+     * @return <code>true</code> if this instance is equal to <code>obj</code> and <code>false</code> if not.
+     */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -79,21 +106,22 @@ public class SetPropertyValue implements Command {
             return false;
         }
         SetPropertyValue other = (SetPropertyValue) obj;
-        if (propertyId == null) {
-            if (other.propertyId != null) {
+        if (commandId == null) {
+            if (other.commandId != null) {
                 return false;
             }
-        } else if (!propertyId.equals(other.propertyId)) {
-            return false;
-        }
-        if (value == null) {
-            if (other.value != null) {
-                return false;
-            }
-        } else if (!value.equals(other.value)) {
+        } else if (!commandId.equals(other.commandId)) {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((commandId == null) ? 0 : commandId.hashCode());
+        return result;
     }
 
     @Override

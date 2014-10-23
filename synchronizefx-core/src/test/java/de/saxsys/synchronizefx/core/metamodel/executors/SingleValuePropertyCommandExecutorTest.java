@@ -19,25 +19,73 @@
 
 package de.saxsys.synchronizefx.core.metamodel.executors;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import java.util.UUID;
 
-import static org.junit.Assert.fail;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
+import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
+import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.metamodel.commands.Value;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import static eu.lestard.assertj.javafx.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Checks if {@link SingleValuePropertyCommandExecutor} works as expected.
  * 
  * @author Raik Bieniek
  */
-@Ignore("Not implemented yet")
+@RunWith(MockitoJUnitRunner.class)
 public class SingleValuePropertyCommandExecutorTest {
+
+    private final UUID exemplaryProperty1Id = UUID.randomUUID();
+    private final String exemplaryProperty1Value = "original value";
+    private final StringProperty exemplaryProperty1 = new SimpleStringProperty(exemplaryProperty1Value);
+    private final SetPropertyValue exemplaryProperty1Change = new SetPropertyValue(UUID.randomUUID(),
+            exemplaryProperty1Id, new Value("changed value"));
+
+    private final UUID exemplaryProperty2Id = UUID.randomUUID();
+    private final StringProperty exemplaryProperty2Value = new SimpleStringProperty();
+    private final ObjectProperty<StringProperty> exemplaryProperty2 = new SimpleObjectProperty<>(
+            exemplaryProperty2Value);
+    private SetPropertyValue exemplaryProperty2Change = new SetPropertyValue(UUID.randomUUID(), exemplaryProperty2Id,
+            new Value(exemplaryProperty1Id));
+
+    @Mock
+    private WeakObjectRegistry objectRegistry;
+
+    @InjectMocks
+    private SingleValuePropertyCommandExecutor cut;
+
+    /**
+     * Wires up the mocked dependencies.
+     */
+    @Before
+    public void wireUpMocks() {
+        when(objectRegistry.getByIdOrFail(exemplaryProperty1Id)).thenReturn(exemplaryProperty1);
+        when(objectRegistry.getByIdOrFail(exemplaryProperty2Id)).thenReturn(exemplaryProperty2);
+    }
 
     /**
      * When the command log is empty, every incoming command should be executed.
      */
     @Test
     public void shouldExecuteIncommingCommandWhenLogIsEmpty() {
-        fail("not implemented yet");
+        cut.executeRemoteCommand(exemplaryProperty1Change);
+        assertThat(exemplaryProperty1).hasValue("changed value");
+
+        cut.executeRemoteCommand(exemplaryProperty2Change);
+        assertThat(exemplaryProperty2).hasValue(exemplaryProperty1);
     }
 
     /**
@@ -45,12 +93,20 @@ public class SingleValuePropertyCommandExecutorTest {
      */
     @Test
     public void shouldDropCommandWhenItsNotEqualToFirstCommandInTheLog() {
-        fail("not implemented yet");
+        cut.logLocalCommand(new SetPropertyValue(UUID.randomUUID(), new Value("dummy local change")));
+
+        cut.executeRemoteCommand(exemplaryProperty1Change);
+        // Property 1 has not changed
+        assertThat(exemplaryProperty1).hasValue(exemplaryProperty1Value);
+
+        cut.executeRemoteCommand(exemplaryProperty2Change);
+        // Property 2 has not changed
+        assertThat(exemplaryProperty2).hasValue(exemplaryProperty2Value);
     }
 
     /**
-     * When an incoming command does equal the first command in the log queue it should not be executed and removed
-     * from the queue.
+     * When an incoming command does equal the first command in the log queue it should not be executed and removed from
+     * the queue.
      * 
      * <p>
      * This is tested by checking if its executed when it is received a second time.
@@ -58,6 +114,14 @@ public class SingleValuePropertyCommandExecutorTest {
      */
     @Test
     public void shouldDropCommandAndRemoveItFromTheLogWhenItIsEqualToTheFirstLogEntry() {
-        fail("not implemented yet");
+        cut.logLocalCommand(exemplaryProperty1Change);
+
+        cut.executeRemoteCommand(exemplaryProperty1Change);
+        // Property 1 has not changed
+        assertThat(exemplaryProperty1).hasValue(exemplaryProperty1Value);
+
+        cut.executeRemoteCommand(exemplaryProperty1Change);
+        // Property 1 has changed
+        assertThat(exemplaryProperty1).hasValue("changed value");
     }
 }
