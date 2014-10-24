@@ -18,6 +18,6 @@
  */
 
 /**
- * The domain model for a bulletin board that is synchronized between the example server and example client.
+ * The domain model for a scrum story that is synchronized between the example server and example client.
  */
 package de.saxsys.synchronizefx.pinboarddemo.domain;

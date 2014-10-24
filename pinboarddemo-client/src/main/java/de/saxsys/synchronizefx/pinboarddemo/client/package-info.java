@@ -20,8 +20,8 @@
 /**
  * An example client thats purpose is to demonstrate how the SynchronizeFX framework could be used.
  * 
- * The client is a minimalist bulletin board. On this board you can move notes around.
- * To synchronize the notes of multiple clients,
+ * The client is a minimalist scrum board. On this board you can move task of a story around.
+ * To synchronize the tasks of multiple clients,
  * it needs to connect to the example server which holds the shared domain model.
  */
 package de.saxsys.synchronizefx.pinboarddemo.client;

@@ -39,35 +39,34 @@ import de.saxsys.synchronizefx.SynchronizeFxBuilder;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxClient;
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-import de.saxsys.synchronizefx.pinboarddemo.domain.Board;
-import de.saxsys.synchronizefx.pinboarddemo.domain.Note;
-import de.saxsys.synchronizefx.pinboarddemo.domain.Position2D;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Story;
+import de.saxsys.synchronizefx.pinboarddemo.domain.Task;
+import de.saxsys.synchronizefx.pinboarddemo.domain.TaskGuiData;
 
 /**
- * Provides a client that shows notes on a board
+ * Provides a client that shows tasks of a story on a scurm board
  * 
- * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs
- * see the movement of the notes live.
+ * The movement of these tasks is synchronized over the network so that other instances of this class in other JVMs
+ * see the movement of the tasks live.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public final class Client extends Application implements ClientCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
-    private static final int NOTE_WIDTH = 200;
-    private static final int NOTE_HEIGHT = 50;
+    private static final int TASK_WIDTH = 200;
+    private static final int TASK_HEIGHT = 50;
 
     private static final String SERVER = "localhost";
 
     private Pane root;
-    private Map<Note, Pane> notes = new HashMap<>();
+    private Map<Task, Pane> tasks = new HashMap<>();
     private SynchronizeFxClient client;
 
     @Override
     public void start(final Stage stage) {
-        stage.setTitle("Example Client");
+        stage.setTitle("Example Scrum Board");
         stage.setWidth(600);
         stage.setHeight(480);
         root = new Pane();
@@ -92,7 +91,7 @@ public final class Client extends Application implements ClientCallback {
 
     @Override
     public void modelReady(final Object model) {
-        createGui((Board) model);
+        createGui((Story) model);
 
     }
 
@@ -107,22 +106,22 @@ public final class Client extends Application implements ClientCallback {
         System.exit(-1);
     }
 
-    private void createGui(final Board model) {
-        for (Note note : model.getNotes()) {
+    private void createGui(final Story model) {
+        for (Task note : model.getTasks()) {
             addNote(note);
         }
-        model.notesProperty().addListener(new ListChangeListener<Note>() {
+        model.tasksProperty().addListener(new ListChangeListener<Task>() {
             @Override
-            public void onChanged(final javafx.collections.ListChangeListener.Change<? extends Note> event) {
+            public void onChanged(final javafx.collections.ListChangeListener.Change<? extends Task> event) {
                 event.reset();
                 while (event.next()) {
                     if (event.wasAdded()) {
-                        for (Note note : event.getAddedSubList()) {
+                        for (Task note : event.getAddedSubList()) {
                             addNote(note);
                         }
                     } else if (event.wasRemoved()) {
-                        for (Note note : event.getRemoved()) {
-                            removeNote(note);
+                        for (Task note : event.getRemoved()) {
+                            removeTask(note);
                         }
                     }
                 }
@@ -131,18 +130,18 @@ public final class Client extends Application implements ClientCallback {
         });
     }
 
-    private void addNote(final Note note) {
-        final Pane newNote = new Pane();
-        final Position2D position = note.getPosition();
+    private void addNote(final Task task) {
+        final Pane taskPane = new Pane();
+        final TaskGuiData position = task.getGuiData();
 
-        newNote.getChildren().add(new Label(note.getText()));
-        newNote.styleProperty().set("-fx-background-color: red;");
-        newNote.setPrefSize(NOTE_WIDTH, NOTE_HEIGHT);
+        taskPane.getChildren().add(new Label(task.getTitle()));
+        taskPane.styleProperty().set("-fx-background-color: red;");
+        taskPane.setPrefSize(TASK_WIDTH, TASK_HEIGHT);
 
-        newNote.layoutXProperty().bind(position.xProperty().multiply(root.widthProperty()));
-        newNote.layoutYProperty().bind(position.yProperty().multiply(root.heightProperty()));
+        taskPane.layoutXProperty().bind(position.xProperty().multiply(root.widthProperty()));
+        taskPane.layoutYProperty().bind(position.yProperty().multiply(root.heightProperty()));
 
-        newNote.setOnMouseDragged(new EventHandler<MouseEvent>() {
+        taskPane.setOnMouseDragged(new EventHandler<MouseEvent>() {
             @Override
             public void handle(final MouseEvent event) {
                 position.setX(event.getSceneX() / root.getWidth());
@@ -152,13 +151,13 @@ public final class Client extends Application implements ClientCallback {
             }
         });
 
-        root.getChildren().add(newNote);
+        root.getChildren().add(taskPane);
 
-        notes.put(note, newNote);
+        tasks.put(task, taskPane);
     }
 
-    private void removeNote(final Note note) {
-        root.getChildren().remove(notes.get(note));
+    private void removeTask(final Task task) {
+        root.getChildren().remove(tasks.get(task));
     }
 
     /**

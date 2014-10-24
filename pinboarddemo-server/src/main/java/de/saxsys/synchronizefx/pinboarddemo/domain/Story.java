@@ -26,28 +26,29 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
 /**
- * Represents the board that contains the notes.
+ * Represents a story on the board.
  * 
- * @author raik.bieniek
- *
+ * @author Raik Bieniek
  */
-public class Board {
-    private ListProperty<Note> notes = new SimpleListProperty<>(FXCollections.<Note> observableArrayList());
+public class Story {
+	private ListProperty<Task> tasks = new SimpleListProperty<>(
+			FXCollections.<Task> observableArrayList());
 
-    /**
-     * 
-     * @return the notes that are currently placed on the board.
-     */
-    public List<Note> getNotes() {
-        return notes.get();
-    }
+	/**
+	 * The tasks of this story.
+	 * 
+	 * @return The tasks
+	 */
+	public List<Task> getTasks() {
+		return tasks.get();
+	}
 
-    /**
-     * 
-     * @see Board#getNotes()
-     * @return the property
-     */
-    public ListProperty<Note> notesProperty() {
-        return notes;
-    }
+	/**
+	 * 
+	 * @see Story#getTasks()
+	 * @return the property
+	 */
+	public ListProperty<Task> tasksProperty() {
+		return tasks;
+	}
 }
