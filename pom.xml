@@ -1,25 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.saxsys.synchronizefx</groupId>
-	<artifactId>parent</artifactId>
-	<version>0.4.0</version>
+	<artifactId>pinboarddemo-parent</artifactId>
+	<version>0.4.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>SynchronizeFX</name>
-	<description>Aggregator and documentation project for all SynchronizeFX modules</description>
+	<name>SynchronizeFX Pinboard Demo</name>
+	<description>An aggregator project for the SynchronizeFX pinboard demo client and server </description>
 	<url>https://github.com/saxsys/SynchronizeFX</url>
 
 	<modules>
-		<module>synchronizefx-core</module>
-		<module>kryo-serializer</module>
-		<module>synchronizefx</module>
-		<module>transmitter/netty-transmitter</module>
-		<module>transmitter/tomcat-transmitter</module>
-		<module>transmitter/netty-websocket-transmitter</module>
-		<module>demos/pinboarddemo-client</module>
-		<module>demos/pinboarddemo-server</module>
-		<module>demos/sliderdemo</module>
+		<module>pinboarddemo-client</module>
+		<module>pinboarddemo-server</module>
 	</modules>
 
 	<organization>
@@ -57,7 +51,7 @@
 		<url>https://github.com/saxsys/SynchronizeFX</url>
 		<developerConnection>scm:git:git@github.com:saxsys/SynchronizeFX.git</developerConnection>
 		<connection>scm:git:https://github.com/saxsys/SynchronizeFX.git</connection>
-		<tag>v0.4.0</tag>
+		<tag>simple-pinboard-demo</tag>
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
@@ -80,52 +74,18 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<!-- for maven site -->
-		<currentVersion>${project.version}</currentVersion>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>netty-transmitter</artifactId>
-				<version>${project.parent.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>tomcat-transmitter</artifactId>
-				<version>${project.parent.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>kryo-serializer</artifactId>
-				<version>${project.parent.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>synchronizefx-core</artifactId>
-				<version>${project.parent.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
+				<groupId>de.saxsys.synchronizefx</groupId>
 				<artifactId>synchronizefx</artifactId>
-				<version>${project.parent.version}</version>
+				<version>0.4.0</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>pinboarddemo-server</artifactId>
-				<version>${project.parent.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>pinboarddemo-client</artifactId>
-				<version>${project.parent.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.oracle</groupId>
-				<artifactId>javafx</artifactId>
-				<version>2.2</version>
-				<scope>system</scope>
-				<systemPath>${java.home}/lib/jfxrt.jar</systemPath>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -136,54 +96,6 @@
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
 				<version>1.0.9</version>
-			</dependency>
-			<dependency>
-				<groupId>com.esotericsoftware.kryo</groupId>
-				<artifactId>kryo</artifactId>
-				<version>2.20</version>
-			</dependency>
-			<dependency>
-				<groupId>io.netty</groupId>
-				<artifactId>netty</artifactId>
-				<version>3.6.2.Final</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.netty</groupId>
-				<artifactId>netty-all</artifactId>
-				<!--Websockt Clients are not supported in 3.x -->
-				<version>4.0.13.Final</version>
-			</dependency>
-			<dependency>
-				<groupId>commons-collections</groupId>
-				<artifactId>commons-collections</artifactId>
-				<version>3.2.1</version>
-			</dependency>
-			<dependency>
-				<!-- For websockets -->
-				<groupId>org.apache.tomcat</groupId>
-				<artifactId>tomcat-catalina</artifactId>
-				<version>7.0.37</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<!-- needed by org.apache.catalina.websocket.StreamInbound -->
-				<groupId>org.apache.tomcat</groupId>
-				<artifactId>tomcat-coyote</artifactId>
-				<version>7.0.37</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.11</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-all</artifactId>
-				<version>1.9.5</version>
-				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -200,154 +112,44 @@
 						<encoding>UTF-8</encoding>
 					</configuration>
 				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.4</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-					<version>2.8.1</version>
-				</plugin>
 			</plugins>
 		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<tagNameFormat>v@{project.version}</tagNameFormat>
-					<pushChanges>false</pushChanges>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8</version>
-				<configuration>
-					<nohelp>true</nohelp>
-				</configuration>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1.2</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pdf-plugin</artifactId>
-				<version>1.2</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.doxia</groupId>
-						<artifactId>doxia-module-markdown</artifactId>
-						<version>1.3</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<useAgent>true</useAgent>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.16</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.1</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.doxia</groupId>
-						<artifactId>doxia-module-markdown</artifactId>
-						<version>1.3</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<inputEncoding>UTF-8</inputEncoding>
-					<outputEncoding>UTF-8</outputEncoding>
-					<reportPlugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-project-info-reports-plugin</artifactId>
-							<version>2.4</version>
-							<configuration>
-								<dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-								<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-							</configuration>
-							<reports>
-								<report>index</report>
-								<report>project-team</report>
-								<report>scm</report>
-								<report>dependency-convergence</report>
-								<report>dependency-management</report>
-
-								<!-- <report>dependencies</report> <report>summary</report> <report>issue-tracking</report><report>help</report> 
-									<report>plugin-management</report> <report>plugins</report> <report>mailing-list</report> 
-									<report>cim</report> <report>license</report> -->
-							</reports>
-						</plugin>
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>jdepend-maven-plugin</artifactId>
-							<version>2.0-beta-2</version>
-						</plugin>
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>2.3.3</version>
-						</plugin>
-						<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-report-plugin</artifactId> 
-							<version>2.11</version> <configuration> <showSuccess>false</showSuccess> 
-							</configuration> </plugin> <plugin> <groupId>org.codehaus.mojo</groupId> 
-							<artifactId>cobertura-maven-plugin</artifactId> <version>2.5.2</version> 
-							<configuration> <formats> <format>xml</format> <format>html</format> </formats> 
-							</configuration> </plugin> -->
-					</reportPlugins>
-				</configuration>
-			</plugin>
-		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>jfx-jar-in-java7</id>
+			<activation>
+				<jdk>1.7</jdk>
+			</activation>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>com.oracle</groupId>
+						<artifactId>javafx</artifactId>
+						<version>2.2</version>
+						<scope>system</scope>
+						<systemPath>${java.home}/lib/jfxrt.jar</systemPath>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+		</profile>
+		<profile>
+			<id>jfx-jar-in-java8</id>
+			<activation>
+				<jdk>1.8</jdk>
+			</activation>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>com.oracle</groupId>
+						<artifactId>javafx</artifactId>
+						<version>2.2</version>
+						<scope>system</scope>
+						<systemPath>${java.home}/lib/ext/jfxrt.jar</systemPath>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+		</profile>
+	</profiles>
 </project>
