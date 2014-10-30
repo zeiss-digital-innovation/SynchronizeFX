@@ -65,6 +65,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
 
     private final List<MessageInbound> connections = new LinkedList<>();
     private NetworkToTopologyCallbackServer callback;
+    private boolean isShutDown = false;
 
     private Serializer serializer;
 
@@ -87,7 +88,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     public int getCurrentlyConnectedClientCount() {
         return connections.size();
     }
-    
+
     /**
      * This method ensures that this object calls {@link SynchronizeFXTomcatServlet#getSerializer()} only once.
      * 
@@ -115,7 +116,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException,
         IOException {
-        if (callback == null) {
+        if (callback == null || isShutDown) {
             throw new UnavailableException(
                     "The system isn't fully set up to handle your requests on this resource yet.", 5);
         }
@@ -202,7 +203,9 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             callback.onClientConnectionError(e);
             return;
         }
-        callback.recive(commands, sender);
+        synchronized (callback) {
+            callback.recive(commands, sender);
+        }
     }
 
     /**
@@ -212,14 +215,18 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
      */
     void connectionCloses(final SynchronizeFXTomcatConnection connection) {
         LOG.info("Client connection closed.");
-        connections.remove(connection);
+        synchronized (connections) {
+            connections.remove(connection);
+        }
     }
 
     // CommandTransferServer
 
     @Override
     public void onConnectFinished(final Object client) {
-        connections.add((SynchronizeFXTomcatConnection) client);
+        synchronized (connections) {
+            connections.add((SynchronizeFXTomcatConnection) client);
+        }
     }
 
     @Override
@@ -255,9 +262,14 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             callback.onFatalError(e);
             return;
         }
-        for (final MessageInbound connection : connections) {
-            if (connection != nonReciver) {
-                send(buffer, connection);
+        synchronized (connections) {
+            // This ensures that no client is added or removed for the connection list while iterating over it.
+            // This ensures also that all clients get messages in the correct order for the case that sendToAllExcept
+            // as already called a second time.
+            for (final MessageInbound connection : connections) {
+                if (connection != nonReciver) {
+                    send(buffer, connection);
+                }
             }
         }
     }
@@ -274,15 +286,18 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
      */
     @Override
     public void shutdown() {
-        callback = null;
-        for (MessageInbound connection : connections) {
-            try {
-                connection.getWsOutbound().close(0, null);
-            } catch (IOException e) {
-                LOG.error("Connection [" + connection.toString() + "] can't be closed.", e);
+        isShutDown = true;
+        synchronized (connections) {
+            for (final MessageInbound connection : connections) {
+                try {
+                    connection.getWsOutbound().close(0, null);
+                } catch (IOException e) {
+                    LOG.error("Connection [" + connection.toString() + "] can't be closed.", e);
+                }
             }
+            connections.clear();
         }
-        connections.clear();
+        callback = null;
         // TODO unload servlet
     }
 }
