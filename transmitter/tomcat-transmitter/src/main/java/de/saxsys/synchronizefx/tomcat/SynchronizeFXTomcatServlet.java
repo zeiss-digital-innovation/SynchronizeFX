@@ -116,7 +116,11 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException,
         IOException {
-        if (callback == null || isShutDown) {
+        if (isShutDown) {
+            throw new UnavailableException(
+                    "This resource has been shut down.");
+        }
+        if (callback == null) {
             throw new UnavailableException(
                     "The system isn't fully set up to handle your requests on this resource yet.", 5);
         }
