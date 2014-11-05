@@ -21,8 +21,12 @@ package de.saxsys.synchronizefx.tomcat;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletException;
@@ -31,19 +35,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
-import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
-import de.saxsys.synchronizefx.core.clientserver.Serializer;
-import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
-import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
-import de.saxsys.synchronizefx.core.metamodel.commands.Command;
-
 import org.apache.catalina.websocket.MessageInbound;
 import org.apache.catalina.websocket.StreamInbound;
 import org.apache.catalina.websocket.WebSocketServlet;
 import org.apache.catalina.websocket.WsOutbound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
 /**
  * An server-side network layer implementation for SynchronizeFX that uses the websocket implementation of Apache
@@ -64,6 +68,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeFXTomcatServlet.class);
 
     private final List<MessageInbound> connections = new LinkedList<>();
+    private final Map<MessageInbound, ExecutorService> connectionThreads = new HashMap<>();
     private NetworkToTopologyCallbackServer callback;
     private boolean isShutDown = false;
 
@@ -117,8 +122,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException,
         IOException {
         if (isShutDown) {
-            throw new UnavailableException(
-                    "This resource has been shut down.");
+            throw new UnavailableException("This resource has been shut down.");
         }
         if (callback == null) {
             throw new UnavailableException(
@@ -130,6 +134,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     /**
      * Disconnect all clients an clear the connections when the handler is destroyed by CDI.
      */
+    @Override
     @PreDestroy
     public void destroy() {
         LOG.info("Destroying SynchronizeFXTomcatServlet");
@@ -163,7 +168,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             try {
                 outbound.close(1002, null);
                 // CHECKSTYLE:OFF
-            } catch (IOException e1) {
+            } catch (final IOException e1) {
                 // Maybe the connection is already closed. This is no exceptional state but rather the default in
                 // this case. So it's safe to ignore this exception.
             }
@@ -198,10 +203,10 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
         List<Command> commands;
         try {
             commands = getSerializerInternal().deserialize(message.array());
-        } catch (SynchronizeFXException e) {
+        } catch (final SynchronizeFXException e) {
             try {
                 sender.getWsOutbound().close(0, null);
-            } catch (IOException e1) {
+            } catch (final IOException e1) {
                 callback.onClientConnectionError(new SynchronizeFXException(e1));
             }
             callback.onClientConnectionError(e);
@@ -220,6 +225,11 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     void connectionCloses(final SynchronizeFXTomcatConnection connection) {
         LOG.info("Client connection closed.");
         synchronized (connections) {
+            final ExecutorService executorService = connectionThreads.get(connection);
+            if (executorService != null) {
+                executorService.shutdown();
+            }
+            connectionThreads.remove(connection);
             connections.remove(connection);
         }
     }
@@ -229,7 +239,9 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     @Override
     public void onConnectFinished(final Object client) {
         synchronized (connections) {
-            connections.add((SynchronizeFXTomcatConnection) client);
+            final SynchronizeFXTomcatConnection synchFxClient = (SynchronizeFXTomcatConnection) client;
+            connections.add(synchFxClient);
+            connectionThreads.put(synchFxClient, Executors.newSingleThreadExecutor());
         }
     }
 
@@ -243,7 +255,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
         byte[] buffer;
         try {
             buffer = getSerializerInternal().serialize(commands);
-        } catch (SynchronizeFXException e) {
+        } catch (final SynchronizeFXException e) {
             shutdown();
             callback.onFatalError(e);
             return;
@@ -258,10 +270,10 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
 
     @Override
     public void sendToAllExcept(final List<Command> commands, final Object nonReciver) {
-        byte[] buffer;
+        final byte[] buffer;
         try {
             buffer = getSerializerInternal().serialize(commands);
-        } catch (SynchronizeFXException e) {
+        } catch (final SynchronizeFXException e) {
             shutdown();
             callback.onFatalError(e);
             return;
@@ -272,7 +284,14 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             // as already called a second time.
             for (final MessageInbound connection : connections) {
                 if (connection != nonReciver) {
-                    send(buffer, connection);
+                    final ExecutorService executorService = connectionThreads.get(connection);
+                    // execute asynchronously to avoid slower clients from interfering with faster clients
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            send(buffer, connection);
+                        }
+                    });
                 }
             }
         }
@@ -282,7 +301,6 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     public void start() throws SynchronizeFXException {
         // Starting is done by starting the servlet in the way servlets usualy get started. So this method does
         // nothing.
-
     }
 
     /**
@@ -295,8 +313,14 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             for (final MessageInbound connection : connections) {
                 try {
                     connection.getWsOutbound().close(0, null);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOG.error("Connection [" + connection.toString() + "] can't be closed.", e);
+                } finally {
+                    final ExecutorService executorService = connectionThreads.get(connection);
+                    if (executorService != null) {
+                        executorService.shutdown();
+                    }
+                    connectionThreads.remove(connection);
                 }
             }
             connections.clear();
