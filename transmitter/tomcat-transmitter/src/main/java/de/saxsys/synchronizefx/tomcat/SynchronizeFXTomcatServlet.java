@@ -35,19 +35,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.catalina.websocket.MessageInbound;
-import org.apache.catalina.websocket.StreamInbound;
-import org.apache.catalina.websocket.WebSocketServlet;
-import org.apache.catalina.websocket.WsOutbound;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+
+import org.apache.catalina.websocket.MessageInbound;
+import org.apache.catalina.websocket.StreamInbound;
+import org.apache.catalina.websocket.WebSocketServlet;
+import org.apache.catalina.websocket.WsOutbound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An server-side network layer implementation for SynchronizeFX that uses the websocket implementation of Apache
@@ -239,9 +239,9 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
     @Override
     public void onConnectFinished(final Object client) {
         synchronized (connections) {
-            final SynchronizeFXTomcatConnection synchFxClient = (SynchronizeFXTomcatConnection) client;
-            connections.add(synchFxClient);
-            connectionThreads.put(synchFxClient, Executors.newSingleThreadExecutor());
+            final SynchronizeFXTomcatConnection syncFxClient = (SynchronizeFXTomcatConnection) client;
+            connections.add(syncFxClient);
+            connectionThreads.put(syncFxClient, Executors.newSingleThreadExecutor());
         }
     }
 
