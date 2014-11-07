@@ -161,20 +161,29 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
         }
 
         final WsOutbound outbound = ((MessageInbound) destination).getWsOutbound();
-        try {
-            outbound.writeBinaryMessage(ByteBuffer.wrap(buffer));
-        } catch (final IOException e) {
-            LOG.warn("Sending data to a client failed. Closing connection to this client.");
-            try {
-                outbound.close(1002, null);
-                // CHECKSTYLE:OFF
-            } catch (final IOException e1) {
-                // Maybe the connection is already closed. This is no exceptional state but rather the default in
-                // this case. So it's safe to ignore this exception.
+
+        final ExecutorService executorService = connectionThreads.get(destination);
+        // execute asynchronously to avoid slower clients from interfering with faster clients
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    outbound.writeBinaryMessage(ByteBuffer.wrap(buffer));
+                } catch (final IOException e) {
+                    LOG.warn("Sending data to a client failed. Closing connection to this client.");
+                    try {
+                        outbound.close(1002, null);
+                        // CHECKSTYLE:OFF
+                    } catch (final IOException e1) {
+                        // Maybe the connection is already closed. This is no exceptional state but rather the
+                        // default in
+                        // this case. So it's safe to ignore this exception.
+                    }
+                    // CHECKSTYLE:ON
+                    connectionCloses((SynchronizeFXTomcatConnection) destination);
+                }
             }
-            // CHECKSTYLE:ON
-            connectionCloses((SynchronizeFXTomcatConnection) destination);
-        }
+        });
     }
 
     // Used by SynchronizeFXTomcatConnection objects
@@ -284,14 +293,7 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
             // as already called a second time.
             for (final MessageInbound connection : connections) {
                 if (connection != nonReciver) {
-                    final ExecutorService executorService = connectionThreads.get(connection);
-                    // execute asynchronously to avoid slower clients from interfering with faster clients
-                    executorService.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            send(buffer, connection);
-                        }
-                    });
+                    send(buffer, connection);
                 }
             }
         }
