@@ -35,49 +35,47 @@ class ValueMapper {
     /**
      * Initializes an instance.
      * 
-     * @param objectRegistry used to retrieve observable objects from the model registry.
+     * @param objectRegistry
+     *            used to retrieve observable objects from the model registry.
      */
     public ValueMapper(final WeakObjectRegistry objectRegistry) {
         this.objectRegistry = objectRegistry;
     }
 
     /**
-     * Maps a {@link Value} message to an {@link ObservedValue}.
+     * Maps a {@link Value} message to the {@link Object} it describes.
      * 
-     * @param message the message to map
+     * @param message
+     *            the message to map
      * @return The observed value
-     * @throws ObjectToIdMappingException When the value described it he message is unknown in the {@link MetaModel}.
+     * @throws ObjectToIdMappingException
+     *             When the value described it he message is unknown in the {@link MetaModel}.
      */
-    public ObservedValue map(final Value message) throws ObjectToIdMappingException {
-        ObservedValue value;
-
+    public Object map(final Value message) throws ObjectToIdMappingException {
         final UUID valueId = message.getObservableObjectId();
         if (valueId != null) {
-            Object fromRegistry = objectRegistry.getByIdOrFail(valueId);
-            value = new ObservedValue(fromRegistry, true);
+            return objectRegistry.getByIdOrFail(valueId);
         } else {
-            value = new ObservedValue(message.getSimpleObjectValue(), false);
+            return message.getSimpleObjectValue();
         }
-        return value;
     }
 
     /**
      * Maps {@link ObservedValue}s to {@link Value} messages.
      * 
-     * @param value The observed value to map.
+     * @param value
+     *            The observed value to map.
+     * @param isObservable
+     *            If the value is an observable object or a simple object
      * @return The message.
-     * @throws ObjectToIdMappingException When <code>value</code> wraps an <em>observable object</em> which has not
-     *             been assigned an id yet.
+     * @throws ObjectToIdMappingException
+     *             When <code>value</code> wraps an <em>observable object</em> which has not been assigned an id yet.
      */
-    public Value map(final ObservedValue value) throws ObjectToIdMappingException {
-        Value msg;
-
-        if (value.isObservable()) {
-            final UUID id = objectRegistry.getIdOrFail(value.getValue());
-            msg = new Value(id);
+    public Value map(final Object value, final boolean isObservable) throws ObjectToIdMappingException {
+        if (isObservable) {
+            return new Value(objectRegistry.getIdOrFail(value));
         } else {
-            msg = new Value(value.getValue());
+            return new Value(value);
         }
-        return msg;
     }
 }

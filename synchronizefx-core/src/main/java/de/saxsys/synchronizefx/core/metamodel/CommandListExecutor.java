@@ -174,7 +174,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
 
-        final Object value = valueMapper.map(command.getValue()).getValue();
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(prop, new Runnable() {
             @Override
@@ -188,7 +188,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(list, new Runnable() {
             @Override
@@ -198,7 +198,7 @@ public class CommandListExecutor {
                             + "if you've just connected.");
                     return;
                 }
-                list.add(command.getPosition(), value.getValue());
+                list.add(command.getPosition(), value);
             }
         });
     }
@@ -230,12 +230,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
-                list.set(command.getPosition(), value.getValue());
+                list.set(command.getPosition(), value);
             }
         });
     }
@@ -244,13 +244,13 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
 
-        final ObservedValue key = valueMapper.map(command.getKey());
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object key = valueMapper.map(command.getKey());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                map.put(key.getValue(), value.getValue());
+                map.put(key, value);
             }
         });
     }
@@ -259,12 +259,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
 
-        final ObservedValue key = valueMapper.map(command.getKey());
+        final Object key = valueMapper.map(command.getKey());
 
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                map.remove(key.getValue());
+                map.remove(key);
             }
         });
     }
@@ -273,12 +273,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                set.add(value.getValue());
+                set.add(value);
             }
         });
     }
@@ -287,12 +287,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                set.remove(value.getValue());
+                set.remove(value);
             }
         });
     }
