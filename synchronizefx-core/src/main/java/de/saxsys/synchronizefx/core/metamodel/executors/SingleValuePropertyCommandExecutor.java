@@ -20,12 +20,17 @@
 package de.saxsys.synchronizefx.core.metamodel.executors;
 
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 
 import javafx.beans.property.Property;
 
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+
+import org.apache.commons.collections.map.AbstractReferenceMap;
+import org.apache.commons.collections.map.ReferenceIdentityMap;
 
 /**
  * Executes incoming change events on single value properties.
@@ -42,7 +47,10 @@ public class SingleValuePropertyCommandExecutor {
 
     private final WeakObjectRegistry objectRegistry;
 
-    private final Queue<SetPropertyValue> localCommands = new LinkedList<>();
+    // Apache commons collections are not generic
+    @SuppressWarnings("unchecked")
+    private Map<Property<Object>, Queue<UUID>> propertyToChangeLog = new ReferenceIdentityMap(
+            AbstractReferenceMap.WEAK, AbstractReferenceMap.HARD);
 
     /**
      * Initializes the instance with all its dependencies.
@@ -61,7 +69,7 @@ public class SingleValuePropertyCommandExecutor {
      *            The command to log.
      */
     void logLocalCommand(final SetPropertyValue command) {
-        localCommands.offer(command);
+        getLog(command).offer(command.getCommandId());
     }
 
     /**
@@ -71,19 +79,34 @@ public class SingleValuePropertyCommandExecutor {
      *            The received event.
      */
     public void executeRemoteCommand(final SetPropertyValue command) {
-        if (!localCommands.isEmpty()) {
-            if (localCommands.peek().equals(command)) {
+        @SuppressWarnings("unchecked")
+        final Property<Object> property = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
+        final Queue<UUID> localCommands = propertyToChangeLog.get(property);
+        
+        if (!(localCommands == null || localCommands.isEmpty())) {
+            if (localCommands.peek().equals(command.getCommandId())) {
                 localCommands.poll();
             }
             return;
         }
 
-        @SuppressWarnings("unchecked")
-        Property<Object> property = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
         if (command.getValue().isSimpleObject()) {
             property.setValue(command.getValue().getSimpleObjectValue());
         } else {
             property.setValue(objectRegistry.getByIdOrFail(command.getValue().getObservableObjectId()));
         }
+    }
+
+    private Queue<UUID> getLog(final SetPropertyValue command) {
+        @SuppressWarnings("unchecked")
+        final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
+
+        if (propertyToChangeLog.containsKey(prop)) {
+            return propertyToChangeLog.get(prop);
+        }
+
+        final Queue<UUID> log = new LinkedList<>();
+        propertyToChangeLog.put(prop, log);
+        return log;
     }
 }

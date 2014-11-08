@@ -93,7 +93,8 @@ public class SingleValuePropertyCommandExecutorTest {
      */
     @Test
     public void shouldDropCommandWhenItsNotEqualToFirstCommandInTheLog() {
-        cut.logLocalCommand(new SetPropertyValue(UUID.randomUUID(), new Value("dummy local change")));
+        cut.logLocalCommand(new SetPropertyValue(exemplaryProperty1Id, new Value("dummy local change")));
+        cut.logLocalCommand(new SetPropertyValue(exemplaryProperty2Id, new Value("dummy local change")));
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has not changed
@@ -119,6 +120,19 @@ public class SingleValuePropertyCommandExecutorTest {
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has not changed
         assertThat(exemplaryProperty1).hasValue(exemplaryProperty1Value);
+
+        cut.executeRemoteCommand(exemplaryProperty1Change);
+        // Property 1 has changed
+        assertThat(exemplaryProperty1).hasValue("changed value");
+    }
+
+    /**
+     * There should be a separate command log for each property.
+     */
+    @Test
+    public void shouldUseSeparateCommandLogsForEveryProperty() {
+        // A local change in property 2 should not in interfere with a remote change in property 1.
+        cut.logLocalCommand(exemplaryProperty2Change);
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has changed
