@@ -177,12 +177,6 @@
 				<version>1.6.0</version>
 				<scope>test</scope>
 			</dependency>
-            <dependency>
-                <groupId>eu.lestard</groupId>
-                <artifactId>assertj-javafx</artifactId>
-                <version>0.2.0</version>
-                <scope>test</scope>
-            </dependency>
 		</dependencies>
 	</dependencyManagement>
 

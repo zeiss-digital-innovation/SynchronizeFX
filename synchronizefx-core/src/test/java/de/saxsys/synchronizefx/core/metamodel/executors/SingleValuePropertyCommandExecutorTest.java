@@ -37,7 +37,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static eu.lestard.assertj.javafx.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -82,10 +82,10 @@ public class SingleValuePropertyCommandExecutorTest {
     @Test
     public void shouldExecuteIncommingCommandWhenLogIsEmpty() {
         cut.executeRemoteCommand(exemplaryProperty1Change);
-        assertThat(exemplaryProperty1).hasValue("changed value");
+        assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
 
         cut.executeRemoteCommand(exemplaryProperty2Change);
-        assertThat(exemplaryProperty2).hasValue(exemplaryProperty1);
+        assertThat(exemplaryProperty2.get()).isEqualTo(exemplaryProperty1);
     }
 
     /**
@@ -98,11 +98,11 @@ public class SingleValuePropertyCommandExecutorTest {
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has not changed
-        assertThat(exemplaryProperty1).hasValue(exemplaryProperty1Value);
+        assertThat(exemplaryProperty1.get()).isEqualTo(exemplaryProperty1Value);
 
         cut.executeRemoteCommand(exemplaryProperty2Change);
         // Property 2 has not changed
-        assertThat(exemplaryProperty2).hasValue(exemplaryProperty2Value);
+        assertThat(exemplaryProperty2.get()).isEqualTo(exemplaryProperty2Value);
     }
 
     /**
@@ -119,11 +119,11 @@ public class SingleValuePropertyCommandExecutorTest {
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has not changed
-        assertThat(exemplaryProperty1).hasValue(exemplaryProperty1Value);
+        assertThat(exemplaryProperty1.get()).isEqualTo(exemplaryProperty1Value);
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has changed
-        assertThat(exemplaryProperty1).hasValue("changed value");
+        assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
     }
 
     /**
@@ -136,6 +136,6 @@ public class SingleValuePropertyCommandExecutorTest {
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has changed
-        assertThat(exemplaryProperty1).hasValue("changed value");
+        assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
     }
 }

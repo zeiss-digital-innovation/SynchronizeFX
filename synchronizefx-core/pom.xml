@@ -44,10 +44,5 @@
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>eu.lestard</groupId>
-      <artifactId>assertj-javafx</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 </project>
