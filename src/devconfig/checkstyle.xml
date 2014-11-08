@@ -184,7 +184,10 @@
     </module>
     <module name="DefaultComesLast"/>
     <module name="EqualsAvoidNull"/>
-    <module name="ExplicitInitialization"/>
+    <module name="ExplicitInitialization">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="FallThrough"/>
     <module name="IllegalThrows"/>
     <module name="ModifiedControlVariable"/>
