@@ -50,7 +50,7 @@ import static org.mockito.Mockito.verify;
 public class CommandLogDispatcherTest {
 
     @Mock
-    private SingleValuePropertyCommandExecutor singleValue;
+    private RepairingSingleValuePropertyCommandExecutor singleValue;
 
     @InjectMocks
     private CommandLogDispatcher cut;
@@ -59,7 +59,7 @@ public class CommandLogDispatcherTest {
     private ArgumentCaptor<SetPropertyValue> setPropertyValueCaptor;
 
     /**
-     * {@link SetPropertyValue} commands should be dispatched to the {@link SingleValuePropertyCommandExecutor}.
+     * {@link SetPropertyValue} commands should be sent to the {@link RepairingSingleValuePropertyCommandExecutor}.
      */
     @Test
     public void dispatchesSetPropertyValueToSingleValuePropertyCommandExecutor() {
@@ -74,5 +74,16 @@ public class CommandLogDispatcherTest {
         verify(singleValue, times(2)).logLocalCommand(setPropertyValueCaptor.capture());
         assertThat(setPropertyValueCaptor.getAllValues().get(0)).isEqualTo(msg1);
         assertThat(setPropertyValueCaptor.getAllValues().get(1)).isEqualTo(msg2);
+    }
+
+    /**
+     * When no executors are interested in commands, the dispatcher should not fail.
+     */
+    @Test
+    public void doesNotFailWhenNoExecutorsAreRegisteredForCommands() {
+        cut = new CommandLogDispatcher();
+
+        cut.logLocalCommands(Arrays.asList(new PutToMap(), new ReplaceInList(), new SetPropertyValue(null, null)));
+        // passes when no exception is thrown.
     }
 }

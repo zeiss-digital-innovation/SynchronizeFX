@@ -25,8 +25,8 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
 /**
- * Logs commands that where generated and send from the local peer to the server to allow model repairing based on
- * the servers command stream.
+ * Logs commands that where generated and send from the local peer to the server to allow model repairing based on the
+ * servers command stream.
  * 
  * <p>
  * This class dispatches the local commands to the different executors which are interested in them.
@@ -36,23 +36,35 @@ import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
  */
 public class CommandLogDispatcher {
 
-    private final SingleValuePropertyCommandExecutor singleValue;
+    private final RepairingSingleValuePropertyCommandExecutor singleValue;
 
     /**
      * Initializes this dispatcher with all executers that are interested in commands.
      * 
-     * @param singleValue The executor for single-value-property change commands.
+     * @param singleValue
+     *            The executor for single-value-property change commands.
      */
-    public CommandLogDispatcher(final SingleValuePropertyCommandExecutor singleValue) {
+    public CommandLogDispatcher(final RepairingSingleValuePropertyCommandExecutor singleValue) {
         this.singleValue = singleValue;
+    }
+
+    /**
+     * Creates an instance that dispatches no commands as no executors are interested in them.
+     */
+    public CommandLogDispatcher() {
+        this.singleValue = null;
     }
 
     /**
      * Logs a list of locally generated commands that is sent to the server.
      * 
-     * @param commands The commands that where send.
+     * @param commands
+     *            The commands that where send.
      */
     public void logLocalCommands(final List<Command> commands) {
+        if (singleValue == null) {
+            return;
+        }
         for (final Command command : commands) {
             if (command instanceof SetPropertyValue) {
                 singleValue.logLocalCommand((SetPropertyValue) command);

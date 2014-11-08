@@ -33,20 +33,23 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * Checks if {@link SingleValuePropertyCommandExecutor} works as expected.
+ * Checks if {@link RepairingSingleValuePropertyCommandExecutor} works as expected.
  * 
  * @author Raik Bieniek
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SingleValuePropertyCommandExecutorTest {
+public class ReparingSingleValuePropertyCommandExecutorTest {
 
     private final UUID exemplaryProperty1Id = UUID.randomUUID();
     private final String exemplaryProperty1Value = "original value";
@@ -63,9 +66,15 @@ public class SingleValuePropertyCommandExecutorTest {
 
     @Mock
     private WeakObjectRegistry objectRegistry;
+    
+    @Mock
+    private SimpleSingleValuePropertyCommandExecutor executor;
 
     @InjectMocks
-    private SingleValuePropertyCommandExecutor cut;
+    private RepairingSingleValuePropertyCommandExecutor cut;
+    
+    @Captor
+    private ArgumentCaptor<SetPropertyValue> executedCommands;
 
     /**
      * Wires up the mocked dependencies.
@@ -82,10 +91,10 @@ public class SingleValuePropertyCommandExecutorTest {
     @Test
     public void shouldExecuteIncommingCommandWhenLogIsEmpty() {
         cut.executeRemoteCommand(exemplaryProperty1Change);
-        assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
+        verify(executor).executeRemoteCommand(exemplaryProperty1Change);
 
         cut.executeRemoteCommand(exemplaryProperty2Change);
-        assertThat(exemplaryProperty2.get()).isEqualTo(exemplaryProperty1);
+        verify(executor).executeRemoteCommand(exemplaryProperty2Change);
     }
 
     /**
@@ -95,14 +104,12 @@ public class SingleValuePropertyCommandExecutorTest {
     public void shouldDropCommandWhenItsNotEqualToFirstCommandInTheLog() {
         cut.logLocalCommand(new SetPropertyValue(exemplaryProperty1Id, new Value("dummy local change")));
         cut.logLocalCommand(new SetPropertyValue(exemplaryProperty2Id, new Value("dummy local change")));
-
+        
         cut.executeRemoteCommand(exemplaryProperty1Change);
-        // Property 1 has not changed
-        assertThat(exemplaryProperty1.get()).isEqualTo(exemplaryProperty1Value);
-
         cut.executeRemoteCommand(exemplaryProperty2Change);
-        // Property 2 has not changed
-        assertThat(exemplaryProperty2.get()).isEqualTo(exemplaryProperty2Value);
+        
+        // Both commands have been filtered an none has been executed.
+        verifyNoMoreInteractions(executor);
     }
 
     /**
@@ -119,11 +126,11 @@ public class SingleValuePropertyCommandExecutorTest {
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has not changed
-        assertThat(exemplaryProperty1.get()).isEqualTo(exemplaryProperty1Value);
+        verifyNoMoreInteractions(executor);
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has changed
-        assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
+        verify(executor).executeRemoteCommand(exemplaryProperty1Change);
     }
 
     /**
@@ -136,6 +143,6 @@ public class SingleValuePropertyCommandExecutorTest {
 
         cut.executeRemoteCommand(exemplaryProperty1Change);
         // Property 1 has changed
-        assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
+        verify(executor).executeRemoteCommand(exemplaryProperty1Change);
     }
 }

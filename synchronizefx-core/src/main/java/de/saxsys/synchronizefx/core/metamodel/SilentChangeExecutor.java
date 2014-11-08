@@ -24,21 +24,18 @@ import java.util.concurrent.Executor;
 /**
  * Changes an Observable without notifying listeners of these changes.
  */
-class SilentChangeExecutor {
+public class SilentChangeExecutor {
 
-    private final Listeners listeners;
+    private Listeners listeners;
     private final Executor executor;
 
     /**
      * Initializes an instance with its dependencies.
      * 
-     * @param listeners
-     *            used to disable and re-enable change notification while modifying observables.
      * @param changeExecutor
      *            used for execute any changes to the users domain model.
      */
-    public SilentChangeExecutor(final Listeners listeners, final Executor changeExecutor) {
-        this.listeners = listeners;
+    public SilentChangeExecutor(final Executor changeExecutor) {
         this.executor = changeExecutor;
     }
 
@@ -46,8 +43,7 @@ class SilentChangeExecutor {
      * Executes a change to an observable of the users domain model without generating change commands for this change.
      * 
      * <p>
-     * Any changes done to the users domain model are executed over the {@link ModelChangeExecutor} passed in the
-     * constructor.
+     * Any changes done to the users domain model are executed over the model change executor passed in the constructor.
      * </p>
      * 
      * @param observable
@@ -64,5 +60,15 @@ class SilentChangeExecutor {
                 listeners.enableFor(observable);
             }
         });
+    }
+
+    /**
+     * Registers the listener that should be suspended while modifying observables.
+     * 
+     * @param listeners
+     *            the listeners
+     */
+    public void registerListenersToSilence(final Listeners listeners) {
+        this.listeners = listeners;
     }
 }

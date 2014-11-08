@@ -19,58 +19,14 @@
 
 package de.saxsys.synchronizefx.core.metamodel.executors;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.UUID;
-
-import javafx.beans.property.Property;
-
-import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
-import org.apache.commons.collections.map.AbstractReferenceMap;
-import org.apache.commons.collections.map.ReferenceIdentityMap;
-
 /**
- * Executes incoming change events on single value properties.
- * 
- * This executor handles the following change command:
- * 
- * <ul>
- * <li>{@link SetPropertyValue}</li>
- * </ul>
+ * Executes {@link SetPropertyValue} commands recieved from other peers.
  * 
  * @author Raik Bieniek
  */
-public class SingleValuePropertyCommandExecutor {
-
-    private final WeakObjectRegistry objectRegistry;
-
-    // Apache commons collections are not generic
-    @SuppressWarnings("unchecked")
-    private Map<Property<Object>, Queue<UUID>> propertyToChangeLog = new ReferenceIdentityMap(
-            AbstractReferenceMap.WEAK, AbstractReferenceMap.HARD);
-
-    /**
-     * Initializes the instance with all its dependencies.
-     * 
-     * @param objectRegistry
-     *            the registry that stores all known observable objects.
-     */
-    public SingleValuePropertyCommandExecutor(final WeakObjectRegistry objectRegistry) {
-        this.objectRegistry = objectRegistry;
-    }
-
-    /**
-     * Logs a {@link SetPropertyValue} command that was send locally to the server.
-     * 
-     * @param command
-     *            The command to log.
-     */
-    void logLocalCommand(final SetPropertyValue command) {
-        getLog(command).offer(command.getCommandId());
-    }
+public interface SingleValuePropertyCommandExecutor {
 
     /**
      * Executes an command that was received from an other peer if appropriate.
@@ -78,35 +34,6 @@ public class SingleValuePropertyCommandExecutor {
      * @param command
      *            The received event.
      */
-    public void executeRemoteCommand(final SetPropertyValue command) {
-        @SuppressWarnings("unchecked")
-        final Property<Object> property = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
-        final Queue<UUID> localCommands = propertyToChangeLog.get(property);
-        
-        if (!(localCommands == null || localCommands.isEmpty())) {
-            if (localCommands.peek().equals(command.getCommandId())) {
-                localCommands.poll();
-            }
-            return;
-        }
+    void executeRemoteCommand(SetPropertyValue command);
 
-        if (command.getValue().isSimpleObject()) {
-            property.setValue(command.getValue().getSimpleObjectValue());
-        } else {
-            property.setValue(objectRegistry.getByIdOrFail(command.getValue().getObservableObjectId()));
-        }
-    }
-
-    private Queue<UUID> getLog(final SetPropertyValue command) {
-        @SuppressWarnings("unchecked")
-        final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
-
-        if (propertyToChangeLog.containsKey(prop)) {
-            return propertyToChangeLog.get(prop);
-        }
-
-        final Queue<UUID> log = new LinkedList<>();
-        propertyToChangeLog.put(prop, log);
-        return log;
-    }
 }

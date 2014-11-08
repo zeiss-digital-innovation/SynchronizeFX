@@ -19,6 +19,7 @@
 
 package de.saxsys.synchronizefx.core.clientserver;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -26,7 +27,9 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
 import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
+import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +51,14 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
-     * @param model see
+     * @param model
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param networkLayer see
+     * @param networkLayer
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param serverCallback see
+     * @param serverCallback
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
     public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
@@ -64,13 +70,17 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
-     * @param model see
+     * @param model
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param networkLayer see
+     * @param networkLayer
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param serverCallback see
+     * @param serverCallback
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param changeExecutor see
+     * @param changeExecutor
+     *            see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
     // CHECKSTYLE:ON
@@ -89,7 +99,42 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
         }
 
         meta.execute(commands);
+
+        // FIXME The rest of this method is a temporary hack. When the implementation is finished, clients should be
+        // able to handle receiving commands they have created on there own. At the moment this is only true for some
+        // types of commands. Therefore these command types have to be separated from the other commands.
+        // networkLayer.sendToAll(commands, sender);
+
+        // remove ClearReferenceCommand
+        commands.remove(commands.size() - 1);
+
+        boolean handable = senderReceivingOwnCommandHandable(commands.get(0));
+        List<Command> filteredCommands = new LinkedList<>();
+        for (final Command command : commands) {
+            if (handable ^ senderReceivingOwnCommandHandable(command)) {
+                // start a new list of the other kind
+                sendToAllOrToAllExcept(filteredCommands, sender, handable);
+                filteredCommands = new LinkedList<>();
+                handable = !handable;
+            }
+            filteredCommands.add(command);
+        }
+        sendToAllOrToAllExcept(filteredCommands, sender, handable);
+
         networkLayer.sendToAllExcept(commands, sender);
+    }
+
+    private boolean senderReceivingOwnCommandHandable(final Command command) {
+        return command instanceof SetPropertyValue;
+    }
+
+    private void sendToAllOrToAllExcept(final List<Command> commands, final Object sender, final boolean toAll) {
+        commands.add(new ClearReferences());
+        if (toAll) {
+            networkLayer.sendToAll(commands);
+        } else {
+            networkLayer.sendToAllExcept(commands, sender);
+        }
     }
 
     @Override
@@ -117,7 +162,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     /**
      * Sends the current domain model to a newly connecting client.
      * 
-     * @param newClient An object that represent the new client that connected.
+     * @param newClient
+     *            An object that represent the new client that connected.
      * @see IncommingEventHandlerServer#onConnect(Object)
      */
     @Override
@@ -140,7 +186,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      * Connection errors to single clients are usually non fatal. The server can still work correctly for the other
      * clients. Because of that this type of error is just logged here and not passed to the user.
      * 
-     * @param e an exception that describes the problem.
+     * @param e
+     *            an exception that describes the problem.
      * 
      * @see NetworkToTopologyCallbackServer#onClientConnectionError(SynchronizeFXException)
      */

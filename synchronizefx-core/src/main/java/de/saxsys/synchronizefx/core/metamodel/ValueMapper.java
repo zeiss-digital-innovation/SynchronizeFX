@@ -28,7 +28,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 /**
  * Maps the {@link Value} parts of {@link Command}s to the values they describe.
  */
-class ValueMapper {
+public class ValueMapper {
 
     private final WeakObjectRegistry objectRegistry;
 
@@ -61,7 +61,7 @@ class ValueMapper {
     }
 
     /**
-     * Maps {@link ObservedValue}s to {@link Value} messages.
+     * Maps observable or simple objects to {@link Value} messages.
      * 
      * @param value
      *            The observed value to map.

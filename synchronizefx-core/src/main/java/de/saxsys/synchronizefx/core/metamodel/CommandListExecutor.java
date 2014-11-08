@@ -41,6 +41,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
+import de.saxsys.synchronizefx.core.metamodel.executors.SingleValuePropertyCommandExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,7 @@ public class CommandListExecutor {
     private final Listeners listeners;
     private final SilentChangeExecutor changeExecutor;
     private final ValueMapper valueMapper;
+    private final SingleValuePropertyCommandExecutor singleValuePropertyExecutor;
 
     /**
      * A set that holds hard references to objects that would otherwise only have weak references and thus could get
@@ -79,14 +81,18 @@ public class CommandListExecutor {
      * @param valueMapper
      *            Used to translate {@link de.saxsys.synchronizefx.core.metamodel.commands.Value} messages to the real
      *            values the represent.
+     * @param singleValuePropertyExecutor
+     *            Used to execute changes in single-value-properties
      */
     public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
-            final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
+            final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper,
+            final SingleValuePropertyCommandExecutor singleValuePropertyExecutor) {
         this.parent = parent;
         this.objectRegistry = objectRegistry;
         this.changeExecutor = changeExecutor;
         this.listeners = listeners;
         this.valueMapper = valueMapper;
+        this.singleValuePropertyExecutor = singleValuePropertyExecutor;
     }
 
     /**
@@ -100,7 +106,7 @@ public class CommandListExecutor {
         if (command instanceof CreateObservableObject) {
             execute((CreateObservableObject) command);
         } else if (command instanceof SetPropertyValue) {
-            execute((SetPropertyValue) command);
+            singleValuePropertyExecutor.executeRemoteCommand((SetPropertyValue) command);
         } else if (command instanceof AddToList) {
             execute((AddToList) command);
         } else if (command instanceof RemoveFromList) {

@@ -26,8 +26,8 @@ import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryClient;
 import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryServer;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -65,7 +65,6 @@ public class ConcurrentModificationSingleValuePropertyIT {
      * Checks that a property that is changed on multiple clients at nearly the same time is eventually synchron on
      * all clients and the server.
      */
-    @Ignore("Shows a part of the problem of bug #16")
     @Test
     public void valueOfSingleValuePropertyShouldBeEventuallyConsistent() {
         client1.executeInClientThread(new Runnable() {

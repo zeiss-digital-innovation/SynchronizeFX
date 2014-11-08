@@ -21,8 +21,10 @@ package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.concurrent.Executor;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -37,10 +39,18 @@ public class SilentChangeExecutorTest {
 
     private final DelayedModelChangeExecutor executor = new DelayedModelChangeExecutor();
     private final Listeners listeners = mock(Listeners.class);
-    private final SilentChangeExecutor changer = new SilentChangeExecutor(listeners, executor);
+    private final SilentChangeExecutor changer = new SilentChangeExecutor(executor);
 
     private final DummyObservable dummyObservable = mock(DummyObservable.class);
 
+    /**
+     * Sets up the class under test.
+     */
+    @Before
+    public void setupCut() {
+        changer.registerListenersToSilence(listeners);
+    }
+    
     /**
      * The change to the domain model should not be propagated to the synchronizeFX specific listeners that generate
      * change commands.
@@ -57,7 +67,7 @@ public class SilentChangeExecutorTest {
         assertThat(executor.runnable).isNotNull();
         executor.runnable.run();
 
-        InOrder inOrder = inOrder(listeners, dummyObservable);
+        final InOrder inOrder = inOrder(listeners, dummyObservable);
 
         inOrder.verify(listeners).disableFor(dummyObservable);
         inOrder.verify(dummyObservable).setValue(NEW_VALUE);
