@@ -119,9 +119,17 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
             }
             filteredCommands.add(command);
         }
+
+        if (handable) {
+            filteredCommands.add(new ClearReferences());
+        }
         sendToAllOrToAllExcept(filteredCommands, sender, handable);
 
-        networkLayer.sendToAllExcept(commands, sender);
+        if (!handable) {
+            filteredCommands = new LinkedList<>();
+            filteredCommands.add(new ClearReferences());
+            networkLayer.sendToAll(filteredCommands);
+        }
     }
 
     private boolean senderReceivingOwnCommandHandable(final Command command) {
@@ -129,7 +137,6 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     }
 
     private void sendToAllOrToAllExcept(final List<Command> commands, final Object sender, final boolean toAll) {
-        commands.add(new ClearReferences());
         if (toAll) {
             networkLayer.sendToAll(commands);
         } else {
