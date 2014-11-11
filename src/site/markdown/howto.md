@@ -45,7 +45,7 @@ To add SynchronizeFX to a Maven based project add the following to your pom.xml
     <dependency>
         <groupId>de.saxsys.synchronizefx</groupId>
         <artifactId>synchronizefx</artifactId>
-        <version>${currentVersion}</version>
+        <version>0.5.0</version>
     </dependency>
 
 ## Examples
