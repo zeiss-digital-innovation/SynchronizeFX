@@ -38,7 +38,7 @@ import org.apache.commons.collections.map.ReferenceMap;
  * at any time.
  * </p>
  */
-class WeakObjectRegistry {
+public class WeakObjectRegistry {
 
     private static final String SYNCRONISM_LOST = "In most cases this means that synchronism with other peers "
             + "has been lost.";

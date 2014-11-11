@@ -28,7 +28,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 /**
  * Maps the {@link Value} parts of {@link Command}s to the values they describe.
  */
-class ValueMapper {
+public class ValueMapper {
 
     private final WeakObjectRegistry objectRegistry;
 
@@ -43,7 +43,7 @@ class ValueMapper {
     }
 
     /**
-     * Maps a {@link Value} message to an {@link ObservedValue}.
+     * Maps a {@link Value} message to the {@link Object} it describes.
      * 
      * @param message
      *            the message to map
@@ -51,37 +51,31 @@ class ValueMapper {
      * @throws ObjectToIdMappingException
      *             When the value described it he message is unknown in the {@link MetaModel}.
      */
-    public ObservedValue map(final Value message) throws ObjectToIdMappingException {
-        ObservedValue value;
-
+    public Object map(final Value message) throws ObjectToIdMappingException {
         final UUID valueId = message.getObservableObjectId();
         if (valueId != null) {
-            Object fromRegistry = objectRegistry.getByIdOrFail(valueId);
-            value = new ObservedValue(fromRegistry, true);
+            return objectRegistry.getByIdOrFail(valueId);
         } else {
-            value = new ObservedValue(message.getSimpleObjectValue(), false);
+            return message.getSimpleObjectValue();
         }
-        return value;
     }
 
     /**
-     * Maps {@link ObservedValue}s to {@link Value} messages.
+     * Maps observable or simple objects to {@link Value} messages.
      * 
      * @param value
      *            The observed value to map.
+     * @param isObservable
+     *            If the value is an observable object or a simple object
      * @return The message.
      * @throws ObjectToIdMappingException
      *             When <code>value</code> wraps an <em>observable object</em> which has not been assigned an id yet.
      */
-    public Value map(final ObservedValue value) throws ObjectToIdMappingException {
-        Value msg = new Value();
-
-        if (value.isObservable()) {
-            UUID id = objectRegistry.getIdOrFail(value.getValue());
-            msg.setObservableObjectId(id);
+    public Value map(final Object value, final boolean isObservable) throws ObjectToIdMappingException {
+        if (isObservable) {
+            return new Value(objectRegistry.getIdOrFail(value));
         } else {
-            msg.setSimpleObjectValue(value.getValue());
+            return new Value(value);
         }
-        return msg;
     }
 }

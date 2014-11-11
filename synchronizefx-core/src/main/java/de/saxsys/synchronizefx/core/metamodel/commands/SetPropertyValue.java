@@ -26,13 +26,52 @@ import javafx.beans.property.Property;
 /**
  * A command to set a new value for some {@link Property}.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public class SetPropertyValue implements Command {
-    
-    private UUID propertyId;
-    private Value value;
+
+    private final UUID propertyId;
+    private final Value value;
+    private final UUID commandId;
+
+    /**
+     * Creates an instance with a predefined command id.
+     * 
+     * @param commandId
+     *            The unique id of this command.
+     * @param propertyId
+     *            The id of the property thats value is set.
+     * @param value
+     *            The value that is set.
+     */
+    public SetPropertyValue(final UUID commandId, final UUID propertyId, final Value value) {
+        this.commandId = commandId;
+        this.propertyId = propertyId;
+        this.value = value;
+    }
+
+    /**
+     * Creates an instance with an auto-generated command id.
+     * 
+     * @param propertyId
+     *            The id of the property thats value is set.
+     * @param value
+     *            The value that is set.
+     */
+    public SetPropertyValue(final UUID propertyId, final Value value) {
+        this.commandId = UUID.randomUUID();
+        this.propertyId = propertyId;
+        this.value = value;
+    }
+
+    /**
+     * The unique id of this command.
+     * 
+     * @return The id
+     */
+    public UUID getCommandId() {
+        return commandId;
+    }
 
     /**
      * @return The value to set for the property.
@@ -40,15 +79,7 @@ public class SetPropertyValue implements Command {
     public Value getValue() {
         return this.value;
     }
-    
-    /**
-     * @see SetPropertyValue#getValue()
-     * @param value the value
-     */
-    public void setValue(final Value value) {
-        this.value = value;
-    }
-    
+
     /**
      * @return The id of the property that's value should be set.
      */
@@ -57,11 +88,40 @@ public class SetPropertyValue implements Command {
     }
 
     /**
-     * @see SetPropertyValue#getPropertyId()
-     * @param propertyId the id
+     * Two {@link SetPropertyValue} commands are equal when their {@link #getCommandId()}s are equal.
+     * 
+     * @param obj
+     *            The other object to compare the equality with.
+     * @return <code>true</code> if this instance is equal to <code>obj</code> and <code>false</code> if not.
      */
-    public void setPropertyId(final UUID propertyId) {
-        this.propertyId = propertyId;
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        SetPropertyValue other = (SetPropertyValue) obj;
+        if (commandId == null) {
+            if (other.commandId != null) {
+                return false;
+            }
+        } else if (!commandId.equals(other.commandId)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((commandId == null) ? 0 : commandId.hashCode());
+        return result;
     }
 
     @Override

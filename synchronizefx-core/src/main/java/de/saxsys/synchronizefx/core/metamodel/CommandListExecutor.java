@@ -41,6 +41,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
+import de.saxsys.synchronizefx.core.metamodel.executors.SingleValuePropertyCommandExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,7 @@ public class CommandListExecutor {
     private final Listeners listeners;
     private final SilentChangeExecutor changeExecutor;
     private final ValueMapper valueMapper;
+    private final SingleValuePropertyCommandExecutor singleValuePropertyExecutor;
 
     /**
      * A set that holds hard references to objects that would otherwise only have weak references and thus could get
@@ -79,14 +81,18 @@ public class CommandListExecutor {
      * @param valueMapper
      *            Used to translate {@link de.saxsys.synchronizefx.core.metamodel.commands.Value} messages to the real
      *            values the represent.
+     * @param singleValuePropertyExecutor
+     *            Used to execute changes in single-value-properties
      */
     public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
-            final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper) {
+            final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper,
+            final SingleValuePropertyCommandExecutor singleValuePropertyExecutor) {
         this.parent = parent;
         this.objectRegistry = objectRegistry;
         this.changeExecutor = changeExecutor;
         this.listeners = listeners;
         this.valueMapper = valueMapper;
+        this.singleValuePropertyExecutor = singleValuePropertyExecutor;
     }
 
     /**
@@ -100,7 +106,7 @@ public class CommandListExecutor {
         if (command instanceof CreateObservableObject) {
             execute((CreateObservableObject) command);
         } else if (command instanceof SetPropertyValue) {
-            execute((SetPropertyValue) command);
+            singleValuePropertyExecutor.executeRemoteCommand((SetPropertyValue) command);
         } else if (command instanceof AddToList) {
             execute((AddToList) command);
         } else if (command instanceof RemoveFromList) {
@@ -174,7 +180,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
 
-        final Object value = valueMapper.map(command.getValue()).getValue();
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(prop, new Runnable() {
             @Override
@@ -188,7 +194,7 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(list, new Runnable() {
             @Override
@@ -198,7 +204,7 @@ public class CommandListExecutor {
                             + "if you've just connected.");
                     return;
                 }
-                list.add(command.getPosition(), value.getValue());
+                list.add(command.getPosition(), value);
             }
         });
     }
@@ -230,12 +236,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
-                list.set(command.getPosition(), value.getValue());
+                list.set(command.getPosition(), value);
             }
         });
     }
@@ -244,13 +250,13 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
 
-        final ObservedValue key = valueMapper.map(command.getKey());
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object key = valueMapper.map(command.getKey());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                map.put(key.getValue(), value.getValue());
+                map.put(key, value);
             }
         });
     }
@@ -259,12 +265,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Map<Object, Object> map = (Map<Object, Object>) objectRegistry.getByIdOrFail(command.getMapId());
 
-        final ObservedValue key = valueMapper.map(command.getKey());
+        final Object key = valueMapper.map(command.getKey());
 
         changeExecutor.execute(map, new Runnable() {
             @Override
             public void run() {
-                map.remove(key.getValue());
+                map.remove(key);
             }
         });
     }
@@ -273,12 +279,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                set.add(value.getValue());
+                set.add(value);
             }
         });
     }
@@ -287,12 +293,12 @@ public class CommandListExecutor {
         @SuppressWarnings("unchecked")
         final Set<Object> set = (Set<Object>) objectRegistry.getByIdOrFail(command.getSetId());
 
-        final ObservedValue value = valueMapper.map(command.getValue());
+        final Object value = valueMapper.map(command.getValue());
 
         changeExecutor.execute(set, new Runnable() {
             @Override
             public void run() {
-                set.remove(value.getValue());
+                set.remove(value);
             }
         });
     }

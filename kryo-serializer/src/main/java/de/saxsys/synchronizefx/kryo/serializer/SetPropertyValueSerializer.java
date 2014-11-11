@@ -17,9 +17,12 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.kryo;
+package de.saxsys.synchronizefx.kryo.serializer;
 
 import java.util.UUID;
+
+import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -27,20 +30,22 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Serializes and deserializes {@link UUID} instances.
+ * Serializes and deserialzes {@link SetPropertyValue} commands.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
-public final class UUIDSerializer extends Serializer<UUID> {
+public class SetPropertyValueSerializer extends Serializer<SetPropertyValue> {
+
     @Override
-    public UUID read(final Kryo kryo, final Input input, final Class<UUID> type) {
-        return new UUID(input.readLong(), input.readLong());
+    public void write(final Kryo kryo, final Output output, final SetPropertyValue object) {
+        kryo.writeObject(output, object.getCommandId());
+        kryo.writeObject(output, object.getPropertyId());
+        kryo.writeObject(output, object.getValue());
     }
 
     @Override
-    public void write(final Kryo kryo, final Output output, final UUID object) {
-        output.writeLong(object.getMostSignificantBits());
-        output.writeLong(object.getLeastSignificantBits());
+    public SetPropertyValue read(final Kryo kryo, final Input input, final Class<SetPropertyValue> type) {
+        return new SetPropertyValue(kryo.readObject(input, UUID.class), kryo.readObject(input, UUID.class),
+                kryo.readObject(input, Value.class));
     }
 }

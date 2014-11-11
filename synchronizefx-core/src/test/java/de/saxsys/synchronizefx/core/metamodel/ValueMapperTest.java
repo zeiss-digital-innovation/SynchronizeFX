@@ -23,9 +23,6 @@ import java.util.UUID;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
-import static de.saxsys.synchronizefx.core.metamodel.commands.builders.ValueBuilder.randomSimpleObjectMessage;
-import static de.saxsys.synchronizefx.core.metamodel.commands.builders.ValueBuilder.valueMessage;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -55,12 +52,11 @@ public class ValueMapperTest {
      */
     @Test
     public void shouldReturnSimpleObjectObservedValueForSimpleObjectMessages() {
-        Value message = randomSimpleObjectMessage().build();
+        final Value message = new Value("some value");
 
-        ObservedValue maped = cut.map(message);
+        final Object maped = cut.map(message);
 
-        assertThat(maped.isObservable()).isFalse();
-        assertThat(maped.getValue()).isSameAs(message.getSimpleObjectValue());
+        assertThat(maped).isSameAs(message.getSimpleObjectValue());
     }
 
     /**
@@ -69,14 +65,13 @@ public class ValueMapperTest {
      */
     @Test
     public void shouldReturnObservableObjectValueForObservableObjectMessage() {
-        Object sampleObservableObject = "sample object";
+        final Object sampleObservableObject = "sample object";
         when(objectRegistry.getByIdOrFail(SAMPLE_ID)).thenReturn(sampleObservableObject);
-        Value message = valueMessage().withObservableObjectId(SAMPLE_ID).build();
+        final Value message = new Value(SAMPLE_ID);
 
-        ObservedValue maped = cut.map(message);
+        final Object maped = cut.map(message);
 
-        assertThat(maped.isObservable()).isTrue();
-        assertThat(maped.getValue()).isSameAs(sampleObservableObject);
+        assertThat(maped).isSameAs(sampleObservableObject);
     }
 
     /**
@@ -84,12 +79,10 @@ public class ValueMapperTest {
      */
     @Test
     public void shouldReturnSimpleObjectMessageForSimpleObjectValue() {
-        ObservedValue sampleSimpleObject = new ObservedValue("sample object", false);
-        
-        Value message = cut.map(sampleSimpleObject);
+        final Value message = cut.map("sample object", false);
 
         assertThat(message.getObservableObjectId()).isNull();
-        assertThat(message.getSimpleObjectValue()).isSameAs(sampleSimpleObject.getValue());
+        assertThat(message.getSimpleObjectValue()).isSameAs("sample object");
     }
 
     /**
@@ -101,8 +94,8 @@ public class ValueMapperTest {
         Object sampleObservableObject = "sample object";
         when(objectRegistry.getIdOrFail(sampleObservableObject)).thenReturn(SAMPLE_ID);
 
-        Value message = cut.map(new ObservedValue(sampleObservableObject, true));
-        
+        Value message = cut.map(sampleObservableObject, true);
+
         assertThat(message.getObservableObjectId()).isEqualTo(SAMPLE_ID);
         assertThat(message.getSimpleObjectValue()).isNull();
     }
