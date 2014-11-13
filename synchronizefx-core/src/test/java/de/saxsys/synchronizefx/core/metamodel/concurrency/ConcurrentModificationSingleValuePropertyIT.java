@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Checks that concurrent modifications on a single value property are eventually consistent.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  */
 public class ConcurrentModificationSingleValuePropertyIT {
 
