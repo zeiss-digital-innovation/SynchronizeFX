@@ -106,42 +106,19 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
         // networkLayer.sendToAll(commands, sender);
 
         // remove ClearReferenceCommand
-        commands.remove(commands.size() - 1);
-
-        boolean handable = senderReceivingOwnCommandHandable(commands.get(0));
-        List<Command> filteredCommands = new LinkedList<>();
+        final List<Command> filteredCommands = new LinkedList<>();
+        
         for (final Command command : commands) {
-            if (handable ^ senderReceivingOwnCommandHandable(command)) {
-                // start a new list of the other kind
-                sendToAllOrToAllExcept(filteredCommands, sender, handable);
-                filteredCommands = new LinkedList<>();
-                handable = !handable;
+            if (senderReceivingOwnCommandHandable(command)) {
+                filteredCommands.add(command);
             }
-            filteredCommands.add(command);
         }
-
-        if (handable) {
-            filteredCommands.add(new ClearReferences());
-        }
-        sendToAllOrToAllExcept(filteredCommands, sender, handable);
-
-        if (!handable) {
-            filteredCommands = new LinkedList<>();
-            filteredCommands.add(new ClearReferences());
-            networkLayer.sendToAll(filteredCommands);
-        }
+        networkLayer.sendToAllExcept(commands, sender);
+        networkLayer.send(filteredCommands, sender);
     }
 
     private boolean senderReceivingOwnCommandHandable(final Command command) {
-        return command instanceof SetPropertyValue;
-    }
-
-    private void sendToAllOrToAllExcept(final List<Command> commands, final Object sender, final boolean toAll) {
-        if (toAll) {
-            networkLayer.sendToAll(commands);
-        } else {
-            networkLayer.sendToAllExcept(commands, sender);
-        }
+        return command instanceof SetPropertyValue || command instanceof ClearReferences;
     }
 
     @Override
