@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.core.clientserver;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
@@ -48,6 +49,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     private final MetaModel meta;
     private final ServerCallback serverCallback;
 
+    private Executor changeExecutor;
+
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
@@ -64,7 +67,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback serverCallback) {
         // CHECKSTYLE:ON
-        this(model, networkLayer, serverCallback, new DirectExecutor());
+        this(model, networkLayer, serverCallback, Executors.newSingleThreadExecutor());
     }
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
@@ -88,7 +91,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
             final ServerCallback serverCallback, final Executor changeExecutor) {
         this.networkLayer = networkLayer;
         this.serverCallback = serverCallback;
-        this.meta = new MetaModel(this, model, changeExecutor);
+        this.meta = new MetaModel(this, model);
+        this.changeExecutor = changeExecutor;
         networkLayer.setTopologyLayerCallback(this);
     }
 
@@ -98,23 +102,26 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
             LOG.trace("Server recived commands " + commands);
         }
 
-        meta.execute(commands);
+        // FIXME Filtering the commands is a temporary hack. When the implementation is finished, clients
+        // should be able to handle receiving commands they have created on there own. At the moment this is only true
+        // for some types of commands. Therefore these command types have to be separated from the other commands.
 
-        // FIXME The rest of this method is a temporary hack. When the implementation is finished, clients should be
-        // able to handle receiving commands they have created on there own. At the moment this is only true for some
-        // types of commands. Therefore these command types have to be separated from the other commands.
-        // networkLayer.sendToAll(commands, sender);
-
-        // remove ClearReferenceCommand
         final List<Command> filteredCommands = new LinkedList<>();
-        
+
         for (final Command command : commands) {
             if (senderReceivingOwnCommandHandable(command)) {
                 filteredCommands.add(command);
             }
         }
-        networkLayer.sendToAllExcept(commands, sender);
-        networkLayer.send(filteredCommands, sender);
+
+        changeExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                meta.execute(commands);
+                networkLayer.sendToAllExcept(commands, sender);
+                networkLayer.send(filteredCommands, sender);
+            }
+        });
     }
 
     private boolean senderReceivingOwnCommandHandable(final Command command) {
@@ -201,15 +208,5 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      */
     public void shutdown() {
         networkLayer.shutdown();
-    }
-
-    /**
-     * Executes changes to the users domain model in the thread that reports a change command.
-     */
-    private static class DirectExecutor implements Executor {
-        @Override
-        public void execute(final Runnable change) {
-            change.run();
-        }
     }
 }

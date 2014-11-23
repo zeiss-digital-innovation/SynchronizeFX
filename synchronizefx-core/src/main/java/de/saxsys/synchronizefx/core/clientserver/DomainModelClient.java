@@ -79,7 +79,7 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
         this.changeExecutor = changeExecutor;
         networkLayer.setTopologyCallback(this);
 
-        meta = new MetaModel(this, changeExecutor);
+        meta = new MetaModel(this);
     }
 
     @Override
@@ -87,7 +87,12 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
         if (LOG.isTraceEnabled()) {
             LOG.trace("Client recived commands " + commands);
         }
-        meta.execute(commands);
+        changeExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                meta.execute(commands);
+            }
+        });
     }
 
     @Override

@@ -19,16 +19,12 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import java.util.concurrent.Executor;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * Checks if {@link SilentChangeExecutor} works as expected.
@@ -37,9 +33,8 @@ public class SilentChangeExecutorTest {
 
     private static final int NEW_VALUE = 42;
 
-    private final DelayedModelChangeExecutor executor = new DelayedModelChangeExecutor();
     private final Listeners listeners = mock(Listeners.class);
-    private final SilentChangeExecutor changer = new SilentChangeExecutor(executor);
+    private final SilentChangeExecutor cut = new SilentChangeExecutor();
 
     private final DummyObservable dummyObservable = mock(DummyObservable.class);
 
@@ -48,7 +43,7 @@ public class SilentChangeExecutorTest {
      */
     @Before
     public void setupCut() {
-        changer.registerListenersToSilence(listeners);
+        cut.registerListenersToSilence(listeners);
     }
     
     /**
@@ -57,53 +52,18 @@ public class SilentChangeExecutorTest {
      */
     @Test
     public void shouldDisableAndReanableChangeNotificationWhenChangingThePropertyValue() {
-        changer.execute(dummyObservable, new Runnable() {
+        cut.execute(dummyObservable, new Runnable() {
             @Override
             public void run() {
                 dummyObservable.setValue(NEW_VALUE);
             }
         });
-
-        assertThat(executor.runnable).isNotNull();
-        executor.runnable.run();
 
         final InOrder inOrder = inOrder(listeners, dummyObservable);
 
         inOrder.verify(listeners).disableFor(dummyObservable);
         inOrder.verify(dummyObservable).setValue(NEW_VALUE);
         inOrder.verify(listeners).enableFor(dummyObservable);
-    }
-
-    /**
-     * All changes to the domain model of the user must be done via the
-     * {@link SilentChangeExecutor.ModelChangeExecutor}.
-     */
-    @Test
-    public void shouldModifyThePropertyOnlyViaTheModelChangeExecutor() {
-        changer.execute(dummyObservable, new Runnable() {
-            @Override
-            public void run() {
-                dummyObservable.setValue(NEW_VALUE);
-            }
-        });
-
-        assertThat(executor.runnable).isNotNull();
-        // if the ModelChangeExecutor does not execute the changes, the users domain model should remain unchanged.
-        verifyNoMoreInteractions(listeners);
-        verifyNoMoreInteractions(dummyObservable);
-    }
-
-    /**
-     * Stores the last {@link Runnable} that was passed and executes when required.
-     */
-    private static class DelayedModelChangeExecutor implements Executor {
-
-        private Runnable runnable;
-
-        @Override
-        public void execute(final Runnable runnable) {
-            this.runnable = runnable;
-        }
     }
 
     /**

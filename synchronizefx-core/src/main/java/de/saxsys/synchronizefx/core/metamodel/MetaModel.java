@@ -20,7 +20,6 @@
 package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
@@ -56,11 +55,9 @@ public class MetaModel {
      * @param topology
      *            used to interact with the lower layer which is probably represented by the class that called this
      *            constructor.
-     * @param changeExecutor
-     *            The executor to use for all changes done to JavaFX properties.
      */
-    public MetaModel(final TopologyLayerCallback topology, final Executor changeExecutor) {
-        initCommonObjects(topology, changeExecutor);
+    public MetaModel(final TopologyLayerCallback topology) {
+        initCommonObjects(topology);
 
         // CHECKSTYLE:OFF Because of line length limit. TODO find shorter class names.
         final RepairingSingleValuePropertyCommandExecutor singleValuePropertyExecutor = new RepairingSingleValuePropertyCommandExecutor(
@@ -78,16 +75,14 @@ public class MetaModel {
     /**
      * Creates a {@link MetaModel} which serves a new domain model.
      * 
-     * @see MetaModel#MetaModel(TopologyLayerCallback, Executor)
+     * @see MetaModel#MetaModel(TopologyLayerCallback)
      * @param topology
-     *            see {@link MetaModel#MetaModel(TopologyLayerCallback, Executor)}
+     *            see {@link MetaModel#MetaModel(TopologyLayerCallback)}
      * @param root
      *            The root object of the domain model that should be served.
-     * @param changeExecutor
-     *            The executor to use for all changes done to JavaFX properties.
      */
-    public MetaModel(final TopologyLayerCallback topology, final Object root, final Executor changeExecutor) {
-        initCommonObjects(topology, changeExecutor);
+    public MetaModel(final TopologyLayerCallback topology, final Object root) {
+        initCommonObjects(topology);
         this.root = root;
 
         // CHECKSTYLE:OFF Because of line length limit. TODO find shorter class names.
@@ -104,7 +99,7 @@ public class MetaModel {
         registerListenersOnModel();
     }
 
-    private void initCommonObjects(final TopologyLayerCallback topology, final Executor changeExecutor) {
+    private void initCommonObjects(final TopologyLayerCallback topology) {
         this.topology = topology;
 
         this.objectRegistry = new WeakObjectRegistry();
@@ -113,25 +108,22 @@ public class MetaModel {
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
 
         this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);
-        this.silentChangeExecutor = new SilentChangeExecutor(changeExecutor);
+        this.silentChangeExecutor = new SilentChangeExecutor();
     }
 
     /**
      * Executes commands to change the domain model of the user.
      * 
      * <p>
-     * These commands have usually been created by an other instance of {@link MetaModel} in an other JVM which send
-     * them via {@link TopologyLayerCallback#sendCommands(List)} or produced them through
-     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)}.
+     * This method is <em>not</em> Thread-safe. All callers must make sure that this method is called sequentially e.g
+     * by using a single-thread executor. The thread in which this method is called will also be used to execute changes
+     * on JavaFX properties so clients that have bound the GUI to properties of the domain model should make sure that
+     * this method is called in the JavaFX GUI thread.
      * </p>
      * 
      * <p>
-     * If you need to send these commands to other peers e.g. when you are the server in an client/server environment,
-     * please call this method first an than redistribute the commands. This call blocks when one of your threads called
-     * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and hasn't finished yet. When this
-     * happens, the commands you've passed as argument to this method will not be incorporated into the command list
-     * returned by your {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} and so you may want to
-     * also redistribute them to the new client that's the reason you've called
+     * These commands have usually been created by an other instance of {@link MetaModel} in an other JVM which send
+     * them via {@link TopologyLayerCallback#sendCommands(List)} or produced them through
      * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)}.
      * </p>
      * 

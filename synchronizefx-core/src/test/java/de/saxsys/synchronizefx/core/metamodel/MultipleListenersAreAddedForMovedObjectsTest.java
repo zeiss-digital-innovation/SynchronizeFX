@@ -27,7 +27,6 @@ import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Sprint;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Story;
 import de.saxsys.synchronizefx.core.testutils.ComplexDomainModel.Task;
-import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
@@ -62,10 +61,10 @@ public class MultipleListenersAreAddedForMovedObjectsTest {
     public void setUp() {
         this.originalDomainModel = new ComplexDomainModel();
         this.originalCb = new SaveParameterCallback();
-        this.originalMeta = new MetaModel(this.originalCb, originalDomainModel, new DirectExecutor());
+        this.originalMeta = new MetaModel(this.originalCb, originalDomainModel);
 
         this.copyCb = new SaveParameterCallback();
-        this.copyMeta = new MetaModel(copyCb, new DirectExecutor());
+        this.copyMeta = new MetaModel(copyCb);
         copyMeta.execute(EasyCommandsForDomainModel.commandsForDomainModel(originalMeta));
         this.copyDomainModel = (ComplexDomainModel) copyCb.getRoot();
     }
