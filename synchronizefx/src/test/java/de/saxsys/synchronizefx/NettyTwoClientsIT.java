@@ -30,10 +30,10 @@ import de.saxsys.synchronizefx.testapp.Message;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -50,8 +50,8 @@ public class NettyTwoClientsIT {
      * Time in milliseconds after which JUnit should abort a tests. This prevents the {@link ExampleServer} from
      * continuing to run and blocking the TCP-Port because the user had to abort the test manually.
      */
-    private static final long TEST_TIMEOUT = 20000;
-    private static final int TIME_TO_WAIT = 1000;
+    private static final long TEST_TIMEOUT = 10000;
+    private static final int TIME_TO_WAIT = 200;
     private static final Logger LOG = LoggerFactory.getLogger(NettyTwoClientsIT.class);
 
     private ExampleServer server;
@@ -68,8 +68,8 @@ public class NettyTwoClientsIT {
         if (!DummyApplication.isRunning()) {
             startDummyInstance();
         }
-        fstClient = getClientInstance();
-        sndClient = getClientInstance();
+        fstClient = newClientInstance();
+        sndClient = newClientInstance();
     }
 
     /**
@@ -114,7 +114,6 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Ignore("a temporary hack in DomainModelServer splits up the list")
     @Test(timeout = TEST_TIMEOUT)
     public void testRemoveMessage() throws InterruptedException {
         int size = fstClient.getMessages().size();
@@ -149,7 +148,6 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Ignore("a temporary hack in DomainModelServer splits up the list")
     @Test(timeout = TEST_TIMEOUT)
     public void testChangeRemoveSameMessage() throws InterruptedException {
         int size = fstClient.getMessages().size();
@@ -168,21 +166,20 @@ public class NettyTwoClientsIT {
      * @throws InterruptedException
      *             when the thread is interrupted
      */
-    @Ignore("a temporary hack in DomainModelServer splits up the list")
     @Test(timeout = TEST_TIMEOUT)
     public void testChangeSameMessage() throws InterruptedException {
         int size = fstClient.getMessages().size();
         int random = (int) (Math.round(Math.random() * (size - 1)));
 
-        ExampleClient fstTempClient = getClientInstance();
+        ExampleClient fstTempClient = newClientInstance();
 
         fstClient.editSpecialMessage(random, "first change");
         sndClient.editSpecialMessage(random, "second change");
         Thread.sleep(TIME_TO_WAIT);
 
-        LOG.debug(fstClient.getMessages().get(random).getText());
-        LOG.debug(sndClient.getMessages().get(random).getText());
-        LOG.debug(fstTempClient.getMessages().get(random).getText());
+        LOG.debug("First client messages: " + fstClient.getMessages());
+        LOG.debug("Second client messages:" + sndClient.getMessages());
+        LOG.debug("Temporary client messages: " + fstTempClient.getMessages());
 
         assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
     }
@@ -207,7 +204,7 @@ public class NettyTwoClientsIT {
         }).start();
     }
 
-    private ExampleClient getClientInstance() {
+    private ExampleClient newClientInstance() {
         ExampleClient client = new ExampleClient();
         synchronized (WaitForModelReadyLock.INSTANCE) {
             try {

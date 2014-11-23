@@ -57,4 +57,8 @@ public class Message {
         return text;
     }
 
+    @Override
+    public String toString() {
+        return "Message [text=" + text.get() + "]";
+    }
 }

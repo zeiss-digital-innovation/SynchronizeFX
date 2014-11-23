@@ -37,12 +37,20 @@ public interface TopologyLayerCallback {
     /**
      * Called when the meta model layer has produced commands that need to be shared with other meta models.
      * 
+     * <p>
+     * This method should not block as this may could block the GUI thread. The order of the commands passed in
+     * sequential calls to this methods however needs to be retained.
+     * </p>
+     * 
+     * <p>
      * When you've called {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} to get the initial
      * domain model for a new peer, you don't need to send the commands from this method to this peer as long as your
      * callback {@link CommandsForDomainModelCallback#commandsReady(List)} has not been called. They are incorporated
      * automatically.
+     * </p>
      * 
-     * @param commands The commands that need to be shared.
+     * @param commands
+     *            The commands that need to be shared.
      */
     void sendCommands(List<Command> commands);
 
@@ -52,7 +60,8 @@ public interface TopologyLayerCallback {
      * This method is most probably called only once. That is when the initial domain model has been transfered
      * completely to a peer.
      * 
-     * @param root The root object of the new domain model.
+     * @param root
+     *            The root object of the new domain model.
      */
     void domainModelChanged(Object root);
 
@@ -62,7 +71,8 @@ public interface TopologyLayerCallback {
      * If an error occurred, synchronicity between clients can no longer be guaranteed. In some cases the meta model can
      * still be used and the error be ignored.
      * 
-     * @param error The exception that caused the error.
+     * @param error
+     *            The exception that caused the error.
      */
     void onError(SynchronizeFXException error);
 }

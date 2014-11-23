@@ -35,7 +35,6 @@ import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
-import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
@@ -66,7 +65,7 @@ public class SyncMapPropertyTest {
     public void init() {
         root = new Root();
         this.cb = new SaveParameterCallback();
-        model = new MetaModel(this.cb, root, new DirectExecutor());
+        model = new MetaModel(this.cb, root);
     }
 
     /**
@@ -175,7 +174,7 @@ public class SyncMapPropertyTest {
     @Test
     public void testApplyGeneratedCommands() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
-        MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
+        MetaModel copy = new MetaModel(copyCb);
         UUID uuid = UUID.randomUUID();
 
         copy.execute(EasyCommandsForDomainModel.commandsForDomainModel(model));

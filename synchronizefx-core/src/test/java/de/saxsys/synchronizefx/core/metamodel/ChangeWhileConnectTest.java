@@ -30,7 +30,6 @@ import javafx.collections.FXCollections;
 
 import de.saxsys.synchronizefx.core.metamodel.ModelWalkingSynchronizer.ActionType;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
-import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
@@ -91,7 +90,7 @@ public class ChangeWhileConnectTest {
         root.list.add(child2);
 
         cb = new SaveParameterCallback();
-        meta = new MetaModel(cb, root, new DirectExecutor());
+        meta = new MetaModel(cb, root);
 
         blockingProperty.waitAfterInvocationCount = 0;
         propertyVisitorThreadShouldWakeUp = false;
@@ -210,7 +209,7 @@ public class ChangeWhileConnectTest {
         // MetaModel of the setup() method is not useful here.
         root = new Domain();
         root.waitingProperty.set(40);
-        meta = new MetaModel(cb, root, new DirectExecutor());
+        meta = new MetaModel(cb, root);
 
         Thread commandListCreatorThread = new Thread() {
             @Override
@@ -376,7 +375,7 @@ public class ChangeWhileConnectTest {
      */
     private void executeCommandsAndCompare(final List<Command> simulatedIncommingChanges) {
         SaveParameterCallback copyCb = new SaveParameterCallback();
-        MetaModel copyMeta = new MetaModel(copyCb, new DirectExecutor());
+        MetaModel copyMeta = new MetaModel(copyCb);
         copyMeta.execute(commands);
         copyMeta.execute(cb.getCommands());
         if (simulatedIncommingChanges != null) {

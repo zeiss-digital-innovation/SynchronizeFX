@@ -19,7 +19,6 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import java.util.concurrent.Executor;
 
 /**
  * Changes an Observable without notifying listeners of these changes.
@@ -27,16 +26,11 @@ import java.util.concurrent.Executor;
 public class SilentChangeExecutor {
 
     private Listeners listeners;
-    private final Executor executor;
 
     /**
      * Initializes an instance with its dependencies.
-     * 
-     * @param changeExecutor
-     *            used for execute any changes to the users domain model.
      */
-    public SilentChangeExecutor(final Executor changeExecutor) {
-        this.executor = changeExecutor;
+    public SilentChangeExecutor() {
     }
 
     /**
@@ -52,14 +46,9 @@ public class SilentChangeExecutor {
      *            The change that is done to the observable.
      */
     public void execute(final Object observable, final Runnable change) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                listeners.disableFor(observable);
-                change.run();
-                listeners.enableFor(observable);
-            }
-        });
+        listeners.disableFor(observable);
+        change.run();
+        listeners.enableFor(observable);
     }
 
     /**

@@ -34,7 +34,6 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
-import de.saxsys.synchronizefx.core.testutils.DirectExecutor;
 import de.saxsys.synchronizefx.core.testutils.EasyCommandsForDomainModel;
 import de.saxsys.synchronizefx.core.testutils.SaveParameterCallback;
 
@@ -65,7 +64,7 @@ public class SyncSetPropertyTest {
     public void init() {
         root = new Root();
         cb = new SaveParameterCallback();
-        model = new MetaModel(cb, root, new DirectExecutor());
+        model = new MetaModel(cb, root);
     }
 
     /**
@@ -135,7 +134,7 @@ public class SyncSetPropertyTest {
     @Test
     public void testApplyGeneratedCommands() {
         SaveParameterCallback copyCb = new SaveParameterCallback();
-        MetaModel copy = new MetaModel(copyCb, new DirectExecutor());
+        MetaModel copy = new MetaModel(copyCb);
 
         copy.execute(EasyCommandsForDomainModel.commandsForDomainModel(model));
         Root copyRoot = (Root) copyCb.getRoot();
