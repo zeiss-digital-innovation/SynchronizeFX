@@ -22,7 +22,7 @@ package de.saxsys.synchronizefx.core.metamodel.executors;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
 /**
- * Executes {@link SetPropertyValue} commands recieved from other peers.
+ * Executes {@link SetPropertyValue} commands received from other peers.
  * 
  * @author Raik Bieniek
  */
@@ -34,6 +34,6 @@ public interface SingleValuePropertyCommandExecutor {
      * @param command
      *            The received event.
      */
-    void executeRemoteCommand(SetPropertyValue command);
+    void execute(SetPropertyValue command);
 
 }

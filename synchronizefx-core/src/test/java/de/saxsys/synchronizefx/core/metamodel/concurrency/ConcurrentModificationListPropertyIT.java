@@ -25,12 +25,11 @@ import javafx.collections.FXCollections;
 
 import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryClient;
 import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryServer;
-import de.saxsys.synchronizefx.core.metamodel.executors.ReparingListPropertyCommandExecutorTest;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReparingListPropertyCommandExecutorTest;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

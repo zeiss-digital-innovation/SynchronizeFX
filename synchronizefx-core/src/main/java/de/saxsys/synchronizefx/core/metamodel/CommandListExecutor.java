@@ -27,8 +27,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import javafx.beans.property.Property;
-
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
@@ -106,7 +104,7 @@ public class CommandListExecutor {
         if (command instanceof CreateObservableObject) {
             execute((CreateObservableObject) command);
         } else if (command instanceof SetPropertyValue) {
-            singleValuePropertyExecutor.executeRemoteCommand((SetPropertyValue) command);
+            singleValuePropertyExecutor.execute((SetPropertyValue) command);
         } else if (command instanceof AddToList) {
             execute((AddToList) command);
         } else if (command instanceof RemoveFromList) {
@@ -174,20 +172,6 @@ public class CommandListExecutor {
 
         hardReferences.put(obj, null);
         objectRegistry.registerObject(obj, command.getObjectId());
-    }
-
-    private void execute(final SetPropertyValue command) throws SynchronizeFXException {
-        @SuppressWarnings("unchecked")
-        final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
-
-        final Object value = valueMapper.map(command.getValue());
-
-        changeExecutor.execute(prop, new Runnable() {
-            @Override
-            public void run() {
-                prop.setValue(value);
-            }
-        });
     }
 
     private void execute(final AddToList command) {

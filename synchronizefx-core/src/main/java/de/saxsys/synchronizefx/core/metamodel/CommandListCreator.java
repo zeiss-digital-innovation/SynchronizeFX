@@ -275,14 +275,9 @@ class CommandListCreator {
 
     private void addToList(final UUID listId, final int position, final Object value, final int newSize,
             final State state) {
-        final AddToList msg = new AddToList();
-        msg.setListId(listId);
-        msg.setPosition(position);
-        msg.setNewSize(newSize);
-
         final boolean isObservableObject = createObservableObject(value, state);
-        msg.setValue(valueMapper.map(value, isObservableObject));
 
+        final AddToList msg = new AddToList(listId, valueMapper.map(value, isObservableObject), position, newSize);
         state.commands.add(msg);
     }
 

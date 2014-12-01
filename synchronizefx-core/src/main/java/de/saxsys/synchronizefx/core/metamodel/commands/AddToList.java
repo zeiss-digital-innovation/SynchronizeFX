@@ -24,24 +24,49 @@ import java.util.UUID;
 /**
  * A command that states that an element should be added to a list.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 public class AddToList implements ListCommand {
 
-    private UUID listId;
-    private Value value;
-    private int position;
-    private int newSize;
+    private final UUID listId;
+    private final Value value;
+    private final int position;
+    private final int newSize;
+
+    /**
+     * Initializes an instance.
+     * 
+     * @param listId see {@link #getListId()}
+     * @param value see {@link #getValue()}
+     * @param position see {@link #getPosition()}
+     */
+    public AddToList(final UUID listId, final Value value, final int position) {
+        this.listId = listId;
+        this.value = value;
+        this.position = position;
+        this.newSize = -1;
+    }
+
+    /**
+     * Initializes an instance with a size value.
+     * 
+     * @param listId see {@link #getListId()}
+     * @param value see {@link #getValue()}
+     * @param position see {@link #getPosition()}
+     * @param newSize see {@link #getNewSize()}
+     * @deprecated since newSize is no longer used in the new self repairing implementation.
+     */
+    @Deprecated
+    public AddToList(final UUID listId, final Value value, final int position, final int newSize) {
+        this.listId = listId;
+        this.value = value;
+        this.position = position;
+        this.newSize = newSize;
+    }
 
     @Override
     public UUID getListId() {
         return listId;
-    }
-
-    @Override
-    public void setListId(final UUID listId) {
-        this.listId = listId;
     }
 
     /**
@@ -59,15 +84,6 @@ public class AddToList implements ListCommand {
     }
 
     /**
-     * @see #getPosition()
-     * @param position
-     *            The position
-     */
-    public void setPosition(final int position) {
-        this.position = position;
-    }
-
-    /**
      * @return The value to add to the list.
      */
     public Value getValue() {
@@ -75,30 +91,14 @@ public class AddToList implements ListCommand {
     }
 
     /**
-     * @see #getValue()
-     * @param value
-     *            the value
-     */
-    public void setValue(final Value value) {
-        this.value = value;
-    }
-
-    /**
      * The new size the list should have after this command has been executed on it.
      * 
+     * @deprecated The new self repairing algorithm will not use this information.
      * @return the new size
      */
+    @Deprecated
     public int getNewSize() {
         return newSize;
-    }
-
-    /**
-     * @see RemoveFromList#getNewSize()
-     * @param newSize
-     *            the new size
-     */
-    public void setNewSize(final int newSize) {
-        this.newSize = newSize;
     }
 
     @Override

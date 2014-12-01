@@ -57,7 +57,7 @@ public class SimpleSingleValuePropertyCommandExecutor implements SingleValueProp
     }
 
     @Override
-    public void executeRemoteCommand(final SetPropertyValue command) {
+    public void execute(final SetPropertyValue command) {
         @SuppressWarnings("unchecked")
         final Property<Object> property = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
 

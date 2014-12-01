@@ -90,11 +90,11 @@ public class ReparingSingleValuePropertyCommandExecutorTest {
      */
     @Test
     public void shouldExecuteIncommingCommandWhenLogIsEmpty() {
-        cut.executeRemoteCommand(exemplaryProperty1Change);
-        verify(executor).executeRemoteCommand(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty1Change);
+        verify(executor).execute(exemplaryProperty1Change);
 
-        cut.executeRemoteCommand(exemplaryProperty2Change);
-        verify(executor).executeRemoteCommand(exemplaryProperty2Change);
+        cut.execute(exemplaryProperty2Change);
+        verify(executor).execute(exemplaryProperty2Change);
     }
 
     /**
@@ -105,8 +105,8 @@ public class ReparingSingleValuePropertyCommandExecutorTest {
         cut.logLocalCommand(new SetPropertyValue(exemplaryProperty1Id, new Value("dummy local change")));
         cut.logLocalCommand(new SetPropertyValue(exemplaryProperty2Id, new Value("dummy local change")));
         
-        cut.executeRemoteCommand(exemplaryProperty1Change);
-        cut.executeRemoteCommand(exemplaryProperty2Change);
+        cut.execute(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty2Change);
         
         // Both commands have been filtered an none has been executed.
         verifyNoMoreInteractions(executor);
@@ -124,13 +124,13 @@ public class ReparingSingleValuePropertyCommandExecutorTest {
     public void shouldDropCommandAndRemoveItFromTheLogWhenItIsEqualToTheFirstLogEntry() {
         cut.logLocalCommand(exemplaryProperty1Change);
 
-        cut.executeRemoteCommand(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty1Change);
         // Property 1 has not changed
         verifyNoMoreInteractions(executor);
 
-        cut.executeRemoteCommand(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty1Change);
         // Property 1 has changed
-        verify(executor).executeRemoteCommand(exemplaryProperty1Change);
+        verify(executor).execute(exemplaryProperty1Change);
     }
 
     /**
@@ -141,8 +141,8 @@ public class ReparingSingleValuePropertyCommandExecutorTest {
         // A local change in property 2 should not in interfere with a remote change in property 1.
         cut.logLocalCommand(exemplaryProperty2Change);
 
-        cut.executeRemoteCommand(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty1Change);
         // Property 1 has changed
-        verify(executor).executeRemoteCommand(exemplaryProperty1Change);
+        verify(executor).execute(exemplaryProperty1Change);
     }
 }

@@ -72,7 +72,7 @@ public class RepairingSingleValuePropertyCommandExecutor implements SingleValueP
     }
 
     @Override
-    public void executeRemoteCommand(final SetPropertyValue command) {
+    public void execute(final SetPropertyValue command) {
         @SuppressWarnings("unchecked")
         final Property<Object> property = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
         final Queue<UUID> localCommands = propertyToChangeLog.get(property);
@@ -84,7 +84,7 @@ public class RepairingSingleValuePropertyCommandExecutor implements SingleValueP
             return;
         }
 
-        executor.executeRemoteCommand(command);
+        executor.execute(command);
     }
 
     private Queue<UUID> getLog(final SetPropertyValue command) {

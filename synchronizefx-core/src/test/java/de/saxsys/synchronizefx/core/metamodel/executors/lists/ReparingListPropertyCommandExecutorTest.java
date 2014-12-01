@@ -17,7 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.core.metamodel.executors;
+package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 /**
  * Just a placeholder for now which is referenced in JavaDoc.

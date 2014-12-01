@@ -39,7 +39,10 @@ public class ReplaceInList implements ListCommand {
         return listId;
     }
 
-    @Override
+    /**
+     * @see ListCommand#getListId()
+     * @param listId the id
+     */
     public void setListId(final UUID listId) {
         this.listId = listId;
     }

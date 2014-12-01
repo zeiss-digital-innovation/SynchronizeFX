@@ -17,20 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.core.metamodel.commands;
-
-import java.util.UUID;
-
 /**
- * An interface for all commands that involve changing a list.
- * 
- * @author michael.thiele
- *
+ * Like the package de.saxsys.synchronizefx.core.metamodel.executors but especially for list properties.
  */
-public interface ListCommand extends Command {
-
-    /**
-     * @return The id of the list where a elements should be modified.
-     */
-    UUID getListId();
-}
+package de.saxsys.synchronizefx.core.metamodel.executors.lists;
