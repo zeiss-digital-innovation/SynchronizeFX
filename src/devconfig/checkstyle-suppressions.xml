@@ -7,7 +7,7 @@
 	<suppress checks="JavaNCSS" files="src[\\/]test[\\/]" />
 	<suppress checks="ExecutableStatementCount" files="src[\\/]test[\\/]" />
 	<suppress checks="JavadocPackage" files="src[\\/]test[\\/]" />
-	<!-- Don't enforce the GPL license on demo projects. -->
+	<!-- Don't enforce the LGPL license on demo projects. -->
 	<suppress checks="RegexpHeader" files="[\\/]demos[\\/]" />
 	<suppress checks="." files=".*\.png" />
 	<suppress checks="." files=".*\.properties" />
