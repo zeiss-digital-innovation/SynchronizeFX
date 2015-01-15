@@ -26,6 +26,7 @@ import de.saxsys.synchronizefx.core.metamodel.ValueMapper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
+import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 
 /**
  * Executes all incoming {@link ListCommand}s regardless of whether they are executable or not.
@@ -43,9 +44,12 @@ class SimpleListPropertyCommandExecutor {
     /**
      * Initializes the instance with all its dependencies.
      * 
-     * @param objectRegistry Used to resolve UUIDs to objects.
-     * @param silentChangeExecutor Used to disable listeners while executing changes.
-     * @param valueMapper Used to map value objects to the correct values.
+     * @param objectRegistry
+     *            Used to resolve UUIDs to objects.
+     * @param silentChangeExecutor
+     *            Used to disable listeners while executing changes.
+     * @param valueMapper
+     *            Used to map value objects to the correct values.
      */
     public SimpleListPropertyCommandExecutor(final WeakObjectRegistry objectRegistry,
             final SilentChangeExecutor silentChangeExecutor, final ValueMapper valueMapper) {
@@ -55,13 +59,13 @@ class SimpleListPropertyCommandExecutor {
     }
 
     /**
-     * Executes an command for adding new values to the list.
+     * Executes an command for adding new values to a list.
      * 
-     * @param command The command to execute.
+     * @param command
+     *            The command to execute.
      */
     public void execute(final AddToList command) {
-        @SuppressWarnings("unchecked")
-        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
+        final List<Object> list = getListOrFail(command);
 
         final Object value = valueMapper.map(command.getValue());
 
@@ -71,5 +75,35 @@ class SimpleListPropertyCommandExecutor {
                 list.add(command.getPosition(), value);
             }
         });
+    }
+
+    /**
+     * Executes an command for removing values from a list.
+     * 
+     * @param command
+     *            The command to execute.
+     */
+    public void execute(final RemoveFromList command) {
+        final List<Object> list = getListOrFail(command);
+
+        silentChangeExecutor.execute(list, new Runnable() {
+            @Override
+            public void run() {
+                final int position = command.getStartPosition();
+                final int count = command.getRemoveCount();
+                if (position == 0 && list.size() == count) {
+                    list.clear();
+                } else {
+                    for (int i = 0; i < count; i++) {
+                        list.remove(position);
+                    }
+                }
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Object> getListOrFail(final ListCommand command) {
+        return (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
     }
 }

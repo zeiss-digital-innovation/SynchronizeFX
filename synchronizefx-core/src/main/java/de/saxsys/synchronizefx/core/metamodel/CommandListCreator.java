@@ -179,11 +179,7 @@ class CommandListCreator {
      */
     public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount,
             final int newSize) {
-        final RemoveFromList msg = new RemoveFromList();
-        msg.setListId(listId);
-        msg.setStartPosition(startPosition);
-        msg.setRemoveCount(removeCount);
-        msg.setNewSize(newSize);
+        final RemoveFromList msg = new RemoveFromList(listId, startPosition, removeCount, newSize);
         final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;

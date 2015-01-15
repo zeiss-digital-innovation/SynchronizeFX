@@ -115,9 +115,16 @@ public class SimpleListPropertyCommandExecutorTest {
      * The executor should be able to execute {@link RemoveFromList} commands.
      */
     @Test
-    @Ignore("not implemented yet")
     public void shouldExecuteRemoveFromListCommands() {
-        fail("not implemented yet");
+        exemplaryList.addAll("first", "second", "third", "forth", "fifth");
+
+        final RemoveFromList command1 = new RemoveFromList(exemplaryListId, 1, 2);
+        final RemoveFromList command2 = new RemoveFromList(exemplaryListId, 2, 1);
+
+        cut.execute(command1);
+        cut.execute(command2);
+
+        assertThat(exemplaryList.get()).containsExactly("first", "forth");
     }
 
     /**
@@ -150,12 +157,14 @@ public class SimpleListPropertyCommandExecutorTest {
             }
         }).when(silentChangeExecutor).execute(any(), any(Runnable.class));
 
-        final AddToList command1 = new AddToList(exemplaryListId, new Value("should not be added"), 0);
+        final AddToList addToList = new AddToList(exemplaryListId, new Value("should not be added"), 0);
+        final RemoveFromList removeFromList = new RemoveFromList(exemplaryListId, 0, 20);
 
-        cut.execute(command1);
+        cut.execute(addToList);
+        cut.execute(removeFromList);
 
         assertThat(exemplaryList).containsExactly("initial value");
 
-        fail("TODO remove and set command");
+        fail("TODO set command");
     }
 }

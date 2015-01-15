@@ -28,22 +28,49 @@ import java.util.UUID;
  */
 public class RemoveFromList implements ListCommand {
 
-    private UUID listId;
-    private int startPosition;
-    private int removeCount;
-    private int newSize;
+    private final UUID listId;
+    private final int startPosition;
+    private final int removeCount;
+    private final int newSize;
+
+    /**
+     * Initializes an instance.
+     * 
+     * @param listId
+     *            see {@link #getListId()}
+     * @param startPosition
+     *            see {@link #getStartPosition()}
+     * @param removeCount
+     *            see {@link #getRemoveCount()}
+     */
+    public RemoveFromList(final UUID listId, final int startPosition, final int removeCount) {
+        this(listId, startPosition, removeCount, 0);
+    }
+
+    /**
+     * Initializes an instance.
+     * 
+     * @param listId
+     *            see {@link #getListId()}
+     * @param startPosition
+     *            see {@link #getStartPosition()}
+     * @param removeCount
+     *            see {@link #getRemoveCount()}
+     * @param newSize
+     *            see {@link #getNewSize()}
+     * @deprecated since newSize is no longer used in the new self repairing implementation.
+     */
+    @Deprecated
+    public RemoveFromList(final UUID listId, final int startPosition, final int removeCount, final int newSize) {
+        this.listId = listId;
+        this.startPosition = startPosition;
+        this.removeCount = removeCount;
+        this.newSize = newSize;
+    }
 
     @Override
     public UUID getListId() {
         return listId;
-    }
-
-    /**
-     * @see ListCommand#getListId()
-     * @param listId the id
-     */
-    public void setListId(final UUID listId) {
-        this.listId = listId;
     }
 
     /**
@@ -56,30 +83,12 @@ public class RemoveFromList implements ListCommand {
     }
 
     /**
-     * @see #getStartPosition()
-     * @param startPosition
-     *            the position
-     */
-    public void setStartPosition(final int startPosition) {
-        this.startPosition = startPosition;
-    }
-
-    /**
      * The amount of elements starting from {@link #getStartPosition()} that should be removed.
      * 
      * @return The element amount to delete.
      */
     public int getRemoveCount() {
         return removeCount;
-    }
-
-    /**
-     * @see #getRemoveCount()
-     * @param removeCount
-     *            The count
-     */
-    public void setRemoveCount(final int removeCount) {
-        this.removeCount = removeCount;
     }
 
     /**
@@ -91,18 +100,9 @@ public class RemoveFromList implements ListCommand {
         return newSize;
     }
 
-    /**
-     * @see RemoveFromList#getNewSize()
-     * @param newSize
-     *            the new size
-     */
-    public void setNewSize(final int newSize) {
-        this.newSize = newSize;
-    }
-
     @Override
     public String toString() {
         return "RemoveFromList [listId=" + listId + ", startPosition=" + startPosition + ", removeCount=" + removeCount
-                + ", newSize=" + newSize + "]";
+                + "]";
     }
 }

@@ -24,9 +24,11 @@ import java.util.List;
 import java.util.UUID;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
+import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 import de.saxsys.synchronizefx.kryo.serializer.AddToListSerializer;
+import de.saxsys.synchronizefx.kryo.serializer.RemoveFromListSerializer;
 import de.saxsys.synchronizefx.kryo.serializer.SetPropertyValueSerializer;
 import de.saxsys.synchronizefx.kryo.serializer.UUIDSerializer;
 import de.saxsys.synchronizefx.kryo.serializer.ValueSerializer;
@@ -51,6 +53,7 @@ final class KryoInitializer extends ThreadLocal<Kryo> {
         kryo.register(Value.class, new ValueSerializer());
         kryo.register(SetPropertyValue.class, new SetPropertyValueSerializer());
         kryo.register(AddToList.class, new AddToListSerializer());
+        kryo.register(RemoveFromList.class, new RemoveFromListSerializer());
 
         synchronized (customSerializers) {
             for (CustomSerializers<?> serializer : customSerializers) {
