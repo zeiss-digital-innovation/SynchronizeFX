@@ -27,6 +27,7 @@ import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
+import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 
 /**
  * Executes all incoming {@link ListCommand}s regardless of whether they are executable or not.
@@ -78,7 +79,7 @@ class SimpleListPropertyCommandExecutor {
     }
 
     /**
-     * Executes an command for removing values from a list.
+     * Executes a command for removing values from a list.
      * 
      * @param command
      *            The command to execute.
@@ -102,8 +103,26 @@ class SimpleListPropertyCommandExecutor {
         });
     }
 
+    /**
+     * Executes a command for replacing an element in a list.
+     * 
+     * @param command
+     *            The command to execute.
+     */
+    public void execute(final ReplaceInList command) {
+        final List<Object> list = getListOrFail(command);
+        
+        silentChangeExecutor.execute(list, new Runnable() {
+            @Override
+            public void run() {
+                list.set(command.getPosition(), valueMapper.map(command.getValue()));
+            }
+        });
+    }
+
     @SuppressWarnings("unchecked")
     private List<Object> getListOrFail(final ListCommand command) {
         return (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
     }
+
 }

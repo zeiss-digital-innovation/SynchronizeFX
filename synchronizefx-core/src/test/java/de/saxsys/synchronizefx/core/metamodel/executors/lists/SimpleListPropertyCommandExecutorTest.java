@@ -34,7 +34,6 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -43,7 +42,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -131,9 +129,16 @@ public class SimpleListPropertyCommandExecutorTest {
      * The executor should be able to execute {@link ReplaceInList} commands.
      */
     @Test
-    @Ignore("not implemented yet")
     public void shouldExecuteReplaceInListCommands() {
-        fail("not implemented yet");
+        exemplaryList.addAll("first", "second", "third", "forth");
+
+        final ReplaceInList command1 = new ReplaceInList(exemplaryListId, new Value("replaced second"), 1);
+        final ReplaceInList command2 = new ReplaceInList(exemplaryListId, new Value("replaced forth"), 3);
+
+        cut.execute(command1);
+        cut.execute(command2);
+
+        assertThat(exemplaryList.get()).containsExactly("first", "replaced second", "third", "replaced forth");
     }
 
     /**
@@ -142,10 +147,8 @@ public class SimpleListPropertyCommandExecutorTest {
      * <p>
      * This is tested by assuming that the list is unchanged when no change was executed.
      * </p>
-     * 
      */
     @Test
-    @Ignore("not implemented yet")
     public void shouldUseSilentChangeExecutorForAllExecutions() {
         exemplaryList.add("initial value");
 
@@ -159,12 +162,12 @@ public class SimpleListPropertyCommandExecutorTest {
 
         final AddToList addToList = new AddToList(exemplaryListId, new Value("should not be added"), 0);
         final RemoveFromList removeFromList = new RemoveFromList(exemplaryListId, 0, 20);
+        final ReplaceInList replaceInList = new ReplaceInList(exemplaryListId, new Value("replaced"), 0);
 
         cut.execute(addToList);
         cut.execute(removeFromList);
+        cut.execute(replaceInList);
 
         assertThat(exemplaryList).containsExactly("initial value");
-
-        fail("TODO set command");
     }
 }

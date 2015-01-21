@@ -38,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -66,7 +67,7 @@ public class CommandLogDispatcherTest {
         final SetPropertyValue msg1 = new SetPropertyValue(UUID.randomUUID(), new Value("exampleValue"));
         final SetPropertyValue msg2 = new SetPropertyValue(UUID.randomUUID(), new Value(UUID.randomUUID()));
 
-        final List<Command> commands = Arrays.asList(new PutToMap(), new ReplaceInList(), msg1, new Command() {
+        final List<Command> commands = Arrays.asList(new PutToMap(), mock(ReplaceInList.class), msg1, new Command() {
         }, msg2);
 
         cut.logLocalCommands(commands);
@@ -83,7 +84,8 @@ public class CommandLogDispatcherTest {
     public void doesNotFailWhenNoExecutorsAreRegisteredForCommands() {
         cut = new CommandLogDispatcher();
 
-        cut.logLocalCommands(Arrays.asList(new PutToMap(), new ReplaceInList(), new SetPropertyValue(null, null)));
+        cut.logLocalCommands(Arrays.asList(new PutToMap(), mock(ReplaceInList.class),
+                new SetPropertyValue(null, null)));
         // passes when no exception is thrown.
     }
 }
