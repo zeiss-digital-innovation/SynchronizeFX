@@ -39,13 +39,14 @@ public class ReplaceInListSerializer extends Serializer<ReplaceInList> {
     @Override
     public void write(final Kryo kryo, final Output output, final ReplaceInList input) {
         kryo.writeObject(output, input.getListId());
+        output.writeInt(input.getListVersion());
         kryo.writeObject(output, input.getValue());
         output.writeInt(input.getPosition());
     }
 
     @Override
     public ReplaceInList read(final Kryo kryo, final Input input, final Class<ReplaceInList> type) {
-        return new ReplaceInList(kryo.readObject(input, UUID.class), kryo.readObject(input, Value.class),
-                input.readInt());
+        return new ReplaceInList(kryo.readObject(input, UUID.class), input.readInt(), kryo.readObject(input,
+                Value.class), input.readInt());
     }
 }

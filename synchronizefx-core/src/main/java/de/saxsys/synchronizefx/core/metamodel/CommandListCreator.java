@@ -34,6 +34,7 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SetProperty;
+
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
@@ -198,7 +199,7 @@ class CommandListCreator {
      */
     public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount,
             final int newSize) {
-        final RemoveFromList msg = new RemoveFromList(listId, startPosition, removeCount, newSize);
+        final RemoveFromList msg = new RemoveFromList(listId, 0, startPosition, removeCount, newSize);
         final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
@@ -274,8 +275,8 @@ class CommandListCreator {
             @Override
             public void invoke(final State state) {
                 final boolean isObservableObject = createObservableObject(value, state);
-                final ReplaceInList replaceInList = new ReplaceInList(listId,
-                        valueMapper.map(value, isObservableObject), position);
+                final ReplaceInList replaceInList = new ReplaceInList(listId, 0, valueMapper.map(value,
+                        isObservableObject), position);
 
                 state.commands.add(replaceInList);
             }
@@ -297,7 +298,7 @@ class CommandListCreator {
             final State state) {
         final boolean isObservableObject = createObservableObject(value, state);
 
-        final AddToList msg = new AddToList(listId, valueMapper.map(value, isObservableObject), position, newSize);
+        final AddToList msg = new AddToList(listId, 0, valueMapper.map(value, isObservableObject), position, newSize);
         state.commands.add(msg);
     }
 

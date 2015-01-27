@@ -27,28 +27,27 @@ import java.util.UUID;
  * @see java.util.List#set(int, Object)
  * @author michael.thiele
  */
-public class ReplaceInList implements ListCommand {
+public class ReplaceInList extends ListCommand {
 
-    private final UUID listId;
     private final int position;
     private final Value value;
 
     /**
      * Initializes an instance.
      * 
-     * @param listId see {@link #getListId()}
-     * @param value see {@link #getValue()}
-     * @param position see {@link #getPosition()}
+     * @param listId
+     *            see {@link #getListId()}
+     * @param listVersion
+     *            see {@link #getListVersion()}
+     * @param value
+     *            see {@link #getValue()}
+     * @param position
+     *            see {@link #getPosition()}
      */
-    public ReplaceInList(final UUID listId, final Value value, final int position) {
-        this.listId = listId;
+    public ReplaceInList(final UUID listId, final int listVersion, final Value value, final int position) {
+        super(listId, listVersion);
         this.value = value;
         this.position = position;
-    }
-
-    @Override
-    public UUID getListId() {
-        return listId;
     }
 
     /**

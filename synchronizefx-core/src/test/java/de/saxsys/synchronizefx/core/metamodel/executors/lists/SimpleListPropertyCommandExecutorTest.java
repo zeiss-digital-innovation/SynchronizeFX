@@ -98,9 +98,9 @@ public class SimpleListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldExecuteAddToListCommands() {
-        final AddToList command1 = new AddToList(exemplaryListId, new Value("second"), 0);
-        final AddToList command2 = new AddToList(exemplaryListId, new Value("first"), 0);
-        final AddToList command3 = new AddToList(exemplaryListId, new Value("third"), 2);
+        final AddToList command1 = new AddToList(exemplaryListId, 0, new Value("second"), 0);
+        final AddToList command2 = new AddToList(exemplaryListId, 0, new Value("first"), 0);
+        final AddToList command3 = new AddToList(exemplaryListId, 0, new Value("third"), 2);
 
         cut.execute(command1);
         cut.execute(command2);
@@ -116,8 +116,8 @@ public class SimpleListPropertyCommandExecutorTest {
     public void shouldExecuteRemoveFromListCommands() {
         exemplaryList.addAll("first", "second", "third", "forth", "fifth");
 
-        final RemoveFromList command1 = new RemoveFromList(exemplaryListId, 1, 2);
-        final RemoveFromList command2 = new RemoveFromList(exemplaryListId, 2, 1);
+        final RemoveFromList command1 = new RemoveFromList(exemplaryListId, 0, 1, 2);
+        final RemoveFromList command2 = new RemoveFromList(exemplaryListId, 0, 2, 1);
 
         cut.execute(command1);
         cut.execute(command2);
@@ -132,8 +132,8 @@ public class SimpleListPropertyCommandExecutorTest {
     public void shouldExecuteReplaceInListCommands() {
         exemplaryList.addAll("first", "second", "third", "forth");
 
-        final ReplaceInList command1 = new ReplaceInList(exemplaryListId, new Value("replaced second"), 1);
-        final ReplaceInList command2 = new ReplaceInList(exemplaryListId, new Value("replaced forth"), 3);
+        final ReplaceInList command1 = new ReplaceInList(exemplaryListId, 0, new Value("replaced second"), 1);
+        final ReplaceInList command2 = new ReplaceInList(exemplaryListId, 0, new Value("replaced forth"), 3);
 
         cut.execute(command1);
         cut.execute(command2);
@@ -160,9 +160,9 @@ public class SimpleListPropertyCommandExecutorTest {
             }
         }).when(silentChangeExecutor).execute(any(), any(Runnable.class));
 
-        final AddToList addToList = new AddToList(exemplaryListId, new Value("should not be added"), 0);
-        final RemoveFromList removeFromList = new RemoveFromList(exemplaryListId, 0, 20);
-        final ReplaceInList replaceInList = new ReplaceInList(exemplaryListId, new Value("replaced"), 0);
+        final AddToList addToList = new AddToList(exemplaryListId, 0, new Value("should not be added"), 0);
+        final RemoveFromList removeFromList = new RemoveFromList(exemplaryListId, 0, 0, 20);
+        final ReplaceInList replaceInList = new ReplaceInList(exemplaryListId, 0, new Value("replaced"), 0);
 
         cut.execute(addToList);
         cut.execute(removeFromList);

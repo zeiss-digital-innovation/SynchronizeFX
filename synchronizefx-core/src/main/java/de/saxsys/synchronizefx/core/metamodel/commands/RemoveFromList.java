@@ -26,9 +26,8 @@ import java.util.UUID;
  * 
  * @author Raik Bieniek
  */
-public class RemoveFromList implements ListCommand {
+public class RemoveFromList extends ListCommand {
 
-    private final UUID listId;
     private final int startPosition;
     private final int removeCount;
     private final int newSize;
@@ -38,13 +37,15 @@ public class RemoveFromList implements ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
+     * @param listVersion
+     *            see {@link #getListVersion()}
      * @param startPosition
      *            see {@link #getStartPosition()}
      * @param removeCount
      *            see {@link #getRemoveCount()}
      */
-    public RemoveFromList(final UUID listId, final int startPosition, final int removeCount) {
-        this(listId, startPosition, removeCount, 0);
+    public RemoveFromList(final UUID listId, final int listVersion, final int startPosition, final int removeCount) {
+        this(listId, listVersion, startPosition, removeCount, -1);
     }
 
     /**
@@ -52,6 +53,8 @@ public class RemoveFromList implements ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
+     * @param listVersion
+     *            see {@link #getListVersion()}
      * @param startPosition
      *            see {@link #getStartPosition()}
      * @param removeCount
@@ -61,16 +64,12 @@ public class RemoveFromList implements ListCommand {
      * @deprecated since newSize is no longer used in the new self repairing implementation.
      */
     @Deprecated
-    public RemoveFromList(final UUID listId, final int startPosition, final int removeCount, final int newSize) {
-        this.listId = listId;
+    public RemoveFromList(final UUID listId, final int listVersion, final int startPosition, final int removeCount,
+            final int newSize) {
+        super(listId, listVersion);
         this.startPosition = startPosition;
         this.removeCount = removeCount;
         this.newSize = newSize;
-    }
-
-    @Override
-    public UUID getListId() {
-        return listId;
     }
 
     /**
@@ -102,7 +101,7 @@ public class RemoveFromList implements ListCommand {
 
     @Override
     public String toString() {
-        return "RemoveFromList [listId=" + listId + ", startPosition=" + startPosition + ", removeCount=" + removeCount
-                + "]";
+        return "RemoveFromList [listId=" + getListId() + ", listVersion=" + getListVersion() + "startPosition="
+                + startPosition + ", removeCount=" + removeCount + ", newSize=" + newSize + "]";
     }
 }

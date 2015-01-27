@@ -26,9 +26,8 @@ import java.util.UUID;
  * 
  * @author Raik Bieniek
  */
-public class AddToList implements ListCommand {
+public class AddToList extends ListCommand {
 
-    private final UUID listId;
     private final Value value;
     private final int position;
     private final int newSize;
@@ -36,12 +35,17 @@ public class AddToList implements ListCommand {
     /**
      * Initializes an instance.
      * 
-     * @param listId see {@link #getListId()}
-     * @param value see {@link #getValue()}
-     * @param position see {@link #getPosition()}
+     * @param listId
+     *            see {@link #getListId()}
+     * @param listVersion
+     *            see {@link #getListVersion()}
+     * @param value
+     *            see {@link #getValue()}
+     * @param position
+     *            see {@link #getPosition()}
      */
-    public AddToList(final UUID listId, final Value value, final int position) {
-        this.listId = listId;
+    public AddToList(final UUID listId, final int listVersion, final Value value, final int position) {
+        super(listId, listVersion);
         this.value = value;
         this.position = position;
         this.newSize = -1;
@@ -50,23 +54,25 @@ public class AddToList implements ListCommand {
     /**
      * Initializes an instance with a size value.
      * 
-     * @param listId see {@link #getListId()}
-     * @param value see {@link #getValue()}
-     * @param position see {@link #getPosition()}
-     * @param newSize see {@link #getNewSize()}
+     * @param listId
+     *            see {@link #getListId()}
+     * @param listVersion
+     *            see {@link #getListVersion()}
+     * @param value
+     *            see {@link #getValue()}
+     * @param position
+     *            see {@link #getPosition()}
+     * @param newSize
+     *            see {@link #getNewSize()}
      * @deprecated since newSize is no longer used in the new self repairing implementation.
      */
     @Deprecated
-    public AddToList(final UUID listId, final Value value, final int position, final int newSize) {
-        this.listId = listId;
+    public AddToList(final UUID listId, final int listVersion, final Value value, final int position, //
+            final int newSize) {
+        super(listId, listVersion);
         this.value = value;
         this.position = position;
         this.newSize = newSize;
-    }
-
-    @Override
-    public UUID getListId() {
-        return listId;
     }
 
     /**
@@ -103,7 +109,8 @@ public class AddToList implements ListCommand {
 
     @Override
     public String toString() {
-        return "AddToList [listId=" + listId + ", value=" + value + ", position=" + position + ", newSize=" + newSize
-                + "]";
+        return "AddToList [listId=" + getListId() + ", listVersion=" + getListVersion() + ", value=" + value
+                + ", position=" + position + ", newSize=" + newSize + "]";
     }
+
 }

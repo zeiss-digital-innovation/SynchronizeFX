@@ -25,12 +25,46 @@ import java.util.UUID;
  * An interface for all commands that involve changing a list.
  * 
  * @author michael.thiele
- *
+ * @author Raik Bieniek
  */
-public interface ListCommand extends Command {
+public abstract class ListCommand implements Command {
+
+    private final UUID listId;
+    private final int listVersion;
 
     /**
-     * @return The id of the list where a elements should be modified.
+     * Initializes the command with all values that all list commands have in common.
+     * 
+     * @param listId
+     *            see {@link #getListId()}
+     * @param listVersion
+     *            see {@link #getListVersion()}
      */
-    UUID getListId();
+    protected ListCommand(final UUID listId, final int listVersion) {
+        this.listId = listId;
+        this.listVersion = listVersion;
+    }
+
+    /**
+     * The id of the list where a elements should be modified.
+     * 
+     * @return The id
+     */
+    public UUID getListId() {
+        return listId;
+    };
+
+    /**
+     * The version of the list on which this command can be applied.
+     * 
+     * <p>
+     * After the command has been applied on the list its version must be increased by one. Integer overflows of version
+     * numbers are allowed.
+     * </p>
+     * 
+     * @return The version.
+     */
+    public int getListVersion() {
+        return listVersion;
+    }
 }
