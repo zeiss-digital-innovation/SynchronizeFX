@@ -37,18 +37,16 @@ public class AddToList extends ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
-     * @param listVersion
-     *            see {@link #getListVersion()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
      * @param value
      *            see {@link #getValue()}
      * @param position
      *            see {@link #getPosition()}
      */
-    public AddToList(final UUID listId, final int listVersion, final Value value, final int position) {
-        super(listId, listVersion);
-        this.value = value;
-        this.position = position;
-        this.newSize = -1;
+    public AddToList(final UUID listId, final ListVersionChange listVersionChange, final Value value, //
+            final int position) {
+        this(listId, listVersionChange, value, position, -1);
     }
 
     /**
@@ -56,8 +54,8 @@ public class AddToList extends ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
-     * @param listVersion
-     *            see {@link #getListVersion()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
      * @param value
      *            see {@link #getValue()}
      * @param position
@@ -67,9 +65,9 @@ public class AddToList extends ListCommand {
      * @deprecated since newSize is no longer used in the new self repairing implementation.
      */
     @Deprecated
-    public AddToList(final UUID listId, final int listVersion, final Value value, final int position, //
-            final int newSize) {
-        super(listId, listVersion);
+    public AddToList(final UUID listId, final ListVersionChange listVersionChange, final Value value,
+            final int position, final int newSize) {
+        super(listId, listVersionChange);
         this.value = value;
         this.position = position;
         this.newSize = newSize;
@@ -109,8 +107,8 @@ public class AddToList extends ListCommand {
 
     @Override
     public String toString() {
-        return "AddToList [listId=" + getListId() + ", listVersion=" + getListVersion() + ", value=" + value
-                + ", position=" + position + ", newSize=" + newSize + "]";
+        return "AddToList [value=" + value + ", position=" + position + ", newSize=" + newSize + ", ListVersionChange="
+                + super.toString() + "]";
     }
 
 }

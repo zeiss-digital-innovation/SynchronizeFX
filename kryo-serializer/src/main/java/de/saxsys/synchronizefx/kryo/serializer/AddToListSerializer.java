@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.kryo.serializer;
 import java.util.UUID;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand.ListVersionChange;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -39,7 +40,8 @@ public class AddToListSerializer extends Serializer<AddToList> {
     @Override
     public void write(final Kryo kryo, final Output output, final AddToList object) {
         kryo.writeObject(output, object.getListId());
-        output.writeInt(object.getListVersion());
+        kryo.writeObject(output, object.getListVersionChange().getFromVersion());
+        kryo.writeObject(output, object.getListVersionChange().getToVersion());
         kryo.writeObject(output, object.getValue());
         output.writeInt(object.getPosition());
         output.writeInt(object.getNewSize());
@@ -47,7 +49,8 @@ public class AddToListSerializer extends Serializer<AddToList> {
 
     @Override
     public AddToList read(final Kryo kryo, final Input input, final Class<AddToList> type) {
-        return new AddToList(kryo.readObject(input, UUID.class), input.readInt(), kryo.readObject(input, Value.class),
-                input.readInt(), input.readInt());
+        return new AddToList(kryo.readObject(input, UUID.class), new ListVersionChange(kryo.readObject(input,
+                UUID.class), kryo.readObject(input, UUID.class)), kryo.readObject(input, Value.class), input.readInt(),
+                input.readInt());
     }
 }

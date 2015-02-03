@@ -29,6 +29,7 @@ import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.ValueMapper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand.ListVersionChange;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
@@ -41,6 +42,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -57,6 +59,8 @@ public class SimpleListPropertyCommandExecutorTest {
     private final UUID exemplaryListId = UUID.randomUUID();
     private final ListProperty<String> exemplaryList = new SimpleListProperty<>(
             FXCollections.<String> observableArrayList());
+    private final ListVersionChange exemplaryVersionChange = new ListVersionChange(UUID.randomUUID(), //
+            UUID.randomUUID());
 
     @Mock
     private WeakObjectRegistry objectRegistry;
@@ -98,9 +102,9 @@ public class SimpleListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldExecuteAddToListCommands() {
-        final AddToList command1 = new AddToList(exemplaryListId, 0, new Value("second"), 0);
-        final AddToList command2 = new AddToList(exemplaryListId, 0, new Value("first"), 0);
-        final AddToList command3 = new AddToList(exemplaryListId, 0, new Value("third"), 2);
+        final AddToList command1 = new AddToList(exemplaryListId, exemplaryVersionChange, new Value("second"), 0);
+        final AddToList command2 = new AddToList(exemplaryListId, exemplaryVersionChange, new Value("first"), 0);
+        final AddToList command3 = new AddToList(exemplaryListId, exemplaryVersionChange, new Value("third"), 2);
 
         cut.execute(command1);
         cut.execute(command2);
@@ -116,8 +120,8 @@ public class SimpleListPropertyCommandExecutorTest {
     public void shouldExecuteRemoveFromListCommands() {
         exemplaryList.addAll("first", "second", "third", "forth", "fifth");
 
-        final RemoveFromList command1 = new RemoveFromList(exemplaryListId, 0, 1, 2);
-        final RemoveFromList command2 = new RemoveFromList(exemplaryListId, 0, 2, 1);
+        final RemoveFromList command1 = new RemoveFromList(exemplaryListId, exemplaryVersionChange, 1, 2);
+        final RemoveFromList command2 = new RemoveFromList(exemplaryListId, exemplaryVersionChange, 2, 1);
 
         cut.execute(command1);
         cut.execute(command2);
@@ -132,8 +136,10 @@ public class SimpleListPropertyCommandExecutorTest {
     public void shouldExecuteReplaceInListCommands() {
         exemplaryList.addAll("first", "second", "third", "forth");
 
-        final ReplaceInList command1 = new ReplaceInList(exemplaryListId, 0, new Value("replaced second"), 1);
-        final ReplaceInList command2 = new ReplaceInList(exemplaryListId, 0, new Value("replaced forth"), 3);
+        final ReplaceInList command1 = new ReplaceInList(exemplaryListId, exemplaryVersionChange, new Value(
+                "replaced second"), 1);
+        final ReplaceInList command2 = new ReplaceInList(exemplaryListId, exemplaryVersionChange, new Value(
+                "replaced forth"), 3);
 
         cut.execute(command1);
         cut.execute(command2);
@@ -160,9 +166,11 @@ public class SimpleListPropertyCommandExecutorTest {
             }
         }).when(silentChangeExecutor).execute(any(), any(Runnable.class));
 
-        final AddToList addToList = new AddToList(exemplaryListId, 0, new Value("should not be added"), 0);
-        final RemoveFromList removeFromList = new RemoveFromList(exemplaryListId, 0, 0, 20);
-        final ReplaceInList replaceInList = new ReplaceInList(exemplaryListId, 0, new Value("replaced"), 0);
+        final AddToList addToList = new AddToList(exemplaryListId, exemplaryVersionChange, new Value(
+                "should not be added"), 0);
+        final RemoveFromList removeFromList = new RemoveFromList(exemplaryListId, exemplaryVersionChange, 0, 20);
+        final ReplaceInList replaceInList = new ReplaceInList(exemplaryListId, exemplaryVersionChange, new Value(
+                "replaced"), 0);
 
         cut.execute(addToList);
         cut.execute(removeFromList);

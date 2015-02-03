@@ -22,10 +22,22 @@ package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 
 /**
- * Just a JavaDoc reference target for now.
+ * Manages the repairing and executing respectively re-sending of local and remote commands.
  * 
  * <p>
- * TODO document how this class detects local commands that where dropped remotely.
+ * Incoming remote commands need to be repaired if other changes where made on the local list. This class initiates
+ * repairing of these command before executing them. Remote commands that do not need repair are executed directly.
+ * </p>
+ * 
+ * <p>
+ * When a remote command appears while unconfirmed local commands exists, other peers will drop all these local
+ * commands. They therefore have to be repaired as well to be based on the list version the remote command produced and
+ * re-send to the other peers.
+ * </p>
+ * 
+ * <p>
+ * A local command gets confirmed when it is the same as a received remote command and if it is the oldest unconfirmed
+ * command.
  * </p>
  * 
  * @author Raik Bieniek

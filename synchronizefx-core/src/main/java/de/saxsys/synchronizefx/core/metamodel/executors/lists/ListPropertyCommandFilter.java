@@ -19,6 +19,8 @@
 
 package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
+import java.util.UUID;
+
 import de.saxsys.synchronizefx.core.metamodel.ListVersions;
 import de.saxsys.synchronizefx.core.metamodel.TemporaryReferenceKeeper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
@@ -111,10 +113,14 @@ public class ListPropertyCommandFilter {
     }
 
     private boolean couldBeExecuted(final ListCommand command) {
-        if (command.getListVersion() == listVersions.getVersionOrFail(command.getListId())) {
+        final UUID listVersion = listVersions.getVersionOrFail(command.getListId());
+        final UUID commandFromVersion = command.getListVersionChange().getFromVersion();
+
+        if (commandFromVersion.equals(listVersion)) {
             executor.execute(command);
             return true;
         }
+
         return false;
     }
 

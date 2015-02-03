@@ -37,15 +37,16 @@ public class RemoveFromList extends ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
-     * @param listVersion
-     *            see {@link #getListVersion()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
      * @param startPosition
      *            see {@link #getStartPosition()}
      * @param removeCount
      *            see {@link #getRemoveCount()}
      */
-    public RemoveFromList(final UUID listId, final int listVersion, final int startPosition, final int removeCount) {
-        this(listId, listVersion, startPosition, removeCount, -1);
+    public RemoveFromList(final UUID listId, final ListVersionChange listVersionChange, final int startPosition,
+            final int removeCount) {
+        this(listId, listVersionChange, startPosition, removeCount, -1);
     }
 
     /**
@@ -53,8 +54,8 @@ public class RemoveFromList extends ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
-     * @param listVersion
-     *            see {@link #getListVersion()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
      * @param startPosition
      *            see {@link #getStartPosition()}
      * @param removeCount
@@ -64,9 +65,9 @@ public class RemoveFromList extends ListCommand {
      * @deprecated since newSize is no longer used in the new self repairing implementation.
      */
     @Deprecated
-    public RemoveFromList(final UUID listId, final int listVersion, final int startPosition, final int removeCount,
-            final int newSize) {
-        super(listId, listVersion);
+    public RemoveFromList(final UUID listId, final ListVersionChange listVersionChange, final int startPosition,
+            final int removeCount, final int newSize) {
+        super(listId, listVersionChange);
         this.startPosition = startPosition;
         this.removeCount = removeCount;
         this.newSize = newSize;
@@ -101,7 +102,8 @@ public class RemoveFromList extends ListCommand {
 
     @Override
     public String toString() {
-        return "RemoveFromList [listId=" + getListId() + ", listVersion=" + getListVersion() + "startPosition="
-                + startPosition + ", removeCount=" + removeCount + ", newSize=" + newSize + "]";
+        return "RemoveFromList [startPosition=" + startPosition + ", removeCount=" + removeCount + ", newSize="
+                + newSize + ", ListVersionChange=" + super.toString() + "]";
     }
+
 }

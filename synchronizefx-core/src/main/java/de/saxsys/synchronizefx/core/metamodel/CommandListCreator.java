@@ -41,6 +41,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand.ListVersionChange;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
@@ -199,7 +200,8 @@ class CommandListCreator {
      */
     public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount,
             final int newSize) {
-        final RemoveFromList msg = new RemoveFromList(listId, 0, startPosition, removeCount, newSize);
+        final ListVersionChange change = new ListVersionChange(UUID.randomUUID(), UUID.randomUUID());
+        final RemoveFromList msg = new RemoveFromList(listId, change, startPosition, removeCount, newSize);
         final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
@@ -275,7 +277,8 @@ class CommandListCreator {
             @Override
             public void invoke(final State state) {
                 final boolean isObservableObject = createObservableObject(value, state);
-                final ReplaceInList replaceInList = new ReplaceInList(listId, 0, valueMapper.map(value,
+                final ListVersionChange versionChange = new ListVersionChange(UUID.randomUUID(), UUID.randomUUID());
+                final ReplaceInList replaceInList = new ReplaceInList(listId, versionChange, valueMapper.map(value,
                         isObservableObject), position);
 
                 state.commands.add(replaceInList);
@@ -298,7 +301,9 @@ class CommandListCreator {
             final State state) {
         final boolean isObservableObject = createObservableObject(value, state);
 
-        final AddToList msg = new AddToList(listId, 0, valueMapper.map(value, isObservableObject), position, newSize);
+        final ListVersionChange change = new ListVersionChange(UUID.randomUUID(), UUID.randomUUID());
+        final AddToList msg = new AddToList(listId, change, valueMapper.map(value, isObservableObject), position,
+                newSize);
         state.commands.add(msg);
     }
 

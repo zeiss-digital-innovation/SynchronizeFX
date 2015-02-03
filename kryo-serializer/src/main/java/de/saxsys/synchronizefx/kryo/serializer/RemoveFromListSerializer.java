@@ -21,6 +21,7 @@ package de.saxsys.synchronizefx.kryo.serializer;
 
 import java.util.UUID;
 
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand.ListVersionChange;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -39,7 +40,8 @@ public class RemoveFromListSerializer extends Serializer<RemoveFromList> {
     @Override
     public void write(final Kryo kryo, final Output output, final RemoveFromList input) {
         kryo.writeObject(output, input.getListId());
-        output.writeInt(input.getListVersion());
+        kryo.writeObject(output, input.getListVersionChange().getFromVersion());
+        kryo.writeObject(output, input.getListVersionChange().getToVersion());
         output.writeInt(input.getStartPosition());
         output.writeInt(input.getRemoveCount());
         output.writeInt(input.getNewSize());
@@ -47,8 +49,8 @@ public class RemoveFromListSerializer extends Serializer<RemoveFromList> {
 
     @Override
     public RemoveFromList read(final Kryo kryo, final Input input, final Class<RemoveFromList> clazz) {
-        return new RemoveFromList(kryo.readObject(input, UUID.class), input.readInt(), input.readInt(),
-                input.readInt(), input.readInt());
+        return new RemoveFromList(kryo.readObject(input, UUID.class), new ListVersionChange(kryo.readObject(input,
+                UUID.class), kryo.readObject(input, UUID.class)), input.readInt(), input.readInt(), input.readInt());
     }
 
 }

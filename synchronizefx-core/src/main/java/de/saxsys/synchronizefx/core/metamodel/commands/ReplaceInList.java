@@ -37,15 +37,16 @@ public class ReplaceInList extends ListCommand {
      * 
      * @param listId
      *            see {@link #getListId()}
-     * @param listVersion
-     *            see {@link #getListVersion()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
      * @param value
      *            see {@link #getValue()}
      * @param position
      *            see {@link #getPosition()}
      */
-    public ReplaceInList(final UUID listId, final int listVersion, final Value value, final int position) {
-        super(listId, listVersion);
+    public ReplaceInList(final UUID listId, final ListVersionChange listVersionChange, final Value value,
+            final int position) {
+        super(listId, listVersionChange);
         this.value = value;
         this.position = position;
     }

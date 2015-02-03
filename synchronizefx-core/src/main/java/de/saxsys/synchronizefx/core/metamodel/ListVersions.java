@@ -24,12 +24,17 @@ import java.util.UUID;
 import de.saxsys.synchronizefx.core.exceptions.ObjectToIdMappingException;
 
 /**
- * Stores the version number of the current state of local list properties weakly.
+ * Stores the version of the current state of local list properties weakly.
  * 
  * <p>
- * Weakly means, that when the garbage collector decides to collect a list properties its version number mapping in this
+ * Versions of lists are just random {@link UUID}s. When the state of a list is changed it gets a new random
+ * {@link UUID} as version.
+ * </p>
+ * <p>
+ * Weakly means, that when the garbage collector decides to collect a list properties its version assignment in this
  * class may be collected as well.
  * </p>
+ * 
  * 
  * @author Raik Bieniek
  */
@@ -44,7 +49,7 @@ public class ListVersions {
      * @throws ObjectToIdMappingException
      *             When the version for the list with the passed id is unknown.
      */
-    public int getVersionOrFail(final UUID listId) throws ObjectToIdMappingException {
+    public UUID getVersionOrFail(final UUID listId) throws ObjectToIdMappingException {
         throw new UnsupportedOperationException("not implemented yet");
     }
 
