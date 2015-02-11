@@ -45,7 +45,19 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 public class ReparingListPropertyCommandExecutor {
 
     /**
-     * Temporary API for passing commands from the filtering executor to this repairing executor which may change soon.
+     * Logs a command that was locally generated and send to other peers.
+     * 
+     * @param localCommand
+     *            The command to log
+     */
+    public void logLocalCommand(final ListCommand localCommand) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * Executes a remotely received command, repairs it when necessary and resends repaired versions of local commands
+     * that where obsoleted by the received command.
      * 
      * @param command
      *            The command to execute.

@@ -88,7 +88,7 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void executesCommandsThatsVersionMatchesTheVersionOfTheLocalListProperty() {
-        when(listVersions.getVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(EXEMPLARY_VERSION_FOR_ADD)
+        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(EXEMPLARY_VERSION_FOR_ADD)
                 .thenReturn(EXEMPLARY_VERSION_FOR_REMOVE).thenReturn(EXEMPLARY_VERSION_FOR_REPLACE);
 
         cut.execute(exemplaryAddToListCommand);
@@ -103,12 +103,12 @@ public class ListPropertyCommandFilterTest {
     }
 
     /**
-     * Commands that can not be applied on the current version of the local list property are dropped.
+     * Commands that can not be applied on the currently approved version of the list property are dropped.
      */
     @Test
-    public void droppsCommandsThatsVersionDifferFromTheVersionOfTheLocalListProperty() {
-        when(listVersions.getVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID()).thenReturn(randomUUID())
-                .thenReturn(randomUUID());
+    public void droppsCommandsThatsVersionDifferFromTheApprovedVersionOfTheListProperty() {
+        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID())
+                .thenReturn(randomUUID()).thenReturn(randomUUID());
 
         cut.execute(exemplaryAddToListCommand);
         cut.execute(exemplaryRemoveFromListCommand);
@@ -127,7 +127,8 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void cachesObservableObjectsOfAddToListAndReplaceInListCommands() {
-        when(listVersions.getVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID()).thenReturn(randomUUID());
+        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID())
+                .thenReturn(randomUUID());
 
         final Object observableObjectForAdd = new Object();
         final Object observableObjectForReplace = new Object();
@@ -152,7 +153,8 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void doesntCacheSimpleObjectsOfAddToListAndReplaceInListCommands() {
-        when(listVersions.getVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID()).thenReturn(randomUUID());
+        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID())
+                .thenReturn(randomUUID());
 
         final AddToList addCommandWithSimpleObject = new AddToList(EXEMPLARY_LIST_ID, new ListVersionChange(
                 randomUUID(), randomUUID()), new Value("some simple object"), 6);

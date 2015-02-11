@@ -34,8 +34,8 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  * Filters out commands from the command that are meant to be executed on other versions of a list property.
  * 
  * <p>
- * Each state of a list is identified by a version number. A command that changes the list carries the version number of
- * the state on which is meant to be executed. If the current state of a list has a different version number the command
+ * Each state of a list is identified by a version. A command that changes the list carries the version of the state on
+ * which is meant to be executed. If the current confirmed state of a list has a different version the command
  * needs to be dropped. This is because there where other changes on the list which make it impossible to tell if the
  * command can safely be applied or not.
  * </p>
@@ -113,7 +113,7 @@ public class ListPropertyCommandFilter {
     }
 
     private boolean couldBeExecuted(final ListCommand command) {
-        final UUID listVersion = listVersions.getVersionOrFail(command.getListId());
+        final UUID listVersion = listVersions.getApprovedVersionOrFail(command.getListId());
         final UUID commandFromVersion = command.getListVersionChange().getFromVersion();
 
         if (commandFromVersion.equals(listVersion)) {

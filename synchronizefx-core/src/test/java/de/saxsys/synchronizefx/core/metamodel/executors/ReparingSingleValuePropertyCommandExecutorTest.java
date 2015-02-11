@@ -108,7 +108,7 @@ public class ReparingSingleValuePropertyCommandExecutorTest {
         cut.execute(exemplaryProperty1Change);
         cut.execute(exemplaryProperty2Change);
         
-        // Both commands have been filtered an none has been executed.
+        // Both commands have been filtered and none has been executed.
         verifyNoMoreInteractions(executor);
     }
 

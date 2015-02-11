@@ -41,16 +41,73 @@ import de.saxsys.synchronizefx.core.exceptions.ObjectToIdMappingException;
 public class ListVersions {
 
     /**
-     * Returns the version a list with a given id currently has.
+     * Returns the approved version a list with a given id currently has.
+     * 
+     * <p>
+     * The approved version of a list is the "from" version of the oldest locally generated change command that was not
+     * send back from other peers yet. It is the "to" version of the newest remotly generated change command if there is
+     * no local change that wasn't send back from other peers yet.
+     * </p>
      * 
      * @param listId
      *            The list thats version should be returned.
-     * @return The version of the list.
+     * @return The approved version of the list.
      * @throws ObjectToIdMappingException
      *             When the version for the list with the passed id is unknown.
      */
-    public UUID getVersionOrFail(final UUID listId) throws ObjectToIdMappingException {
+    public UUID getApprovedVersionOrFail(final UUID listId) throws ObjectToIdMappingException {
         throw new UnsupportedOperationException("not implemented yet");
     }
 
+    /**
+     * Sets the approved version for the list with a given id.
+     * 
+     * <p>
+     * It is not necessary that the list already has a version.
+     * </p>
+     * 
+     * @see #getApprovedVersionOrFail(UUID)
+     * @param listId
+     *            The list thats version should be set.
+     * @param newVersion
+     *            The new approved version the list should have.
+     */
+    public void setApprovedVersion(final UUID listId, final UUID newVersion) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * Returns the actual local version a list with a given id currently has.
+     * 
+     * <p>
+     * The local version is the "to" version of the last locally generated command in the list of unapproved commands.
+     * If there are no unapproved local commands, than this version is the same as the approved version of a list.
+     * </p>
+     * 
+     * @param listId
+     *            The list thats version should be returned.
+     * @return The local version of the list.
+     * @throws ObjectToIdMappingException
+     *             When the version for the list with the passed id is unknown.
+     */
+    public UUID getLocalVersionOrFail(final UUID listId) throws ObjectToIdMappingException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * Sets the local version for the list with the given id.
+     * 
+     * <p>
+     * It is not necessary that the list already has a version.
+     * </p>
+     * 
+     * @see #getLocalVersionOrFail(UUID)
+     * @param listId
+     *            The id of the list thats version should be set.
+     * @param newVersion
+     *            The new version of the list.
+     */
+    public void setLocalVersion(final UUID listId, final UUID newVersion) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }

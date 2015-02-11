@@ -21,6 +21,7 @@ package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 import java.util.List;
 
+import de.saxsys.synchronizefx.core.metamodel.ListVersions;
 import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.ValueMapper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
@@ -42,6 +43,8 @@ class SimpleListPropertyCommandExecutor {
 
     private final ValueMapper valueMapper;
 
+    private final ListVersions listVersions;
+
     /**
      * Initializes the instance with all its dependencies.
      * 
@@ -51,12 +54,16 @@ class SimpleListPropertyCommandExecutor {
      *            Used to disable listeners while executing changes.
      * @param valueMapper
      *            Used to map value objects to the correct values.
+     * @param listVersions
+     *            Used to update the local version of a list property.
      */
     public SimpleListPropertyCommandExecutor(final WeakObjectRegistry objectRegistry,
-            final SilentChangeExecutor silentChangeExecutor, final ValueMapper valueMapper) {
+            final SilentChangeExecutor silentChangeExecutor, final ValueMapper valueMapper,
+            final ListVersions listVersions) {
         this.objectRegistry = objectRegistry;
         this.silentChangeExecutor = silentChangeExecutor;
         this.valueMapper = valueMapper;
+        this.listVersions = listVersions;
     }
 
     /**
@@ -76,6 +83,8 @@ class SimpleListPropertyCommandExecutor {
                 list.add(command.getPosition(), value);
             }
         });
+
+        listVersions.setLocalVersion(command.getListId(), command.getListVersionChange().getToVersion());
     }
 
     /**
@@ -101,6 +110,8 @@ class SimpleListPropertyCommandExecutor {
                 }
             }
         });
+        
+        listVersions.setLocalVersion(command.getListId(), command.getListVersionChange().getToVersion());
     }
 
     /**
@@ -111,13 +122,15 @@ class SimpleListPropertyCommandExecutor {
      */
     public void execute(final ReplaceInList command) {
         final List<Object> list = getListOrFail(command);
-        
+
         silentChangeExecutor.execute(list, new Runnable() {
             @Override
             public void run() {
                 list.set(command.getPosition(), valueMapper.map(command.getValue()));
             }
         });
+        
+        listVersions.setLocalVersion(command.getListId(), command.getListVersionChange().getToVersion());
     }
 
     @SuppressWarnings("unchecked")

@@ -25,6 +25,7 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
+import de.saxsys.synchronizefx.core.metamodel.ListVersions;
 import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.ValueMapper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
@@ -46,6 +47,7 @@ import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -70,6 +72,9 @@ public class SimpleListPropertyCommandExecutorTest {
 
     @Mock
     private ValueMapper valueMapper;
+
+    @Mock
+    private ListVersions listVersions;
 
     @InjectMocks
     private SimpleListPropertyCommandExecutor cut;
@@ -177,5 +182,17 @@ public class SimpleListPropertyCommandExecutorTest {
         cut.execute(replaceInList);
 
         assertThat(exemplaryList).containsExactly("initial value");
+    }
+
+    /**
+     * When a command is executed, the local version of the list property should be updated.
+     */
+    @Test
+    public void shouldUpdateLocalListVersionWhenCommandWasExecuted() {
+        final AddToList command = new AddToList(exemplaryListId, exemplaryVersionChange, new Value("second"), 0);
+
+        cut.execute(command);
+
+        verify(listVersions).setLocalVersion(exemplaryListId, exemplaryVersionChange.getToVersion());
     }
 }
