@@ -19,15 +19,19 @@
 
 package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
 
 import de.saxsys.synchronizefx.core.metamodel.ListVersions;
+import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand.ListVersionChange;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
+import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
 import org.junit.Ignore;
@@ -38,8 +42,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Checks if {@link ReparingListPropertyCommandExecutor} works as expected.
@@ -57,10 +65,22 @@ public class ReparingListPropertyCommandExecutorTest {
             EXEMPLARY_VALUE, 5);
 
     @Mock
+    private AddToListRepairer addToListRepairer;
+
+    @Mock
+    private RemoveFromListRepairer removeFromListRepairer;
+
+    @Mock
+    private ReplaceInListRepairer replaceInListRepairer;
+
+    @Mock
     private ListVersions listVersions;
 
     @Mock
     private SimpleListPropertyCommandExecutor simpleExecutor;
+
+    @Mock
+    private TopologyLayerCallback topologyLayerCallback;
 
     @InjectMocks
     private ReparingListPropertyCommandExecutor cut;
@@ -122,19 +142,76 @@ public class ReparingListPropertyCommandExecutorTest {
         verify(listVersions).setApprovedVersion(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE.getToVersion());
     }
 
+    /**
+     * If a remote command was not the oldest unapproved locally generated command, the server executed a command of
+     * another peer first. This command has to be repaired and than be executed.
+     */
     @Test
     public void shouldRepairAndExecuteRemoteCommandThatWasntTheOldestUnapprovedLocalCommand() {
-        fail("not implemented yet");
+        final RemoveFromList otherCommandSameList = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(),
+                EXEMPLARY_CHANGE, 5, 3);
+        final AddToList simulatedRepairedCommand = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
+
+        when(addToListRepairer.repairRemoteCommand(EXEMPLARY_ADD_COMMAND, otherCommandSameList)).thenReturn(
+                simulatedRepairedCommand);
+
+        cut.logLocalCommand(EXEMPLARY_ADD_COMMAND);
+        cut.execute(otherCommandSameList);
+
+        verify(simpleExecutor).execute(simulatedRepairedCommand);
     }
 
+    /**
+     * If a remote command was not the oldest unapproved locally generated command, the server executed a command of
+     * another peer first. All remote peers will drop the locally generated commands because they cannot be applied to
+     * their version of the list. Because of this all local commands need to be repaired and resend.
+     */
     @Test
     public void shouldRepairAndResendAllUnapprovedLocalCommandsWhenRemoteCommandWasntFirstUnapprovedLocalCommand() {
-        fail("not implemented yet");
+        final RemoveFromList remoteCommand = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE, 5,
+                3);
+
+        final AddToList localCommand1 = EXEMPLARY_ADD_COMMAND;
+        final ReplaceInList localCommand2 = new ReplaceInList(EXEMPLARY_ADD_COMMAND.getListId(), new ListVersionChange(
+                randomUUID(), randomUUID()), EXEMPLARY_VALUE, 5);
+        final AddToList simulatedRepairedCommand1 = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
+        final ReplaceInList simulatedRepairedCommand2 = new ReplaceInList(randomUUID(), EXEMPLARY_CHANGE,
+                EXEMPLARY_VALUE, 3);
+
+        when(removeFromListRepairer.repairLocalCommand(localCommand1, new RemoveFromListExcept(remoteCommand)))
+                .thenReturn(simulatedRepairedCommand1);
+        when(removeFromListRepairer.repairLocalCommand(localCommand2, new RemoveFromListExcept(remoteCommand)))
+                .thenReturn(simulatedRepairedCommand2);
+
+        cut.logLocalCommand(localCommand1);
+        cut.logLocalCommand(localCommand2);
+
+        cut.execute(remoteCommand);
+
+        // repaired commands should have been resent to the server
+        verify(topologyLayerCallback).sendCommands(
+                Arrays.<Command> asList(simulatedRepairedCommand1, simulatedRepairedCommand2));
+
+        // local commands in the log should have been replaced with repaired versions so the cut shouldn't repair an
+        // incoming repaired command.
+        cut.execute(simulatedRepairedCommand1);
+
+        verifyNoMoreInteractions(addToListRepairer);
     }
 
+    /**
+     * There should be a separate command log for each list.
+     */
     @Test
     public void shouldUseSeparateCommandLogsForEachListProperty() {
-        fail("not implemented yet");
+        final ListCommand commandOtherList = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
+
+        cut.logLocalCommand(commandOtherList);
+        cut.execute(EXEMPLARY_ADD_COMMAND);
+
+        // The logged command is logged for another list so the list for EXEMPLARY_ADD_COMMAND is empty and nothing must
+        // be repaired.
+        verifyNoMoreInteractions(addToListRepairer, removeFromListRepairer, replaceInListRepairer);
     }
 
     /**
