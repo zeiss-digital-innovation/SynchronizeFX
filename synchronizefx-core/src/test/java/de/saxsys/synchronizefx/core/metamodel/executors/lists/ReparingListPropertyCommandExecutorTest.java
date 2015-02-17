@@ -24,7 +24,8 @@ import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
 
-import de.saxsys.synchronizefx.core.metamodel.ListVersions;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
@@ -34,7 +35,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -42,8 +43,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -54,7 +57,6 @@ import static org.mockito.Mockito.when;
  * 
  * @author Raik Bieniek
  */
-@Ignore("implementation not finished yet")
 @RunWith(MockitoJUnitRunner.class)
 public class ReparingListPropertyCommandExecutorTest {
 
@@ -74,7 +76,7 @@ public class ReparingListPropertyCommandExecutorTest {
     private ReplaceInListRepairer replaceInListRepairer;
 
     @Mock
-    private ListVersions listVersions;
+    private ListPropertyMetaDataStore listVersions;
 
     @Mock
     private SimpleListPropertyCommandExecutor simpleExecutor;
@@ -84,6 +86,14 @@ public class ReparingListPropertyCommandExecutorTest {
 
     @InjectMocks
     private ReparingListPropertyCommandExecutor cut;
+
+    /**
+     * Wires up the mocks.
+     */
+    @Before
+    public void setUpMockBehavior() {
+        when(listVersions.getMetaDataOrFail(any(UUID.class))).thenReturn(new ListPropertyMetaData(null, null));
+    }
 
     /**
      * When no local command is in the log for unapproved commands, all remote commands should be executed directly.
@@ -100,9 +110,12 @@ public class ReparingListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldUpdateApprovedVersionWhenExecutingACommand() {
+        final ListPropertyMetaData listMetaData = new ListPropertyMetaData(null, null);
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_ADD_COMMAND.getListId())).thenReturn(listMetaData);
+
         cut.execute(EXEMPLARY_ADD_COMMAND);
 
-        verify(listVersions).setApprovedVersion(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE.getToVersion());
+        assertThat(listMetaData.getApprovedVersion()).isEqualTo(EXEMPLARY_CHANGE.getToVersion());
     }
 
     /**
@@ -111,19 +124,29 @@ public class ReparingListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldDropApprovedLocalCommandAndRemoveItFromTheCommandLog() {
+        final ListPropertyMetaData listMetaData = new ListPropertyMetaData(null, null);
         final UUID changedList = EXEMPLARY_ADD_COMMAND.getListId();
-        final ListCommand otherChangeSameList = new RemoveFromList(changedList, new ListVersionChange(randomUUID(),
+        when(listVersions.getMetaDataOrFail(changedList)).thenReturn(listMetaData);
+
+        final RemoveFromList otherChangeSameList = new RemoveFromList(changedList, new ListVersionChange(randomUUID(),
                 randomUUID()), 5, 3);
 
         cut.logLocalCommand(EXEMPLARY_ADD_COMMAND);
         cut.logLocalCommand(otherChangeSameList);
 
         cut.execute(EXEMPLARY_ADD_COMMAND);
+
         // Version raised but not executed because it's a local command.
-        verify(listVersions).setApprovedVersion(changedList,
+        assertThat(listMetaData.getApprovedVersion()).isEqualTo(
                 EXEMPLARY_ADD_COMMAND.getListVersionChange().getToVersion());
         verify(simpleExecutor, times(0)).execute(any(AddToList.class));
 
+        // check that the local command is removed from the list
+        final AddToList repairedListCommand = mock(AddToList.class);
+        when(addToListRepairer.repairRemoteCommand(EXEMPLARY_ADD_COMMAND, otherChangeSameList)).thenReturn(
+                repairedListCommand);
+        when(removeFromListRepairer.repairLocalCommand(otherChangeSameList, repairedListCommand)).thenReturn(
+                mock(RemoveFromListExcept.class));
         cut.execute(EXEMPLARY_ADD_COMMAND);
         // Executed this time because it was removed from the command log.
         verify(simpleExecutor, times(1)).execute(any(AddToList.class));
@@ -135,11 +158,13 @@ public class ReparingListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldUpdateApprovedVersionWhenRemoteCommandEqualsOldestUnapprovedLocalCommand() {
-        cut.logLocalCommand(EXEMPLARY_ADD_COMMAND);
+        final ListPropertyMetaData listMetaData = new ListPropertyMetaData(null, null);
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_ADD_COMMAND.getListId())).thenReturn(listMetaData);
 
+        cut.logLocalCommand(EXEMPLARY_ADD_COMMAND);
         cut.execute(EXEMPLARY_ADD_COMMAND);
 
-        verify(listVersions).setApprovedVersion(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE.getToVersion());
+        assertThat(listMetaData.getApprovedVersion()).isEqualTo(EXEMPLARY_CHANGE.getToVersion());
     }
 
     /**
@@ -150,15 +175,17 @@ public class ReparingListPropertyCommandExecutorTest {
     public void shouldRepairAndExecuteRemoteCommandThatWasntTheOldestUnapprovedLocalCommand() {
         final RemoveFromList otherCommandSameList = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(),
                 EXEMPLARY_CHANGE, 5, 3);
-        final AddToList simulatedRepairedCommand = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
+        final RemoveFromListExcept simulatedRepairedCommand = new RemoveFromListExcept(new RemoveFromList(randomUUID(),
+                EXEMPLARY_CHANGE, 8, 6));
 
-        when(addToListRepairer.repairRemoteCommand(EXEMPLARY_ADD_COMMAND, otherCommandSameList)).thenReturn(
+        when(removeFromListRepairer.repairRemoteCommand(//
+                new RemoveFromListExcept(otherCommandSameList), EXEMPLARY_ADD_COMMAND)).thenReturn(
                 simulatedRepairedCommand);
 
         cut.logLocalCommand(EXEMPLARY_ADD_COMMAND);
         cut.execute(otherCommandSameList);
 
-        verify(simpleExecutor).execute(simulatedRepairedCommand);
+        verify(simpleExecutor).execute(simulatedRepairedCommand.toSimpleCommands().get(0));
     }
 
     /**
@@ -171,17 +198,26 @@ public class ReparingListPropertyCommandExecutorTest {
         final RemoveFromList remoteCommand = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE, 5,
                 3);
 
-        final AddToList localCommand1 = EXEMPLARY_ADD_COMMAND;
-        final ReplaceInList localCommand2 = new ReplaceInList(EXEMPLARY_ADD_COMMAND.getListId(), new ListVersionChange(
-                randomUUID(), randomUUID()), EXEMPLARY_VALUE, 5);
-        final AddToList simulatedRepairedCommand1 = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
-        final ReplaceInList simulatedRepairedCommand2 = new ReplaceInList(randomUUID(), EXEMPLARY_CHANGE,
-                EXEMPLARY_VALUE, 3);
+        final AddToList localCommand1 = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 7);
+        final ReplaceInList localCommand2 = new ReplaceInList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 0);
 
-        when(removeFromListRepairer.repairLocalCommand(localCommand1, new RemoveFromListExcept(remoteCommand)))
-                .thenReturn(simulatedRepairedCommand1);
-        when(removeFromListRepairer.repairLocalCommand(localCommand2, new RemoveFromListExcept(remoteCommand)))
-                .thenReturn(simulatedRepairedCommand2);
+        final AddToList repairedLocalCommand1 = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 8);
+        final ReplaceInList repairedLocalCommand2 = new ReplaceInList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE,
+                2);
+
+        final RemoveFromList repairedRemoteCommandStep1 = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 9, 6);
+        final RemoveFromList repairedRemoteCommandStep2 = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 8, 1);
+
+        when(removeFromListRepairer.repairRemoteCommand(new RemoveFromListExcept(remoteCommand), localCommand1))
+                .thenReturn(new RemoveFromListExcept(repairedRemoteCommandStep1));
+        when(addToListRepairer.repairLocalCommand(localCommand1, new RemoveFromListExcept(repairedRemoteCommandStep1)))
+                .thenReturn(repairedLocalCommand1);
+        when(removeFromListRepairer.repairRemoteCommand(//
+                new RemoveFromListExcept(repairedRemoteCommandStep1), localCommand2)).thenReturn(
+                new RemoveFromListExcept(repairedRemoteCommandStep2));
+        when(replaceInListRepairer.repairLocalCommand(localCommand2, //
+                new RemoveFromListExcept(repairedRemoteCommandStep2))).thenReturn(
+                new ReplaceOrAddInList(repairedLocalCommand2));
 
         cut.logLocalCommand(localCommand1);
         cut.logLocalCommand(localCommand2);
@@ -190,13 +226,12 @@ public class ReparingListPropertyCommandExecutorTest {
 
         // repaired commands should have been resent to the server
         verify(topologyLayerCallback).sendCommands(
-                Arrays.<Command> asList(simulatedRepairedCommand1, simulatedRepairedCommand2));
+                Arrays.<Command> asList(repairedLocalCommand1, repairedLocalCommand2));
 
         // local commands in the log should have been replaced with repaired versions so the cut shouldn't repair an
         // incoming repaired command.
-        cut.execute(simulatedRepairedCommand1);
-
-        verifyNoMoreInteractions(addToListRepairer);
+        cut.execute(repairedLocalCommand1);
+        verifyNoMoreInteractions(topologyLayerCallback);
     }
 
     /**
@@ -204,7 +239,10 @@ public class ReparingListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldUseSeparateCommandLogsForEachListProperty() {
-        final ListCommand commandOtherList = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
+        final UUID otherListId = randomUUID();
+        final ListPropertyMetaData otherMetaData = new ListPropertyMetaData(null, null);
+        when(listVersions.getMetaDataOrFail(otherListId)).thenReturn(otherMetaData);
+        final ListCommand commandOtherList = new AddToList(otherListId, EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 3);
 
         cut.logLocalCommand(commandOtherList);
         cut.execute(EXEMPLARY_ADD_COMMAND);

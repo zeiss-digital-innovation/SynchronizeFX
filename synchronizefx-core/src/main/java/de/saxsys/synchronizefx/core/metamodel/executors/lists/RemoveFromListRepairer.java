@@ -38,22 +38,61 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  */
 class RemoveFromListRepairer {
 
+    // /////////////////////
+    // / remote commands ///
+    // /////////////////////
+
     /**
-     * Repairs a local {@link AddToList} command in relation to a remote {@link RemoveFromListExcept} command.
+     * Repairs a remote {@link RemoveFromListExcept} in relation to a local {@link AddToList} command.
      * 
-     * @param localCommand
-     *            The local command to repair.
      * @param remoteCommand
-     *            The remote command.
-     * @return The repaired local command
+     *            The remote command to repair.
+     * @param localCommand
+     *            The local command.
+     * @return The repaired remote command.
      */
-    public AddToList repairLocalCommand(final AddToList localCommand, final RemoveFromListExcept remoteCommand) {
+    public RemoveFromListExcept repairRemoteCommand(final RemoveFromListExcept remoteCommand,
+            final AddToList localCommand) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not implemented yet");
     }
 
     /**
-     * Repairs a local {@link ReplaceInList} command in relation to a remote {@link RemoveFromListExcept} command.
+     * Repairs a remote {@link RemoveFromListExcept} in relation to a local {@link RemoveFromList} command.
+     * 
+     * @param remoteCommand
+     *            The remote command to repair.
+     * @param localCommand
+     *            The local command.
+     * @return The repaired remote command.
+     */
+    public RemoveFromListExcept repairRemoteCommand(final RemoveFromListExcept remoteCommand,
+            final RemoveFromList localCommand) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * Repairs a remote {@link RemoveFromListExcept} in relation to a local {@link ReplaceInList} command.
+     * 
+     * @param remoteCommand
+     *            The remote command to repair.
+     * @param localCommand
+     *            The local command.
+     * @return The repaired remote command.
+     */
+    public RemoveFromListExcept repairRemoteCommand(final RemoveFromListExcept remoteCommand,
+            final ReplaceInList localCommand) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    // ////////////////////
+    // / local commands ///
+    // ////////////////////
+
+    /**
+     * Repairs a local {@link RemoveFromList} command in relation to a remote {@link AddToList} command.
      * 
      * @param localCommand
      *            The local command to repair.
@@ -61,8 +100,37 @@ class RemoveFromListRepairer {
      *            The remote command.
      * @return The repaired local command
      */
-    public ReplaceInList repairLocalCommand(final ReplaceInList localCommand, //
+    public RemoveFromListExcept repairLocalCommand(final RemoveFromList localCommand, final AddToList remoteCommand) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * Repairs a local {@link RemoveFromList} command in relation to a remote {@link RemoveFromListExcept} command.
+     * 
+     * @param localCommand
+     *            The local command to repair.
+     * @param remoteCommand
+     *            The remote command.
+     * @return The repaired local command
+     */
+    public RemoveFromListExcept repairLocalCommand(final RemoveFromList localCommand,
             final RemoveFromListExcept remoteCommand) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * Repairs a local {@link RemoveFromList} command in relation to a remote {@link ReplaceOrAddInList} command.
+     * 
+     * @param localCommand
+     *            The local command to repair.
+     * @param remoteCommand
+     *            The remote command.
+     * @return The repaired local command
+     */
+    public RemoveFromListExcept repairLocalCommand(final RemoveFromList localCommand,
+            final ReplaceOrAddInList remoteCommand) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not implemented yet");
     }

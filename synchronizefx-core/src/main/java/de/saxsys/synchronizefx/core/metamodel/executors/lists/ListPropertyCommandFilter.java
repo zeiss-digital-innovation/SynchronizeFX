@@ -21,7 +21,7 @@ package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 import java.util.UUID;
 
-import de.saxsys.synchronizefx.core.metamodel.ListVersions;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
 import de.saxsys.synchronizefx.core.metamodel.TemporaryReferenceKeeper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
@@ -35,9 +35,9 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  * 
  * <p>
  * Each state of a list is identified by a version. A command that changes the list carries the version of the state on
- * which is meant to be executed. If the current confirmed state of a list has a different version the command
- * needs to be dropped. This is because there where other changes on the list which make it impossible to tell if the
- * command can safely be applied or not.
+ * which is meant to be executed. If the current confirmed state of a list has a different version the command needs to
+ * be dropped. This is because there where other changes on the list which make it impossible to tell if the command can
+ * safely be applied or not.
  * </p>
  * 
  * <p>
@@ -54,7 +54,7 @@ public class ListPropertyCommandFilter {
 
     private final ReparingListPropertyCommandExecutor executor;
     private final TemporaryReferenceKeeper referenceKeeper;
-    private final ListVersions listVersions;
+    private final ListPropertyMetaDataStore listVersions;
     private final WeakObjectRegistry objectRegistry;
 
     /**
@@ -70,7 +70,7 @@ public class ListPropertyCommandFilter {
      *            Used to retrieve observable objects that need to be prevented from being garbage collected.
      */
     public ListPropertyCommandFilter(final ReparingListPropertyCommandExecutor executor,
-            final TemporaryReferenceKeeper referenceKeeper, final ListVersions listVersions,
+            final TemporaryReferenceKeeper referenceKeeper, final ListPropertyMetaDataStore listVersions,
             final WeakObjectRegistry objectRegistry) {
         this.executor = executor;
         this.referenceKeeper = referenceKeeper;
@@ -113,7 +113,7 @@ public class ListPropertyCommandFilter {
     }
 
     private boolean couldBeExecuted(final ListCommand command) {
-        final UUID listVersion = listVersions.getApprovedVersionOrFail(command.getListId());
+        final UUID listVersion = listVersions.getMetaDataOrFail(command.getListId()).getApprovedVersion();
         final UUID commandFromVersion = command.getListVersionChange().getFromVersion();
 
         if (commandFromVersion.equals(listVersion)) {

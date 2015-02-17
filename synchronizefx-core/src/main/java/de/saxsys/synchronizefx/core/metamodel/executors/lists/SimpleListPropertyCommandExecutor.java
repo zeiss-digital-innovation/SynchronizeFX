@@ -21,7 +21,7 @@ package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 import java.util.List;
 
-import de.saxsys.synchronizefx.core.metamodel.ListVersions;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
 import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.ValueMapper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
@@ -43,7 +43,7 @@ class SimpleListPropertyCommandExecutor {
 
     private final ValueMapper valueMapper;
 
-    private final ListVersions listVersions;
+    private final ListPropertyMetaDataStore listMetaData;
 
     /**
      * Initializes the instance with all its dependencies.
@@ -59,11 +59,11 @@ class SimpleListPropertyCommandExecutor {
      */
     public SimpleListPropertyCommandExecutor(final WeakObjectRegistry objectRegistry,
             final SilentChangeExecutor silentChangeExecutor, final ValueMapper valueMapper,
-            final ListVersions listVersions) {
+            final ListPropertyMetaDataStore listVersions) {
         this.objectRegistry = objectRegistry;
         this.silentChangeExecutor = silentChangeExecutor;
         this.valueMapper = valueMapper;
-        this.listVersions = listVersions;
+        this.listMetaData = listVersions;
     }
 
     /**
@@ -84,7 +84,12 @@ class SimpleListPropertyCommandExecutor {
             }
         });
 
-        listVersions.setLocalVersion(command.getListId(), command.getListVersionChange().getToVersion());
+        updateVersion(command);
+    }
+
+    private void updateVersion(final ListCommand command) {
+        listMetaData.getMetaDataOrFail(command.getListId()).setLocalVersion(
+                command.getListVersionChange().getToVersion());
     }
 
     /**
@@ -110,8 +115,8 @@ class SimpleListPropertyCommandExecutor {
                 }
             }
         });
-        
-        listVersions.setLocalVersion(command.getListId(), command.getListVersionChange().getToVersion());
+
+        updateVersion(command);
     }
 
     /**
@@ -129,13 +134,12 @@ class SimpleListPropertyCommandExecutor {
                 list.set(command.getPosition(), valueMapper.map(command.getValue()));
             }
         });
-        
-        listVersions.setLocalVersion(command.getListId(), command.getListVersionChange().getToVersion());
+
+        updateVersion(command);
     }
 
     @SuppressWarnings("unchecked")
     private List<Object> getListOrFail(final ListCommand command) {
         return (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
     }
-
 }

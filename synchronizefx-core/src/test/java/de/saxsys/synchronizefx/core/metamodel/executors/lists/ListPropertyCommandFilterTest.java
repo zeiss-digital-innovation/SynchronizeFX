@@ -23,7 +23,8 @@ import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
 
-import de.saxsys.synchronizefx.core.metamodel.ListVersions;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.TemporaryReferenceKeeper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
@@ -75,7 +76,7 @@ public class ListPropertyCommandFilterTest {
     private TemporaryReferenceKeeper referenceKeeper;
 
     @Mock
-    private ListVersions listVersions;
+    private ListPropertyMetaDataStore listVersions;
 
     @Mock
     private WeakObjectRegistry objectRegistry;
@@ -88,8 +89,10 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void executesCommandsThatsVersionMatchesTheVersionOfTheLocalListProperty() {
-        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(EXEMPLARY_VERSION_FOR_ADD)
-                .thenReturn(EXEMPLARY_VERSION_FOR_REMOVE).thenReturn(EXEMPLARY_VERSION_FOR_REPLACE);
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
+                .thenReturn(new ListPropertyMetaData(null, EXEMPLARY_VERSION_FOR_ADD))
+                .thenReturn(new ListPropertyMetaData(null, EXEMPLARY_VERSION_FOR_REMOVE))
+                .thenReturn(new ListPropertyMetaData(null, EXEMPLARY_VERSION_FOR_REPLACE));
 
         cut.execute(exemplaryAddToListCommand);
         cut.execute(exemplaryRemoveFromListCommand);
@@ -107,8 +110,10 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void droppsCommandsThatsVersionDifferFromTheApprovedVersionOfTheListProperty() {
-        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID())
-                .thenReturn(randomUUID()).thenReturn(randomUUID());
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID()))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID()))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID()));
 
         cut.execute(exemplaryAddToListCommand);
         cut.execute(exemplaryRemoveFromListCommand);
@@ -127,8 +132,9 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void cachesObservableObjectsOfAddToListAndReplaceInListCommands() {
-        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID())
-                .thenReturn(randomUUID());
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID())).thenReturn(
+                        new ListPropertyMetaData(null, randomUUID()));
 
         final Object observableObjectForAdd = new Object();
         final Object observableObjectForReplace = new Object();
@@ -153,8 +159,9 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void doesntCacheSimpleObjectsOfAddToListAndReplaceInListCommands() {
-        when(listVersions.getApprovedVersionOrFail(EXEMPLARY_LIST_ID)).thenReturn(randomUUID())
-                .thenReturn(randomUUID());
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID())).thenReturn(
+                        new ListPropertyMetaData(null, randomUUID()));
 
         final AddToList addCommandWithSimpleObject = new AddToList(EXEMPLARY_LIST_ID, new ListVersionChange(
                 randomUUID(), randomUUID()), new Value("some simple object"), 6);

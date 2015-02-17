@@ -19,7 +19,9 @@
 
 package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
@@ -70,6 +72,17 @@ class RemoveFromListExcept {
      */
     public void addExceptedIndice(final int index) {
         exceptedIndices.add(index);
+    }
+
+    /**
+     * Converts this complex command to simple {@link RemoveFromList}.
+     * 
+     * @return All {@link RemoveFromList} commands that are necessary to reassemble the semantic of this complex
+     *         command.
+     */
+    public List<RemoveFromList> toSimpleCommands() {
+        // TODO real implementation
+        return Arrays.asList(removeFromListCommand);
     }
 
     @Override

@@ -21,11 +21,14 @@ package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 import java.util.UUID;
 
+import static java.util.UUID.randomUUID;
+
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
-import de.saxsys.synchronizefx.core.metamodel.ListVersions;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.SilentChangeExecutor;
 import de.saxsys.synchronizefx.core.metamodel.ValueMapper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
@@ -47,7 +50,6 @@ import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -74,7 +76,7 @@ public class SimpleListPropertyCommandExecutorTest {
     private ValueMapper valueMapper;
 
     @Mock
-    private ListVersions listVersions;
+    private ListPropertyMetaDataStore listMetaData;
 
     @InjectMocks
     private SimpleListPropertyCommandExecutor cut;
@@ -100,6 +102,8 @@ public class SimpleListPropertyCommandExecutorTest {
                 return ((Value) (invocation.getArguments()[0])).getSimpleObjectValue();
             }
         }).when(valueMapper).map(any(Value.class));
+
+        when(listMetaData.getMetaDataOrFail(any(UUID.class))).thenReturn(new ListPropertyMetaData(null, null));
     }
 
     /**
@@ -189,10 +193,13 @@ public class SimpleListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldUpdateLocalListVersionWhenCommandWasExecuted() {
+        final ListPropertyMetaData metaData = new ListPropertyMetaData(randomUUID(), randomUUID());
+        when(listMetaData.getMetaDataOrFail(exemplaryListId)).thenReturn(metaData);
+
         final AddToList command = new AddToList(exemplaryListId, exemplaryVersionChange, new Value("second"), 0);
 
         cut.execute(command);
 
-        verify(listVersions).setLocalVersion(exemplaryListId, exemplaryVersionChange.getToVersion());
+        assertThat(metaData.getLocalVersion()).isEqualTo(exemplaryVersionChange.getToVersion());
     }
 }

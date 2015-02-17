@@ -40,11 +40,11 @@ import org.apache.commons.collections.map.ReferenceIdentityMap;
 public class RepairingSingleValuePropertyCommandExecutor implements SingleValuePropertyCommandExecutor {
 
     private final WeakObjectRegistry objectRegistry;
-    private SimpleSingleValuePropertyCommandExecutor executor;
+    private final SimpleSingleValuePropertyCommandExecutor executor;
 
     // Apache commons collections are not generic
     @SuppressWarnings("unchecked")
-    private Map<Property<Object>, Queue<UUID>> propertyToChangeLog = new ReferenceIdentityMap(
+    private final Map<Property<Object>, Queue<UUID>> propertyToChangeLog = new ReferenceIdentityMap(
             AbstractReferenceMap.WEAK, AbstractReferenceMap.HARD);
 
     /**
