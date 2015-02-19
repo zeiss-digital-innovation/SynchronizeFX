@@ -32,94 +32,44 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  */
 class AddToListRepairer {
 
-    // /////////////////////
-    // / remote commands ///
-    // /////////////////////
-
     /**
-     * Repairs a remote {@link AddToList} in relation to a local {@link AddToList} command.
+     * Repairs an {@link AddToList} in relation to an {@link AddToList} command.
      * 
-     * @param remoteCommand
-     *            The remote command to repair.
-     * @param localCommand
-     *            The local command.
-     * @return The repaired remote command.
+     * @param toRepair
+     *            The command to repair.
+     * @param repairAgainst
+     *            The command to repair against.
+     * @return The repaired command.
      */
-    public AddToList repairRemoteCommand(final AddToList remoteCommand, final AddToList localCommand) {
+    public AddToList repairCommand(final AddToList toRepair, final AddToList repairAgainst) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not implemented yet");
     }
 
     /**
-     * Repairs a remote {@link AddToList} in relation to a local {@link RemoveFromList} command.
+     * Repairs an {@link AddToList} in relation to a {@link RemoveFromList} command.
      * 
-     * @param remoteCommand
-     *            The remote command to repair.
-     * @param localCommand
-     *            The local command.
-     * @return The repaired remote command.
+     * @param toRepair
+     *            The command to repair.
+     * @param repairAgainst
+     *            The command to repair against.
+     * @return The repaired command.
      */
-    public AddToList repairRemoteCommand(final AddToList remoteCommand, final RemoveFromList localCommand) {
+    public AddToList repairCommand(final AddToList toRepair, final RemoveFromList repairAgainst) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not implemented yet");
     }
 
     /**
-     * Repairs a remote {@link AddToList} in relation to a local {@link ReplaceInList} command.
+     * Repairs a {@link AddToList} in relation to a {@link ReplaceInList} command.
      * 
-     * @param remoteCommand
-     *            The remote command to repair.
-     * @param localCommand
-     *            The local command.
-     * @return The repaired remote command.
+     * @param toRepair
+     *            The command to repair.
+     * @param repairAgainst
+     *            The command to repair against.
+     * @return The repaired command.
      */
-    public AddToList repairRemoteCommand(final AddToList remoteCommand, final ReplaceInList localCommand) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    // ////////////////////
-    // / local commands ///
-    // ////////////////////
-
-    /**
-     * Repairs a local {@link AddToList} command in relation to a remote {@link AddToList} command.
-     * 
-     * @param localCommand
-     *            The local command to repair.
-     * @param remoteCommand
-     *            The remote command.
-     * @return The repaired local command
-     */
-    public AddToList repairLocalCommand(final AddToList localCommand, final AddToList remoteCommand) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    /**
-     * Repairs a local {@link AddToList} command in relation to a remote {@link RemoveFromListExcept} command.
-     * 
-     * @param localCommand
-     *            The local command to repair.
-     * @param remoteCommand
-     *            The remote command.
-     * @return The repaired local command
-     */
-    public AddToList repairLocalCommand(final AddToList localCommand, final RemoveFromListExcept remoteCommand) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    /**
-     * Repairs a local {@link AddToList} command in relation to a remote {@link ReplaceOrAddInList} command.
-     * 
-     * @param localCommand
-     *            The local command to repair.
-     * @param remoteCommand
-     *            The remote command.
-     * @return The repaired local command
-     */
-    public AddToList repairLocalCommand(final AddToList localCommand, final ReplaceOrAddInList remoteCommand) {
+    public AddToList repairCommand(final AddToList toRepair, final ReplaceInList repairAgainst) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not implemented yet");
     }

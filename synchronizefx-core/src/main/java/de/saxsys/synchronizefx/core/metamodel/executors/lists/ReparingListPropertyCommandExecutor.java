@@ -186,19 +186,19 @@ public class ReparingListPropertyCommandExecutor {
         for (int i = 0; i < commandCount; i++) {
             final ListCommand localCommand = metaData.getUnapprovedCommands().poll();
             if (localCommand instanceof AddToList) {
-                repaired = addToListRepairer.repairRemoteCommand(repaired, (AddToList) localCommand);
+                repaired = addToListRepairer.repairCommand(repaired, (AddToList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        addToListRepairer.repairLocalCommand((AddToList) localCommand, repaired));
+                        addToListRepairer.repairCommand((AddToList) localCommand, remoteCommand));
             } else if (localCommand instanceof RemoveFromList) {
-                repaired = addToListRepairer.repairRemoteCommand(repaired, (RemoveFromList) localCommand);
+                repaired = addToListRepairer.repairCommand(repaired, (RemoveFromList) localCommand);
                 metaData.getUnapprovedCommands().addAll(
-                        removeFromListRepairer.repairLocalCommand((RemoveFromList) localCommand, repaired)
-                                .toSimpleCommands());
+                        removeFromListRepairer.repairCommand(new RemoveFromListExcept((RemoveFromList) localCommand),
+                                remoteCommand).toSimpleCommands());
             } else if (localCommand instanceof ReplaceInList) {
-                repaired = addToListRepairer.repairRemoteCommand(repaired, (ReplaceInList) localCommand);
+                repaired = addToListRepairer.repairCommand(repaired, (ReplaceInList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        replaceInListRepairer.repairLocalCommand((ReplaceInList) localCommand, repaired)
-                                .toSimpleCommand());
+                        replaceInListRepairer.repairCommand(new ReplaceOrAddInList((ReplaceInList) localCommand),
+                                remoteCommand).toSimpleCommand());
             } else {
                 throw failUnknownTyp(remoteCommand);
             }
@@ -216,19 +216,19 @@ public class ReparingListPropertyCommandExecutor {
         for (int i = 0; i < commandCount; i++) {
             final ListCommand localCommand = metaData.getUnapprovedCommands().poll();
             if (localCommand instanceof AddToList) {
-                repaired = removeFromListRepairer.repairRemoteCommand(repaired, (AddToList) localCommand);
+                repaired = removeFromListRepairer.repairCommand(repaired, (AddToList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        addToListRepairer.repairLocalCommand((AddToList) localCommand, repaired));
+                        addToListRepairer.repairCommand((AddToList) localCommand, remoteCommand));
             } else if (localCommand instanceof RemoveFromList) {
-                repaired = removeFromListRepairer.repairRemoteCommand(repaired, (RemoveFromList) localCommand);
+                repaired = removeFromListRepairer.repairCommand(repaired, (RemoveFromList) localCommand);
                 metaData.getUnapprovedCommands().addAll(
-                        removeFromListRepairer.repairLocalCommand((RemoveFromList) localCommand, repaired)
-                                .toSimpleCommands());
+                        removeFromListRepairer.repairCommand(new RemoveFromListExcept((RemoveFromList) localCommand),
+                                remoteCommand).toSimpleCommands());
             } else if (localCommand instanceof ReplaceInList) {
-                repaired = removeFromListRepairer.repairRemoteCommand(repaired, (ReplaceInList) localCommand);
+                repaired = removeFromListRepairer.repairCommand(repaired, (ReplaceInList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        replaceInListRepairer.repairLocalCommand((ReplaceInList) localCommand, repaired)
-                                .toSimpleCommand());
+                        replaceInListRepairer.repairCommand(new ReplaceOrAddInList((ReplaceInList) localCommand),
+                                remoteCommand).toSimpleCommand());
             } else {
                 throw failUnknownTyp(remoteCommand);
             }
@@ -244,19 +244,19 @@ public class ReparingListPropertyCommandExecutor {
         for (int i = 0; i < commandCount; i++) {
             final ListCommand localCommand = metaData.getUnapprovedCommands().poll();
             if (localCommand instanceof AddToList) {
-                repaired = replaceInListRepairer.repairRemoteCommand(repaired, (AddToList) localCommand);
+                repaired = replaceInListRepairer.repairCommand(repaired, (AddToList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        addToListRepairer.repairLocalCommand((AddToList) localCommand, repaired));
+                        addToListRepairer.repairCommand((AddToList) localCommand, remoteCommand));
             } else if (localCommand instanceof RemoveFromList) {
-                repaired = replaceInListRepairer.repairRemoteCommand(repaired, (RemoveFromList) localCommand);
+                repaired = replaceInListRepairer.repairCommand(repaired, (RemoveFromList) localCommand);
                 metaData.getUnapprovedCommands().addAll(
-                        removeFromListRepairer.repairLocalCommand((RemoveFromList) localCommand, repaired)
-                                .toSimpleCommands());
+                        removeFromListRepairer.repairCommand(new RemoveFromListExcept((RemoveFromList) localCommand),
+                                remoteCommand).toSimpleCommands());
             } else if (localCommand instanceof ReplaceInList) {
-                repaired = replaceInListRepairer.repairRemoteCommand(repaired, (ReplaceInList) localCommand);
+                repaired = replaceInListRepairer.repairCommand(repaired, (ReplaceInList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        replaceInListRepairer.repairLocalCommand((ReplaceInList) localCommand, repaired)
-                                .toSimpleCommand());
+                        replaceInListRepairer.repairCommand(new ReplaceOrAddInList((ReplaceInList) localCommand),
+                                remoteCommand).toSimpleCommand());
             } else {
                 throw failUnknownTyp(remoteCommand);
             }

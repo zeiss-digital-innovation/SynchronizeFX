@@ -143,10 +143,10 @@ public class ReparingListPropertyCommandExecutorTest {
 
         // check that the local command is removed from the list
         final AddToList repairedListCommand = mock(AddToList.class);
-        when(addToListRepairer.repairRemoteCommand(EXEMPLARY_ADD_COMMAND, otherChangeSameList)).thenReturn(
+        when(addToListRepairer.repairCommand(EXEMPLARY_ADD_COMMAND, otherChangeSameList)).thenReturn(
                 repairedListCommand);
-        when(removeFromListRepairer.repairLocalCommand(otherChangeSameList, repairedListCommand)).thenReturn(
-                mock(RemoveFromListExcept.class));
+        when(removeFromListRepairer.repairCommand(new RemoveFromListExcept(otherChangeSameList), EXEMPLARY_ADD_COMMAND))
+                .thenReturn(mock(RemoveFromListExcept.class));
         cut.execute(EXEMPLARY_ADD_COMMAND);
         // Executed this time because it was removed from the command log.
         verify(simpleExecutor, times(1)).execute(any(AddToList.class));
@@ -178,7 +178,7 @@ public class ReparingListPropertyCommandExecutorTest {
         final RemoveFromListExcept simulatedRepairedCommand = new RemoveFromListExcept(new RemoveFromList(randomUUID(),
                 EXEMPLARY_CHANGE, 8, 6));
 
-        when(removeFromListRepairer.repairRemoteCommand(//
+        when(removeFromListRepairer.repairCommand(//
                 new RemoveFromListExcept(otherCommandSameList), EXEMPLARY_ADD_COMMAND)).thenReturn(
                 simulatedRepairedCommand);
 
@@ -208,15 +208,13 @@ public class ReparingListPropertyCommandExecutorTest {
         final RemoveFromList repairedRemoteCommandStep1 = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 9, 6);
         final RemoveFromList repairedRemoteCommandStep2 = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 8, 1);
 
-        when(removeFromListRepairer.repairRemoteCommand(new RemoveFromListExcept(remoteCommand), localCommand1))
-                .thenReturn(new RemoveFromListExcept(repairedRemoteCommandStep1));
-        when(addToListRepairer.repairLocalCommand(localCommand1, new RemoveFromListExcept(repairedRemoteCommandStep1)))
-                .thenReturn(repairedLocalCommand1);
-        when(removeFromListRepairer.repairRemoteCommand(//
+        when(removeFromListRepairer.repairCommand(new RemoveFromListExcept(remoteCommand), localCommand1)).thenReturn(
+                new RemoveFromListExcept(repairedRemoteCommandStep1));
+        when(addToListRepairer.repairCommand(localCommand1, remoteCommand)).thenReturn(repairedLocalCommand1);
+        when(removeFromListRepairer.repairCommand(//
                 new RemoveFromListExcept(repairedRemoteCommandStep1), localCommand2)).thenReturn(
                 new RemoveFromListExcept(repairedRemoteCommandStep2));
-        when(replaceInListRepairer.repairLocalCommand(localCommand2, //
-                new RemoveFromListExcept(repairedRemoteCommandStep2))).thenReturn(
+        when(replaceInListRepairer.repairCommand(new ReplaceOrAddInList(localCommand2), remoteCommand)).thenReturn(
                 new ReplaceOrAddInList(repairedLocalCommand2));
 
         cut.logLocalCommand(localCommand1);
