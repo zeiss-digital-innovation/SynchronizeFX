@@ -42,8 +42,11 @@ class AddToListRepairer {
      * @return The repaired command.
      */
     public AddToList repairCommand(final AddToList toRepair, final AddToList repairAgainst) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
+        if (toRepair.getPosition() >= repairAgainst.getPosition()) {
+            return new AddToList(toRepair.getListId(), toRepair.getListVersionChange(), toRepair.getValue(),
+                    toRepair.getPosition() + 1);
+        }
+        return toRepair;
     }
 
     /**
@@ -56,8 +59,14 @@ class AddToListRepairer {
      * @return The repaired command.
      */
     public AddToList repairCommand(final AddToList toRepair, final RemoveFromList repairAgainst) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
+        final int indicesBefore = toRepair.getPosition() - repairAgainst.getStartPosition();
+        if (indicesBefore <= 0) {
+            return toRepair;
+        }
+        final int indicesToDecrese = indicesBefore < repairAgainst.getRemoveCount() ? indicesBefore : repairAgainst
+                .getRemoveCount();
+        return new AddToList(toRepair.getListId(), toRepair.getListVersionChange(), toRepair.getValue(),
+                toRepair.getPosition() - indicesToDecrese);
     }
 
     /**
@@ -70,7 +79,6 @@ class AddToListRepairer {
      * @return The repaired command.
      */
     public AddToList repairCommand(final AddToList toRepair, final ReplaceInList repairAgainst) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
+        return toRepair;
     }
 }
