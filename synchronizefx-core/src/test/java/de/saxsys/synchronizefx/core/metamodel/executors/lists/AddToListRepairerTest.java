@@ -46,6 +46,10 @@ public class AddToListRepairerTest {
 
     private final AddToListRepairer cut = new AddToListRepairer();
 
+    /////////////////
+    /// AddToList ///
+    /////////////////
+    
     /**
      * When the index of an {@link AddToList} command is the same or greater than that of the other {@link AddToList}
      * command, its index should be increased.
@@ -81,6 +85,10 @@ public class AddToListRepairerTest {
         assertThat(repaired1.getPosition()).isEqualTo(1);
     }
 
+    //////////////////////
+    /// RemoveFromList ///
+    //////////////////////
+    
     /**
      * The index of an {@link AddToList} command should be decreased by as much as there are elements removed before the
      * index of the {@link AddToList} command by an {@link RemoveFromList} command.
@@ -115,6 +123,10 @@ public class AddToListRepairerTest {
         assertThat(repaired2.getPosition()).isEqualTo(20);
     }
 
+    /////////////////////
+    /// ReplaceInList ///
+    /////////////////////
+    
     /**
      * When an {@link AddToList} command is repaired against an {@link ReplaceInList} command its index should be left
      * untouched.
@@ -126,6 +138,10 @@ public class AddToListRepairerTest {
         final AddToList repaired1 = cut.repairCommand(toRepair1, repairAgainst1);
         assertThat(repaired1.getPosition()).isEqualTo(5);
     }
+    
+    /////////////
+    /// Other ///
+    /////////////
 
     /**
      * The list id and the list version of a repaired command should not be changed.
