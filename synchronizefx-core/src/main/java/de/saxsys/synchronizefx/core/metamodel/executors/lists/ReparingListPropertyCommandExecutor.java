@@ -189,9 +189,9 @@ public class ReparingListPropertyCommandExecutor {
         for (int i = 0; i < commandCount; i++) {
             final ListCommand localCommand = metaData.getUnapprovedCommands().poll();
             if (localCommand instanceof AddToList) {
-                repaired = addToListRepairer.repairCommand(repaired, (AddToList) localCommand);
+                repaired = addToListRepairer.repairRemoteCommand(repaired, (AddToList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        addToListRepairer.repairCommand((AddToList) localCommand, remoteCommand));
+                        addToListRepairer.repairLocalCommand((AddToList) localCommand, remoteCommand));
             } else if (localCommand instanceof RemoveFromList) {
                 repaired = addToListRepairer.repairCommand(repaired, (RemoveFromList) localCommand);
                 metaData.getUnapprovedCommands().addAll(

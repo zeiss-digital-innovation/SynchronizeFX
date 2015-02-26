@@ -46,29 +46,24 @@ public class AddToListRepairerTest {
 
     private final AddToListRepairer cut = new AddToListRepairer();
 
-    /////////////////
-    /// AddToList ///
-    /////////////////
-    
+    // ///////////////
+    // / AddToList ///
+    // ///////////////
+
     /**
-     * When the index of an {@link AddToList} command is the same or greater than that of the other {@link AddToList}
-     * command, its index should be increased.
+     * When the index of an {@link AddToList} command is greater than that of the other {@link AddToList} command, its
+     * index should be increased.
      */
     @Test
-    public void shouldIncreaseIndexOfAddToListIfIndexIsSameOrGreaterThanOtherAddToListIndex() {
+    public void shouldIncreaseIndexOfAddToListIfIndexIsGreaterThanOtherAddToListIndex() {
         final AddToList toRepair1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 3);
         final AddToList repairAgainst1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 2);
 
-        final AddToList repaired1 = cut.repairCommand(toRepair1, repairAgainst1);
+        final AddToList repairedLocal = cut.repairLocalCommand(toRepair1, repairAgainst1);
+        assertThat(repairedLocal.getPosition()).isEqualTo(4);
 
-        assertThat(repaired1.getPosition()).isEqualTo(4);
-
-        final AddToList toRepair2 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 53);
-        final AddToList repairAgainst2 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 53);
-
-        final AddToList repaired2 = cut.repairCommand(toRepair2, repairAgainst2);
-
-        assertThat(repaired2.getPosition()).isEqualTo(54);
+        final AddToList repairedRemote = cut.repairRemoteCommand(toRepair1, repairAgainst1);
+        assertThat(repairedRemote.getPosition()).isEqualTo(4);
     }
 
     /**
@@ -80,15 +75,47 @@ public class AddToListRepairerTest {
         final AddToList toRepair1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 1);
         final AddToList repairAgainst1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 2);
 
-        final AddToList repaired1 = cut.repairCommand(toRepair1, repairAgainst1);
+        final AddToList repairedLocal = cut.repairLocalCommand(toRepair1, repairAgainst1);
+        assertThat(repairedLocal.getPosition()).isEqualTo(1);
 
-        assertThat(repaired1.getPosition()).isEqualTo(1);
+        final AddToList repairedRemode = cut.repairRemoteCommand(toRepair1, repairAgainst1);
+        assertThat(repairedRemode.getPosition()).isEqualTo(1);
     }
 
-    //////////////////////
-    /// RemoveFromList ///
-    //////////////////////
-    
+    /**
+     * When the index of a local {@link AddToList} command which should be repaired is the same as the remote
+     * {@link AddToList} command it should be repaired against, its index should be increased by 1.
+     */
+    @Test
+    public void shouldIncreaseIndexOfLocalAddToListCommandIfIndexIsSameAsRemoteAddToListIndex() {
+        final AddToList toRepair1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 53);
+        final AddToList repairAgainst1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 53);
+
+        final AddToList repaired1 = cut.repairLocalCommand(toRepair1, repairAgainst1);
+
+        assertThat(repaired1.getPosition()).isEqualTo(54);
+
+    }
+
+    /**
+     * When the index of a remote {@link AddToList} command which should be repaired is the same as the local
+     * {@link AddToList} command it should be repaired against, its index should be unchanged.
+     */
+    @Test
+    public void shouldNotChangeIndexOfRemoteAddToListIfIndexIsSameAsLocalAddToListIndex() {
+        final AddToList toRepair1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 53);
+        final AddToList repairAgainst1 = new AddToList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 53);
+
+        final AddToList repaired1 = cut.repairRemoteCommand(toRepair1, repairAgainst1);
+
+        assertThat(repaired1.getPosition()).isEqualTo(54);
+
+    }
+
+    // ////////////////////
+    // / RemoveFromList ///
+    // ////////////////////
+
     /**
      * The index of an {@link AddToList} command should be decreased by as much as there are elements removed before the
      * index of the {@link AddToList} command by an {@link RemoveFromList} command.
@@ -123,10 +150,10 @@ public class AddToListRepairerTest {
         assertThat(repaired2.getPosition()).isEqualTo(20);
     }
 
-    /////////////////////
-    /// ReplaceInList ///
-    /////////////////////
-    
+    // ///////////////////
+    // / ReplaceInList ///
+    // ///////////////////
+
     /**
      * When an {@link AddToList} command is repaired against an {@link ReplaceInList} command its index should be left
      * untouched.
@@ -138,10 +165,10 @@ public class AddToListRepairerTest {
         final AddToList repaired1 = cut.repairCommand(toRepair1, repairAgainst1);
         assertThat(repaired1.getPosition()).isEqualTo(5);
     }
-    
-    /////////////
-    /// Other ///
-    /////////////
+
+    // ///////////
+    // / Other ///
+    // ///////////
 
     /**
      * The list id and the list version of a repaired command should not be changed.
@@ -154,7 +181,7 @@ public class AddToListRepairerTest {
         final RemoveFromList repairAgainst2 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 31, 1);
         final ReplaceInList repairAgainst3 = new ReplaceInList(SOME_LIST, SOME_CHANGE, SOME_VALUE, 31);
 
-        final AddToList repaired1 = cut.repairCommand(toRepair, repairAgainst1);
+        final AddToList repaired1 = cut.repairLocalCommand(toRepair, repairAgainst1);
         final AddToList repaired2 = cut.repairCommand(toRepair, repairAgainst2);
         final AddToList repaired3 = cut.repairCommand(toRepair, repairAgainst3);
 

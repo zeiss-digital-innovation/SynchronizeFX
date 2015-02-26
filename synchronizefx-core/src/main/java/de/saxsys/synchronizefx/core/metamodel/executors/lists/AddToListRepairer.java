@@ -33,7 +33,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 class AddToListRepairer {
 
     /**
-     * Repairs an {@link AddToList} in relation to an {@link AddToList} command.
+     * Repairs a remote {@link AddToList} in relation to an local {@link AddToList} command.
      * 
      * @param toRepair
      *            The command to repair.
@@ -41,10 +41,25 @@ class AddToListRepairer {
      *            The command to repair against.
      * @return The repaired command.
      */
-    public AddToList repairCommand(final AddToList toRepair, final AddToList repairAgainst) {
+    public AddToList repairLocalCommand(final AddToList toRepair, final AddToList repairAgainst) {
+        if (toRepair.getPosition() == repairAgainst.getPosition()) {
+            return createCommand(toRepair, toRepair.getPosition() + 1);
+        }
+        return repairRemoteCommand(toRepair, repairAgainst);
+    }
+
+    /**
+     * Repairs a local {@link AddToList} in relation to an remote {@link AddToList} command.
+     * 
+     * @param toRepair
+     *            The command to repair.
+     * @param repairAgainst
+     *            The command to repair against.
+     * @return The repaired command.
+     */
+    public AddToList repairRemoteCommand(final AddToList toRepair, final AddToList repairAgainst) {
         if (toRepair.getPosition() >= repairAgainst.getPosition()) {
-            return new AddToList(toRepair.getListId(), toRepair.getListVersionChange(), toRepair.getValue(),
-                    toRepair.getPosition() + 1);
+            return createCommand(toRepair, toRepair.getPosition() + 1);
         }
         return toRepair;
     }
@@ -65,8 +80,7 @@ class AddToListRepairer {
         }
         final int indicesToDecrese = indicesBefore < repairAgainst.getRemoveCount() ? indicesBefore : repairAgainst
                 .getRemoveCount();
-        return new AddToList(toRepair.getListId(), toRepair.getListVersionChange(), toRepair.getValue(),
-                toRepair.getPosition() - indicesToDecrese);
+        return createCommand(toRepair, toRepair.getPosition() - indicesToDecrese);
     }
 
     /**
@@ -80,5 +94,9 @@ class AddToListRepairer {
      */
     public AddToList repairCommand(final AddToList toRepair, final ReplaceInList repairAgainst) {
         return toRepair;
+    }
+
+    private AddToList createCommand(final AddToList toRepair, final int position) {
+        return new AddToList(toRepair.getListId(), toRepair.getListVersionChange(), toRepair.getValue(), position);
     }
 }
