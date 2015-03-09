@@ -29,12 +29,12 @@ import java.util.NoSuchElementException;
  * support is dropped.
  * </p>
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  * 
  * @param <T>
  *            The type that may is present or not
  */
-final class Optional<T> {
+public final class Optional<T> {
 
     private final T value;
 

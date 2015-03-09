@@ -29,6 +29,7 @@ import static java.util.Arrays.asList;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
 import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
+import de.saxsys.synchronizefx.core.metamodel.Optional;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
@@ -45,13 +46,13 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * 
  * <p>
  * When a remote command appears while unconfirmed local commands exists, other peers will drop all these local
- * commands. They therefore have to be repaired as well to be based on the list version the remote command produced
- * and re-send to the other peers.
+ * commands. They therefore have to be repaired as well to be based on the list version the remote command produced and
+ * re-send to the other peers.
  * </p>
  * 
  * <p>
- * A local command gets confirmed when it is the same as a received remote command and if it is the oldest
- * unconfirmed command.
+ * A local command gets confirmed when it is the same as a received remote command and if it is the oldest unconfirmed
+ * command.
  * </p>
  * 
  * @author Raik Bieniek
@@ -70,12 +71,18 @@ public class ReparingListPropertyCommandExecutor {
     /**
      * Initializes an instance with all its dependencies.
      * 
-     * @param addToListRepairer Used to repair {@link AddToList} commands.
-     * @param removeFromListRepairer Used to repair {@link RemoveFromList} commands.
-     * @param replaceInListRepairer Used to repair {@link ReplaceInList} commands.
-     * @param listMetaDataStore Used to read and update versions of {@link List}s.
-     * @param simpleExecutor Used to execute changes on {@link List}s.
-     * @param topologyLayerCallback Used to re-send repaired local commands.
+     * @param addToListRepairer
+     *            Used to repair {@link AddToList} commands.
+     * @param removeFromListRepairer
+     *            Used to repair {@link RemoveFromList} commands.
+     * @param replaceInListRepairer
+     *            Used to repair {@link ReplaceInList} commands.
+     * @param listMetaDataStore
+     *            Used to read and update versions of {@link List}s.
+     * @param simpleExecutor
+     *            Used to execute changes on {@link List}s.
+     * @param topologyLayerCallback
+     *            Used to re-send repaired local commands.
      */
     public ReparingListPropertyCommandExecutor(final AddToListRepairer addToListRepairer,
             final RemoveFromListRepairer removeFromListRepairer, final ReplaceInListRepairer replaceInListRepairer,
@@ -92,7 +99,8 @@ public class ReparingListPropertyCommandExecutor {
     /**
      * Logs a command that was locally generated and send to other peers.
      * 
-     * @param localCommand The command to log
+     * @param localCommand
+     *            The command to log
      */
     public void logLocalCommand(final ListCommand localCommand) {
         getMetaData(localCommand);
@@ -101,12 +109,13 @@ public class ReparingListPropertyCommandExecutor {
     }
 
     /**
-     * Executes a remotely received command, repairs it when necessary and resends repaired versions of local
-     * commands that where obsoleted by the received command.
+     * Executes a remotely received command, repairs it when necessary and resends repaired versions of local commands
+     * that where obsoleted by the received command.
      * 
-     * @param command The command to execute.
+     * @param command
+     *            The command to execute.
      */
-    @SuppressWarnings({"rawtypes", "unchecked" })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     // The alternative would be to change the TopologolyLayerCallback.send() to take List<? extends Command>
     public void execute(final ListCommand command) {
         getMetaData(command);
@@ -178,19 +187,16 @@ public class ReparingListPropertyCommandExecutor {
         final int commandCount = metaData.getUnapprovedCommands().size();
         for (int i = 0; i < commandCount; i++) {
             final ListCommand localCommand = metaData.getUnapprovedCommands().poll();
+            repaired = repairRemoteCommand(localCommand, repaired);
             if (localCommand instanceof AddToList) {
-                repaired = addToListRepairer.repairRemoteCommand(repaired, (AddToList) localCommand);
                 metaData.getUnapprovedCommands().add(
                         addToListRepairer.repairLocalCommand((AddToList) localCommand, remoteCommand));
             } else if (localCommand instanceof RemoveFromList) {
-                repaired = addToListRepairer.repairCommand(repaired, (RemoveFromList) localCommand);
                 metaData.getUnapprovedCommands().addAll(
                         removeFromListRepairer.repairCommand((RemoveFromList) localCommand, remoteCommand));
             } else if (localCommand instanceof ReplaceInList) {
-                repaired = addToListRepairer.repairCommand(repaired, (ReplaceInList) localCommand);
                 metaData.getUnapprovedCommands().add(
-                        replaceInListRepairer.repairCommand(new ReplaceOrAddInList((ReplaceInList) localCommand),
-                                remoteCommand).toSimpleCommand());
+                        replaceInListRepairer.repairCommand((ReplaceInList) localCommand, remoteCommand));
             } else {
                 throw failUnknownTyp(remoteCommand);
             }
@@ -232,8 +238,7 @@ public class ReparingListPropertyCommandExecutor {
                         removeFromListRepairer.repairCommand((RemoveFromList) localCommand, remoteCommand));
             } else if (localCommand instanceof ReplaceInList) {
                 metaData.getUnapprovedCommands().add(
-                        replaceInListRepairer.repairCommand(new ReplaceOrAddInList((ReplaceInList) localCommand),
-                                remoteCommand).toSimpleCommand());
+                        replaceInListRepairer.repairCommand((ReplaceInList) localCommand, remoteCommand));
             } else {
                 throw failUnknownTyp(remoteCommand);
             }
@@ -243,31 +248,59 @@ public class ReparingListPropertyCommandExecutor {
     }
 
     private List<ListCommand> repairCommands(final ReplaceInList remoteCommand) {
-        ReplaceOrAddInList repaired = new ReplaceOrAddInList(remoteCommand);
+        ListCommand repaired = remoteCommand;
 
         final int commandCount = metaData.getUnapprovedCommands().size();
         for (int i = 0; i < commandCount; i++) {
             final ListCommand localCommand = metaData.getUnapprovedCommands().poll();
+            if (repaired instanceof ReplaceInList) {
+                repaired = repairRemoteCommand(localCommand, (ReplaceInList) repaired);
+            } else {
+                repaired = repairRemoteCommand(localCommand, (AddToList) repaired);
+            }
             if (localCommand instanceof AddToList) {
-                repaired = replaceInListRepairer.repairCommand(repaired, (AddToList) localCommand);
                 metaData.getUnapprovedCommands().add(
                         addToListRepairer.repairCommand((AddToList) localCommand, remoteCommand));
             } else if (localCommand instanceof RemoveFromList) {
-                repaired = replaceInListRepairer.repairCommand(repaired, (RemoveFromList) localCommand);
                 metaData.getUnapprovedCommands().addAll(
                         removeFromListRepairer.repairCommand((RemoveFromList) localCommand, remoteCommand));
             } else if (localCommand instanceof ReplaceInList) {
-                repaired = replaceInListRepairer.repairCommand(repaired, (ReplaceInList) localCommand);
-                metaData.getUnapprovedCommands().add(
-                        replaceInListRepairer.repairCommand(new ReplaceOrAddInList((ReplaceInList) localCommand),
-                                remoteCommand).toSimpleCommand());
+                final Optional<ReplaceInList> repairedLocalCommand = replaceInListRepairer.repairLocalCommand(
+                        (ReplaceInList) localCommand, remoteCommand);
+                if (repairedLocalCommand.isPresent()) {
+                    metaData.getUnapprovedCommands().add(repairedLocalCommand.get());
+                }
             } else {
                 throw failUnknownTyp(remoteCommand);
             }
         }
 
         final List<ListCommand> list = new ArrayList<>(1);
-        list.add(repaired.toSimpleCommand());
+        list.add(repaired);
         return list;
+    }
+
+    private AddToList repairRemoteCommand(final ListCommand localCommand, final AddToList remoteCommand) {
+        if (localCommand instanceof AddToList) {
+            return addToListRepairer.repairRemoteCommand(remoteCommand, (AddToList) localCommand);
+        } else if (localCommand instanceof RemoveFromList) {
+            return addToListRepairer.repairCommand(remoteCommand, (RemoveFromList) localCommand);
+        } else if (localCommand instanceof ReplaceInList) {
+            return addToListRepairer.repairCommand(remoteCommand, (ReplaceInList) localCommand);
+        } else {
+            throw failUnknownTyp(remoteCommand);
+        }
+    }
+
+    private ListCommand repairRemoteCommand(final ListCommand localCommand, final ReplaceInList remoteCommand) {
+        if (localCommand instanceof AddToList) {
+            return replaceInListRepairer.repairCommand(remoteCommand, (AddToList) localCommand);
+        } else if (localCommand instanceof RemoveFromList) {
+            return replaceInListRepairer.repairCommand(remoteCommand, (RemoveFromList) localCommand);
+        } else if (localCommand instanceof ReplaceInList) {
+            return replaceInListRepairer.repairRemoteCommand(remoteCommand, (ReplaceInList) localCommand);
+        } else {
+            throw failUnknownTyp(remoteCommand);
+        }
     }
 }

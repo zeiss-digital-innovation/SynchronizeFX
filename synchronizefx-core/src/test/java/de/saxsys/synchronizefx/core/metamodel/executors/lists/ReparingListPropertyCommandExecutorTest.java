@@ -212,8 +212,7 @@ public class ReparingListPropertyCommandExecutorTest {
         when(addToListRepairer.repairCommand(localCommand1, remoteCommand)).thenReturn(repairedLocalCommand1);
         when(removeFromListRepairer.repairCommand(repairedRemoteCommandStep1, localCommand2)).thenReturn(
                 asList(repairedRemoteCommandStep2));
-        when(replaceInListRepairer.repairCommand(new ReplaceOrAddInList(localCommand2), remoteCommand)).thenReturn(
-                new ReplaceOrAddInList(repairedLocalCommand2));
+        when(replaceInListRepairer.repairCommand(localCommand2, remoteCommand)).thenReturn(repairedLocalCommand2);
 
         cut.logLocalCommand(localCommand1);
         cut.logLocalCommand(localCommand2);
