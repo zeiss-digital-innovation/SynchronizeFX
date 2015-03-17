@@ -20,6 +20,7 @@
 package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 
@@ -73,6 +74,9 @@ public class ReparingListPropertyCommandExecutorTest {
     private ListCommandIndexRepairer indexRepairer;
 
     @Mock
+    private ListCommandVersionRepairer versionRepairer;
+
+    @Mock
     private ListPropertyMetaDataStore listVersions;
 
     @Mock
@@ -119,7 +123,6 @@ public class ReparingListPropertyCommandExecutorTest {
      * When a received command equals the first command in the log of unapproved commands it should not be executed and
      * be removed from the command log.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldDropApprovedLocalCommandAndRemoveItFromTheCommandLog() {
         final ListPropertyMetaData listMetaData = new ListPropertyMetaData(null, null);
@@ -140,8 +143,8 @@ public class ReparingListPropertyCommandExecutorTest {
         verify(simpleExecutor, times(0)).execute(any(AddToList.class));
 
         // check that the local command is removed from the list
-        doReturn(asList(mock(AddToList.class))).when(indexRepairer).repairCommands(any(Queue.class),
-                same(EXEMPLARY_ADD_COMMAND));
+        wireUpCommandRepairers(EXEMPLARY_ADD_COMMAND, asList(mock(AddToList.class)));
+
         cut.execute(EXEMPLARY_ADD_COMMAND);
         // Executed this time because it was removed from the command log.
         verify(simpleExecutor, times(1)).execute(any(AddToList.class));
@@ -166,15 +169,13 @@ public class ReparingListPropertyCommandExecutorTest {
      * If a remote command was not the oldest unapproved locally generated command, the server executed a command of
      * another peer first. This command has to be repaired and than be executed.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldRepairAndExecuteRemoteCommandThatWasntTheOldestUnapprovedLocalCommand() {
         final RemoveFromList otherCommandSameList = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(),
                 EXEMPLARY_CHANGE, 5, 3);
         final RemoveFromList simulatedRepairedCommand = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 8, 6);
 
-        doReturn(asList(simulatedRepairedCommand)).when(indexRepairer).repairCommands(any(Queue.class),
-                same(otherCommandSameList));
+        wireUpCommandRepairers(otherCommandSameList, asList(simulatedRepairedCommand));
 
         cut.logLocalCommand(EXEMPLARY_ADD_COMMAND);
         cut.execute(otherCommandSameList);
@@ -187,7 +188,6 @@ public class ReparingListPropertyCommandExecutorTest {
      * another peer first. All remote peers will drop the locally generated commands because they cannot be applied to
      * their version of the list. Because of this all local commands need to be repaired and resend.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldRepairAndResendAllUnapprovedLocalCommandsWhenRemoteCommandWasntFirstUnapprovedLocalCommand() {
         final RemoveFromList remoteCommand = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE, 5,
@@ -201,8 +201,7 @@ public class ReparingListPropertyCommandExecutorTest {
         cut.logLocalCommand(localCommand1);
         cut.logLocalCommand(localCommand2);
 
-        doReturn(asList(repairedRemoteCommand)).when(indexRepairer).repairCommands(any(Queue.class),
-                same(remoteCommand));
+        wireUpCommandRepairers(remoteCommand, asList(repairedRemoteCommand));
 
         cut.execute(remoteCommand);
 
@@ -227,6 +226,16 @@ public class ReparingListPropertyCommandExecutorTest {
         // The logged command is logged for another list so the list for EXEMPLARY_ADD_COMMAND is empty and nothing must
         // be repaired.
         verifyNoMoreInteractions(indexRepairer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void wireUpCommandRepairers(final ListCommand input, final List<? extends ListCommand> output) {
+        final List<ListCommand> intermediate = asList();
+
+        // The cut first needs to repair the indices of the commands and the the version of the commands
+        doReturn(intermediate).when(indexRepairer).repairCommands(any(Queue.class), same(input));
+        // Necessary but not testedversionRepairer.repairLocalCommandVersion
+        doReturn(output).when(versionRepairer).repairRemoteCommandVersion(same(intermediate), any(List.class));
     }
 
     /**

@@ -38,11 +38,11 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Checks if {@link ListVersionRepairer} works as expected.
+ * Checks if {@link ListCommandVersionRepairer} works as expected.
  * 
  * @author Raik Bieniek
  */
-public class ListVersionRepairerTest {
+public class ListCommandVersionRepairerTest {
 
     private final AddToList addToList = new AddToList(randomUUID(), new ListVersionChange(randomUUID(), randomUUID()),
             new Value("some value"), 42);
@@ -58,7 +58,7 @@ public class ListVersionRepairerTest {
 
     private final LinkedList<ListCommand> localCommands = linkedList(addToList, removeFromList, replaceInList);
 
-    private final ListVersionRepairer cut = new ListVersionRepairer();
+    private final ListCommandVersionRepairer cut = new ListCommandVersionRepairer();
 
     // ///////////////////////////
     // / repair local versions ///

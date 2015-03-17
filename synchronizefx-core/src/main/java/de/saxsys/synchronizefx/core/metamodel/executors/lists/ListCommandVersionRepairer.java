@@ -39,7 +39,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * 
  * @author Raik Bieniek
  */
-public class ListVersionRepairer {
+public class ListCommandVersionRepairer {
 
     /**
      * Updates the versions of repaired local commands that should be resent to the server so that they are based on the
@@ -77,7 +77,8 @@ public class ListVersionRepairer {
      *            class. This queue must contain at least one element.
      * @return The remote commands with repaired list versions.
      */
-    public List<? extends ListCommand> repairRemoteCommandVersion(final List<ListCommand> indexRepairedRemoteCommands,
+    public List<? extends ListCommand> repairRemoteCommandVersion(
+            final List<? extends ListCommand> indexRepairedRemoteCommands,
             final List<ListCommand> versionRepairedLocalCommands) {
 
         final int commandCount = indexRepairedRemoteCommands.size();

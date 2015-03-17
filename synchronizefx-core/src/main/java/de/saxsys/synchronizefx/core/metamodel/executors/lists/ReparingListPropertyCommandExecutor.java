@@ -58,6 +58,7 @@ public class ReparingListPropertyCommandExecutor {
     private final SimpleListPropertyCommandExecutor simpleExecutor;
     private final TopologyLayerCallback topologyLayerCallback;
     private final ListCommandIndexRepairer indexRepairer;
+    private final ListCommandVersionRepairer versionRepairer;
 
     private ListPropertyMetaData metaData;
 
@@ -68,16 +69,19 @@ public class ReparingListPropertyCommandExecutor {
      *            Used to read and update versions of {@link List}s.
      * @param indexRepairer
      *            Used to repair the indices of remote and local commands.
+     * @param versionRepairer
+     *            Used to repair the version of remote and local commands.
      * @param simpleExecutor
      *            Used to execute changes on {@link List}s.
      * @param topologyLayerCallback
      *            Used to re-send repaired local commands.
      */
     public ReparingListPropertyCommandExecutor(final ListPropertyMetaDataStore listMetaDataStore,
-            final ListCommandIndexRepairer indexRepairer, final SimpleListPropertyCommandExecutor simpleExecutor,
-            final TopologyLayerCallback topologyLayerCallback) {
+            final ListCommandIndexRepairer indexRepairer, final ListCommandVersionRepairer versionRepairer,
+            final SimpleListPropertyCommandExecutor simpleExecutor, final TopologyLayerCallback topologyLayerCallback) {
         this.listMetaDataStore = listMetaDataStore;
         this.indexRepairer = indexRepairer;
+        this.versionRepairer = versionRepairer;
         this.simpleExecutor = simpleExecutor;
         this.topologyLayerCallback = topologyLayerCallback;
     }
@@ -115,9 +119,12 @@ public class ReparingListPropertyCommandExecutor {
             log.remove();
         } else {
             // change local list
-            final List<? extends ListCommand> repairedCommands = indexRepairer.repairCommands(
+            final List<? extends ListCommand> indexRepairedCommands = indexRepairer.repairCommands(
                     metaData.getUnapprovedCommands(), command);
-            for (final ListCommand repaired : repairedCommands) {
+            versionRepairer.repairLocalCommandsVersion(metaData.getUnapprovedCommands(), command);
+            final List<? extends ListCommand> versionRepairedCommands = versionRepairer.repairRemoteCommandVersion(
+                    indexRepairedCommands, metaData.getUnapprovedCommandsAsList());
+            for (final ListCommand repaired : versionRepairedCommands) {
                 executeCommand(repaired);
             }
             updateVersion(command);
