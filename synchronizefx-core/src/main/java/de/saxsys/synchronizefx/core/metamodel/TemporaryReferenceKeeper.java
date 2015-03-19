@@ -19,6 +19,9 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Keeps hard references to arbitrary objects for 1 minute to prevent them from being garbage-collected to early.
  * 
@@ -27,14 +30,37 @@ package de.saxsys.synchronizefx.core.metamodel;
 public class TemporaryReferenceKeeper {
 
     /**
+     * The time to keep hard references in milliseconds.
+     */
+    private static final long REFERENCE_KEEPING_TIME = 60000;
+    private final Timer timer = new Timer();
+
+    /**
      * Keeps a hard reference to the passed object for 1 minute.
      * 
      * @param object
      *            The object to keep a hard reference to.
      */
     public void keepReferenceTo(final Object object) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not implemented yet");
+        timer.schedule(new HardReferenceTask(object), REFERENCE_KEEPING_TIME);
     }
 
+    /**
+     * A task that just keeps a hard reference to an object.
+     */
+    private static class HardReferenceTask extends TimerTask {
+
+        @SuppressWarnings("unused")
+        // Just to keep the reference.
+        private final Object referenceToKeep;
+
+        public HardReferenceTask(final Object referenceToKeep) {
+            this.referenceToKeep = referenceToKeep;
+        }
+
+        @Override
+        public void run() {
+            // Nothing needs to be done. The task must just stop existing.
+        }
+    }
 }

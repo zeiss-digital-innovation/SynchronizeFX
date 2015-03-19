@@ -21,11 +21,15 @@ package de.saxsys.synchronizefx.core.metamodel;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 
 import de.saxsys.synchronizefx.core.exceptions.ObjectToIdMappingException;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
+
+import org.apache.commons.collections.map.AbstractReferenceMap;
+import org.apache.commons.collections.map.ReferenceMap;
 
 /**
  * Weakly stores meta data about {@link List}s needed to keep them synchronous with other peers.
@@ -39,6 +43,11 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
  */
 public class ListPropertyMetaDataStore {
 
+    // Apache commons collections are not generic
+    @SuppressWarnings("unchecked")
+    private final Map<UUID, ListPropertyMetaData> idToData = new ReferenceMap(AbstractReferenceMap.HARD,
+            AbstractReferenceMap.WEAK);
+
     /**
      * Returns the meta data for a {@link List} with a given id.
      * 
@@ -49,7 +58,12 @@ public class ListPropertyMetaDataStore {
      *             When no meta data for the list with the passed id is known.
      */
     public ListPropertyMetaData getMetaDataOrFail(final UUID listId) throws ObjectToIdMappingException {
-        throw new UnsupportedOperationException("not implemented yet");
+        final ListPropertyMetaData metaData = idToData.get(listId);
+        if (metaData == null) {
+            throw new ObjectToIdMappingException("Meta data for an unknown property was requested. "
+                    + "The clients may no longer be synchron.");
+        }
+        return metaData;
     }
 
     /**
@@ -65,7 +79,11 @@ public class ListPropertyMetaDataStore {
      */
     public void storeMetaDataOrFail(final UUID listId, final ListPropertyMetaData metaData)
         throws ObjectToIdMappingException {
-        throw new UnsupportedOperationException("not implemented yet");
+        if (idToData.get(listId) != null) {
+            throw new ObjectToIdMappingException("Meta data for a known property should be registered twice. "
+                    + "The clients may no longer be synchron.");
+        }
+        idToData.put(listId, metaData);
     }
 
     /**
