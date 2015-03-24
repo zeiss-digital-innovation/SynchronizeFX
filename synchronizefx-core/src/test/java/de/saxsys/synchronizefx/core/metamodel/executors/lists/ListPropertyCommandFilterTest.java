@@ -70,7 +70,7 @@ public class ListPropertyCommandFilterTest {
             new ListVersionChange(EXEMPLARY_VERSION_FOR_REPLACE, randomUUID()), EXEMPLARY_VALUE_FOR_REPLACE, 6);
 
     @Mock
-    private ReparingListPropertyCommandExecutor executor;
+    private ListPropertyCommandExecutor executor;
 
     @Mock
     private TemporaryReferenceKeeper referenceKeeper;

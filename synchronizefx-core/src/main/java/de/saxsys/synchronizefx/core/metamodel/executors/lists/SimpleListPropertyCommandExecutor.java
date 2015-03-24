@@ -35,7 +35,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * 
  * @author Raik Bieniek
  */
-class SimpleListPropertyCommandExecutor {
+public class SimpleListPropertyCommandExecutor implements ListPropertyCommandExecutor {
 
     private final WeakObjectRegistry objectRegistry;
 
@@ -66,12 +66,7 @@ class SimpleListPropertyCommandExecutor {
         this.listMetaData = listVersions;
     }
 
-    /**
-     * Executes an command for adding new values to a list.
-     * 
-     * @param command
-     *            The command to execute.
-     */
+    @Override
     public void execute(final AddToList command) {
         final List<Object> list = getListOrFail(command);
 
@@ -87,17 +82,7 @@ class SimpleListPropertyCommandExecutor {
         updateVersion(command);
     }
 
-    private void updateVersion(final ListCommand command) {
-        listMetaData.getMetaDataOrFail(command.getListId()).setLocalVersion(
-                command.getListVersionChange().getToVersion());
-    }
-
-    /**
-     * Executes a command for removing values from a list.
-     * 
-     * @param command
-     *            The command to execute.
-     */
+    @Override
     public void execute(final RemoveFromList command) {
         final List<Object> list = getListOrFail(command);
 
@@ -119,12 +104,7 @@ class SimpleListPropertyCommandExecutor {
         updateVersion(command);
     }
 
-    /**
-     * Executes a command for replacing an element in a list.
-     * 
-     * @param command
-     *            The command to execute.
-     */
+    @Override
     public void execute(final ReplaceInList command) {
         final List<Object> list = getListOrFail(command);
 
@@ -136,6 +116,11 @@ class SimpleListPropertyCommandExecutor {
         });
 
         updateVersion(command);
+    }
+
+    private void updateVersion(final ListCommand command) {
+        listMetaData.getMetaDataOrFail(command.getListId()).setLocalVersion(
+                command.getListVersionChange().getToVersion());
     }
 
     @SuppressWarnings("unchecked")

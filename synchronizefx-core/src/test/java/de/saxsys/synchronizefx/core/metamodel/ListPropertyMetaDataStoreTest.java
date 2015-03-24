@@ -23,37 +23,72 @@ import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
 
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+
 import de.saxsys.synchronizefx.core.exceptions.ObjectToIdMappingException;
 import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Checks if {@link ListPropertyMetaDataStore} works as expected.
  * 
  * @author Raik Bieniek
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ListPropertyMetaDataStoreTest {
 
-    private final ListPropertyMetaDataStore cut = new ListPropertyMetaDataStore();
-
-    private final UUID list1 = randomUUID();
-    private final UUID list2 = randomUUID();
+    private final ListProperty<?> list1 = new SimpleListProperty<>();
+    private final ListProperty<?> list2 = new SimpleListProperty<>();
+    private final UUID list1Id = randomUUID();
+    private final UUID list2Id = randomUUID();
     private final ListPropertyMetaData exampleMetaData1 = new ListPropertyMetaData(randomUUID(), randomUUID());
     private final ListPropertyMetaData exampleMetaData2 = new ListPropertyMetaData(randomUUID(), randomUUID());
+
+    @Mock
+    private WeakObjectRegistry objectRegistry;
+
+    @InjectMocks
+    private ListPropertyMetaDataStore cut;
+
+    /**
+     * Wires up the mocked dependencies.
+     */
+    @Before
+    public void setUpMocks() {
+        when(objectRegistry.getByIdOrFail(list1Id)).thenReturn(list1);
+        when(objectRegistry.getByIdOrFail(list2Id)).thenReturn(list2);
+    }
 
     /**
      * The cut should be able to store and retrieve {@link ListPropertyMetaData} for a given list property.
      */
     @Test
-    public void canStoreAndRetriveMetaDataForNewListProperties() {
+    public void canStoreAndRetrieveMetaDataForNewListProperties() {
         cut.storeMetaDataOrFail(list1, exampleMetaData1);
         cut.storeMetaDataOrFail(list2, exampleMetaData2);
 
         assertThat(cut.getMetaDataOrFail(list1)).isSameAs(exampleMetaData1);
         assertThat(cut.getMetaDataOrFail(list2)).isSameAs(exampleMetaData2);
+    }
+
+    /**
+     * The cut should be able to retrieve {@link ListPropertyMetaData} for an id of a list property.
+     */
+    @Test
+    public void canRetrieveMetaDataByListId() {
+        cut.storeMetaDataOrFail(list1, exampleMetaData1);
+
+        assertThat(cut.getMetaDataOrFail(list1Id)).isSameAs(exampleMetaData1);
     }
 
     /**

@@ -29,7 +29,7 @@ import de.saxsys.synchronizefx.core.exceptions.ObjectToIdMappingException;
 import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 
 import org.apache.commons.collections.map.AbstractReferenceMap;
-import org.apache.commons.collections.map.ReferenceMap;
+import org.apache.commons.collections.map.ReferenceIdentityMap;
 
 /**
  * Weakly stores meta data about {@link List}s needed to keep them synchronous with other peers.
@@ -45,20 +45,30 @@ public class ListPropertyMetaDataStore {
 
     // Apache commons collections are not generic
     @SuppressWarnings("unchecked")
-    private final Map<UUID, ListPropertyMetaData> idToData = new ReferenceMap(AbstractReferenceMap.HARD,
-            AbstractReferenceMap.WEAK);
+    private final Map<List<?>, ListPropertyMetaData> listToData = new ReferenceIdentityMap(AbstractReferenceMap.WEAK,
+            AbstractReferenceMap.HARD);
+    private final WeakObjectRegistry objectRegistry;
 
     /**
-     * Returns the meta data for a {@link List} with a given id.
+     * Creates a new instance with all its dependencies.
      * 
-     * @param listId
-     *            The id of the {@link List}t thats meta data should be returned.
-     * @return The meta data for the {@link List}t if known.
-     * @throws ObjectToIdMappingException
-     *             When no meta data for the list with the passed id is known.
+     * @param objectRegistry
+     *            Used to retrieve list by their id.
      */
-    public ListPropertyMetaData getMetaDataOrFail(final UUID listId) throws ObjectToIdMappingException {
-        final ListPropertyMetaData metaData = idToData.get(listId);
+    public ListPropertyMetaDataStore(final WeakObjectRegistry objectRegistry) {
+        this.objectRegistry = objectRegistry;
+
+    }
+
+    /**
+     * Returns the meta data for a given {@link List}.
+     * 
+     * @param list
+     *            The list thats meta data should be returned.
+     * @return The meta data for the list.
+     */
+    public ListPropertyMetaData getMetaDataOrFail(final List<?> list) {
+        final ListPropertyMetaData metaData = listToData.get(list);
         if (metaData == null) {
             throw new ObjectToIdMappingException("Meta data for an unknown property was requested. "
                     + "The clients may no longer be synchron.");
@@ -67,23 +77,41 @@ public class ListPropertyMetaDataStore {
     }
 
     /**
-     * Stores meta data for a new {@link List}.
+     * Returns the meta data for a {@link List} with a given id.
+     * 
+     * <p>
+     * <em>Performance hint:</em> If a reference to the list property itself is available, the method
+     * {@link #getMetaDataOrFail(Object)} should be used as this saves a lookup in a map.
+     * </p>
      * 
      * @param listId
-     *            The id of the new {@link List}.
+     *            The id of the {@link List}t thats meta data should be returned.
+     * @return The meta data for the {@link List}t if known.
+     * @throws ObjectToIdMappingException
+     *             When no meta data for the list with the passed id is known.
+     */
+    public ListPropertyMetaData getMetaDataOrFail(final UUID listId) throws ObjectToIdMappingException {
+        return getMetaDataOrFail((List<?>) objectRegistry.getByIdOrFail(listId));
+    }
+
+    /**
+     * Stores meta data for a new {@link List}.
+     * 
+     * @param list
+     *            The list that meta data should be stored for.
      * @param metaData
      *            The initial meta data for the new {@link List}.
      * @throws ObjectToIdMappingException
      *             If the list isn't. That means that there is already meta data stored for a {@link List} with
      *             <code>listId</code>
      */
-    public void storeMetaDataOrFail(final UUID listId, final ListPropertyMetaData metaData)
-        throws ObjectToIdMappingException {
-        if (idToData.get(listId) != null) {
+    public void storeMetaDataOrFail(final List<?> list, final ListPropertyMetaData metaData)
+            throws ObjectToIdMappingException {
+        if (listToData.get(list) != null) {
             throw new ObjectToIdMappingException("Meta data for a known property should be registered twice. "
                     + "The clients may no longer be synchron.");
         }
-        idToData.put(listId, metaData);
+        listToData.put(list, metaData);
     }
 
     /**

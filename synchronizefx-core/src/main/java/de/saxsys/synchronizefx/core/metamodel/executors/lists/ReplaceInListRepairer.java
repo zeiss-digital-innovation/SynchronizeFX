@@ -32,7 +32,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  *
  * @author Raik Bieniek
  */
-class ReplaceInListRepairer {
+public final class ReplaceInListRepairer {
 
     /**
      * Repairs a {@link ReplaceInList} in relation to an {@link AddToList} command.

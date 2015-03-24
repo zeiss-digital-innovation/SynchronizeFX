@@ -42,7 +42,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * 
  * @author Raik Bieniek
  */
-class RemoveFromListRepairer {
+public class RemoveFromListRepairer {
 
     /**
      * Repairs a {@link RemoveFromList} in relation to an {@link AddToList} command.

@@ -50,9 +50,9 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  * 
  * @author Raik Bieniek
  */
-public class ListPropertyCommandFilter {
+public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
 
-    private final ReparingListPropertyCommandExecutor executor;
+    private final ListPropertyCommandExecutor executor;
     private final TemporaryReferenceKeeper referenceKeeper;
     private final ListPropertyMetaDataStore listVersions;
     private final WeakObjectRegistry objectRegistry;
@@ -69,7 +69,7 @@ public class ListPropertyCommandFilter {
      * @param objectRegistry
      *            Used to retrieve observable objects that need to be prevented from being garbage collected.
      */
-    public ListPropertyCommandFilter(final ReparingListPropertyCommandExecutor executor,
+    public ListPropertyCommandFilter(final ListPropertyCommandExecutor executor,
             final TemporaryReferenceKeeper referenceKeeper, final ListPropertyMetaDataStore listVersions,
             final WeakObjectRegistry objectRegistry) {
         this.executor = executor;
@@ -84,8 +84,11 @@ public class ListPropertyCommandFilter {
      * @param command
      *            The command to filter
      */
+    @Override
     public void execute(final AddToList command) {
-        if (!couldBeExecuted(command)) {
+        if (couldBeExecuted(command)) {
+            executor.execute(command);
+        } else {
             keepReferenceIfObservable(command.getValue());
         }
     }
@@ -96,8 +99,11 @@ public class ListPropertyCommandFilter {
      * @param command
      *            The command to filter
      */
+    @Override
     public void execute(final RemoveFromList command) {
-        couldBeExecuted(command);
+        if (couldBeExecuted(command)) {
+            executor.execute(command);
+        }
     }
 
     /**
@@ -106,8 +112,11 @@ public class ListPropertyCommandFilter {
      * @param command
      *            The command to filter
      */
+    @Override
     public void execute(final ReplaceInList command) {
-        if (!couldBeExecuted(command)) {
+        if (couldBeExecuted(command)) {
+            executor.execute(command);
+        } else {
             keepReferenceIfObservable(command.getValue());
         }
     }
@@ -117,7 +126,6 @@ public class ListPropertyCommandFilter {
         final UUID commandFromVersion = command.getListVersionChange().getFromVersion();
 
         if (commandFromVersion.equals(listVersion)) {
-            executor.execute(command);
             return true;
         }
 

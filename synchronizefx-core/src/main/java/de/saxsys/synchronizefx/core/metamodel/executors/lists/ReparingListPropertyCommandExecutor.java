@@ -52,7 +52,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * 
  * @author Raik Bieniek
  */
-public class ReparingListPropertyCommandExecutor {
+public class ReparingListPropertyCommandExecutor implements ListPropertyCommandExecutor {
 
     private final ListPropertyMetaDataStore listMetaDataStore;
     private final SimpleListPropertyCommandExecutor simpleExecutor;
@@ -86,6 +86,21 @@ public class ReparingListPropertyCommandExecutor {
         this.topologyLayerCallback = topologyLayerCallback;
     }
 
+    @Override
+    public void execute(final AddToList command) {
+        execute((ListCommand) command);
+    }
+
+    @Override
+    public void execute(final RemoveFromList command) {
+        execute((ListCommand) command);
+    }
+
+    @Override
+    public void execute(final ReplaceInList command) {
+        execute((ListCommand) command);
+    }
+
     /**
      * Logs a command that was locally generated and send to other peers.
      * 
@@ -107,7 +122,7 @@ public class ReparingListPropertyCommandExecutor {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     // The alternative would be to change the TopologolyLayerCallback.send() to take List<? extends Command>
-    public void execute(final ListCommand command) {
+    private void execute(final ListCommand command) {
         getMetaData(command);
 
         final Queue<ListCommand> log = metaData.getUnapprovedCommands();
@@ -154,5 +169,4 @@ public class ReparingListPropertyCommandExecutor {
                     "The executor does not know how to handle list commands of type '%s'.", command.getClass()));
         }
     }
-
 }

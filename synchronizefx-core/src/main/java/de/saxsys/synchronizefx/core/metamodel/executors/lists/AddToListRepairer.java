@@ -30,7 +30,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * 
  * @author Raik Bieniek
  */
-class AddToListRepairer {
+public class AddToListRepairer {
 
     /**
      * Repairs a remote {@link AddToList} in relation to an local {@link AddToList} command.

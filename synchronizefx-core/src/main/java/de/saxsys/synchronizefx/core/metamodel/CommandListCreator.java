@@ -36,6 +36,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SetProperty;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
@@ -56,9 +57,15 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  */
 class CommandListCreator {
 
+    /**
+     * The version any list property has when it newly registered in the model registry.
+     */
+    public static final UUID INITIAL_LIST_VERSION = UUID.fromString("8f9e03fe-62bb-4e6e-bfa9-6247ddc5418a");
+
     private final WeakObjectRegistry objectRegistry;
     private final ValueMapper valueMapper;
     private final TopologyLayerCallback topology;
+    private final ListPropertyMetaDataStore listMetaDataStore;
 
     /**
      * Initializes the creator.
@@ -69,12 +76,15 @@ class CommandListCreator {
      *            used to create {@link Value} messages.
      * @param topology
      *            The user callback used to report errors.
+     * @param listMetaDataStore
+     *            Used to store and retrieve list version information.
      */
     public CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
-            final TopologyLayerCallback topology) {
+            final TopologyLayerCallback topology, final ListPropertyMetaDataStore listMetaDataStore) {
         this.objectRegistry = objectRegistry;
         this.valueMapper = valueMapper;
         this.topology = topology;
+        this.listMetaDataStore = listMetaDataStore;
     }
 
     /**
@@ -194,14 +204,11 @@ class CommandListCreator {
      *            The index of the first element in the list which should be removed.
      * @param removeCount
      *            The element count to remove from the list, starting from <code>startPosition</code>.
-     * @param newSize
-     *            The size the list will have after this command has been applied.
      * @return The command list.
      */
-    public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount,
-            final int newSize) {
-        final ListVersionChange change = new ListVersionChange(UUID.randomUUID(), UUID.randomUUID());
-        final RemoveFromList msg = new RemoveFromList(listId, change, startPosition, removeCount, newSize);
+    public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount) {
+        final ListVersionChange change = increaseListVersion(listId);
+        final RemoveFromList msg = new RemoveFromList(listId, change, startPosition, removeCount);
         final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
@@ -277,7 +284,7 @@ class CommandListCreator {
             @Override
             public void invoke(final State state) {
                 final boolean isObservableObject = createObservableObject(value, state);
-                final ListVersionChange versionChange = new ListVersionChange(UUID.randomUUID(), UUID.randomUUID());
+                final ListVersionChange versionChange = increaseListVersion(listId);
                 final ReplaceInList replaceInList = new ReplaceInList(listId, versionChange, valueMapper.map(value,
                         isObservableObject), position);
 
@@ -301,10 +308,23 @@ class CommandListCreator {
             final State state) {
         final boolean isObservableObject = createObservableObject(value, state);
 
-        final ListVersionChange change = new ListVersionChange(UUID.randomUUID(), UUID.randomUUID());
-        final AddToList msg = new AddToList(listId, change, valueMapper.map(value, isObservableObject), position,
-                newSize);
+        ListVersionChange change;
+        if (state.skipKnown) {
+            // List is already known on other peers, update the version.
+            change = increaseListVersion(listId);
+        } else {
+            // Initial walk through the whole list.
+            change = new ListVersionChange(INITIAL_LIST_VERSION, INITIAL_LIST_VERSION);
+        }
+        final AddToList msg = new AddToList(listId, change, valueMapper.map(value, isObservableObject), position);
         state.commands.add(msg);
+    }
+
+    private ListVersionChange increaseListVersion(final UUID listId) {
+        final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(listId);
+        final ListVersionChange change = new ListVersionChange(metaData.getLocalVersion(), UUID.randomUUID());
+        metaData.setLocalVersion(change.getToVersion());
+        return change;
     }
 
     private void addToSet(final UUID setId, final Object value, final State state) {
@@ -364,6 +384,7 @@ class CommandListCreator {
 
         try {
             new PropertyVisitor(value) {
+
                 @Override
                 protected boolean visitSingleValueProperty(final Property<?> fieldValue) {
                     final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
@@ -373,7 +394,12 @@ class CommandListCreator {
 
                 @Override
                 protected boolean visitCollectionProperty(final ListProperty<?> fieldValue) {
+                    final boolean listWasKnown = objectRegistry.getId(fieldValue).isPresent();
                     final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
+                    if (!state.skipKnown && !listWasKnown) {
+                        listMetaDataStore.storeMetaDataOrFail(fieldValue, new ListPropertyMetaData(
+                                INITIAL_LIST_VERSION, INITIAL_LIST_VERSION));
+                    }
                     final ListIterator<?> it = fieldValue.listIterator();
                     int index = 0;
                     while (it.hasNext()) {
