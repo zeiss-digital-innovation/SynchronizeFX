@@ -30,7 +30,6 @@ public class AddToList extends ListCommand {
 
     private final Value value;
     private final int position;
-    private final int newSize;
 
     /**
      * Initializes an instance.
@@ -46,31 +45,9 @@ public class AddToList extends ListCommand {
      */
     public AddToList(final UUID listId, final ListVersionChange listVersionChange, final Value value, //
             final int position) {
-        this(listId, listVersionChange, value, position, -1);
-    }
-
-    /**
-     * Initializes an instance with a size value.
-     * 
-     * @param listId
-     *            see {@link #getListId()}
-     * @param listVersionChange
-     *            see {@link #getListVersionChange()}
-     * @param value
-     *            see {@link #getValue()}
-     * @param position
-     *            see {@link #getPosition()}
-     * @param newSize
-     *            see {@link #getNewSize()}
-     * @deprecated since newSize is no longer used in the new self repairing implementation.
-     */
-    @Deprecated
-    public AddToList(final UUID listId, final ListVersionChange listVersionChange, final Value value,
-            final int position, final int newSize) {
         super(listId, listVersionChange);
         this.value = value;
         this.position = position;
-        this.newSize = newSize;
     }
 
     /**
@@ -94,21 +71,9 @@ public class AddToList extends ListCommand {
         return value;
     }
 
-    /**
-     * The new size the list should have after this command has been executed on it.
-     * 
-     * @deprecated The new self repairing algorithm will not use this information.
-     * @return the new size
-     */
-    @Deprecated
-    public int getNewSize() {
-        return newSize;
-    }
-
     @Override
     public String toString() {
-        return "AddToList [value=" + value + ", position=" + position + ", newSize=" + newSize + ", ListVersionChange="
-                + super.toString() + "]";
+        return "AddToList [value=" + value + ", position=" + position + ", ListVersionChange=" + super.toString() + "]";
     }
 
 }

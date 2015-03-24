@@ -94,7 +94,6 @@ public class SyncListPropertyTest {
         assertEquals("Test Value 257", msg1.getValue().getSimpleObjectValue());
         assertNull(msg1.getValue().getObservableObjectId());
         assertEquals(0, msg1.getPosition());
-        assertEquals(1, msg1.getNewSize());
 
         // test adding of a observable object
         root.childList.add(new Child());
@@ -105,14 +104,12 @@ public class SyncListPropertyTest {
         assertEquals(Child.class.getName(), msg2.getClassName());
         assertNull(msg3.getValue().getSimpleObjectValue());
         assertEquals(msg2.getObjectId(), msg3.getValue().getObservableObjectId());
-        assertEquals(1, msg3.getNewSize());
 
         // test that the position is set correctly
         root.wrappedList.add("some text");
         root.wrappedList.add(1, "some more text");
         final AddToList msg4 = (AddToList) cb.getCommands().get(0);
         assertEquals(1, msg4.getPosition());
-        assertEquals(3, msg4.getNewSize());
 
     }
 
@@ -128,25 +125,21 @@ public class SyncListPropertyTest {
         final RemoveFromList msg0 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(2, msg0.getStartPosition());
         assertEquals(1, msg0.getRemoveCount());
-        assertEquals(3, msg0.getNewSize());
 
         root.wrappedList.remove("Test Value 0");
         final RemoveFromList msg1 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(0, msg1.getStartPosition());
         assertEquals(1, msg1.getRemoveCount());
-        assertEquals(2, msg1.getNewSize());
 
         root.childList.remove(new Child(2));
         final RemoveFromList msg2 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(2, msg2.getStartPosition());
         assertEquals(1, msg2.getRemoveCount());
-        assertEquals(2, msg2.getNewSize());
 
         root.childList.remove(1);
         final RemoveFromList msg3 = (RemoveFromList) cb.getCommands().get(0);
         assertEquals(1, msg3.getStartPosition());
         assertEquals(1, msg3.getRemoveCount());
-        assertEquals(1, msg3.getNewSize());
     }
 
     /**
@@ -175,14 +168,14 @@ public class SyncListPropertyTest {
         assertNull(replaceCommand2.getValue().getSimpleObjectValue());
         assertNotNull(replaceCommand2.getValue().getObservableObjectId());
     }
-    
+
     /**
      * Tests whether the {@link List#clear()} operation removes all elements from the list.
      */
     @Test
     public void testClear() {
         simpleTestData();
-        
+
         root.wrappedList.clear();
 
         final Command command = cb.getCommands().get(0);
@@ -190,7 +183,6 @@ public class SyncListPropertyTest {
         final RemoveFromList replaceCommand = (RemoveFromList) command;
         assertEquals(0, replaceCommand.getStartPosition());
         assertEquals(4, replaceCommand.getRemoveCount());
-        assertEquals(0, replaceCommand.getNewSize());
     }
 
     /**

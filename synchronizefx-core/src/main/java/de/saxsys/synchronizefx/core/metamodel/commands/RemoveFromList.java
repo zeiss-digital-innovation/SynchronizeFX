@@ -30,7 +30,6 @@ public class RemoveFromList extends ListCommand {
 
     private final int startPosition;
     private final int removeCount;
-    private final int newSize;
 
     /**
      * Initializes an instance.
@@ -46,31 +45,9 @@ public class RemoveFromList extends ListCommand {
      */
     public RemoveFromList(final UUID listId, final ListVersionChange listVersionChange, final int startPosition,
             final int removeCount) {
-        this(listId, listVersionChange, startPosition, removeCount, -1);
-    }
-
-    /**
-     * Initializes an instance.
-     * 
-     * @param listId
-     *            see {@link #getListId()}
-     * @param listVersionChange
-     *            see {@link #getListVersionChange()}
-     * @param startPosition
-     *            see {@link #getStartPosition()}
-     * @param removeCount
-     *            see {@link #getRemoveCount()}
-     * @param newSize
-     *            see {@link #getNewSize()}
-     * @deprecated since newSize is no longer used in the new self repairing implementation.
-     */
-    @Deprecated
-    public RemoveFromList(final UUID listId, final ListVersionChange listVersionChange, final int startPosition,
-            final int removeCount, final int newSize) {
         super(listId, listVersionChange);
         this.startPosition = startPosition;
         this.removeCount = removeCount;
-        this.newSize = newSize;
     }
 
     /**
@@ -91,19 +68,10 @@ public class RemoveFromList extends ListCommand {
         return removeCount;
     }
 
-    /**
-     * The new size the list should have after this command has been executed on it.
-     * 
-     * @return the new size
-     */
-    public int getNewSize() {
-        return newSize;
-    }
-
     @Override
     public String toString() {
-        return "RemoveFromList [startPosition=" + startPosition + ", removeCount=" + removeCount + ", newSize="
-                + newSize + ", ListVersionChange=" + super.toString() + "]";
+        return "RemoveFromList [startPosition=" + startPosition + ", removeCount=" + removeCount
+                + ", ListVersionChange=" + super.toString() + "]";
     }
 
 }

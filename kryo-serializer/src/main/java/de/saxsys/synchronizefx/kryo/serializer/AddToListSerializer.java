@@ -44,13 +44,11 @@ public class AddToListSerializer extends Serializer<AddToList> {
         kryo.writeObject(output, object.getListVersionChange().getToVersion());
         kryo.writeObject(output, object.getValue());
         output.writeInt(object.getPosition());
-        output.writeInt(object.getNewSize());
     }
 
     @Override
     public AddToList read(final Kryo kryo, final Input input, final Class<AddToList> type) {
         return new AddToList(kryo.readObject(input, UUID.class), new ListVersionChange(kryo.readObject(input,
-                UUID.class), kryo.readObject(input, UUID.class)), kryo.readObject(input, Value.class), input.readInt(),
-                input.readInt());
+                UUID.class), kryo.readObject(input, UUID.class)), kryo.readObject(input, Value.class), input.readInt());
     }
 }

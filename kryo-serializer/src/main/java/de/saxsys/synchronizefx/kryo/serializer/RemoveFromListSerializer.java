@@ -44,13 +44,12 @@ public class RemoveFromListSerializer extends Serializer<RemoveFromList> {
         kryo.writeObject(output, input.getListVersionChange().getToVersion());
         output.writeInt(input.getStartPosition());
         output.writeInt(input.getRemoveCount());
-        output.writeInt(input.getNewSize());
     }
 
     @Override
     public RemoveFromList read(final Kryo kryo, final Input input, final Class<RemoveFromList> clazz) {
         return new RemoveFromList(kryo.readObject(input, UUID.class), new ListVersionChange(kryo.readObject(input,
-                UUID.class), kryo.readObject(input, UUID.class)), input.readInt(), input.readInt(), input.readInt());
+                UUID.class), kryo.readObject(input, UUID.class)), input.readInt(), input.readInt());
     }
 
 }
