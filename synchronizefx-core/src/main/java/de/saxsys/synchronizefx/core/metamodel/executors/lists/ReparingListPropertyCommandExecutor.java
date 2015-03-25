@@ -129,7 +129,7 @@ public class ReparingListPropertyCommandExecutor implements ListPropertyCommandE
         if (log.isEmpty()) {
             updateVersion(command);
             executeCommand(command);
-        } else if (log.peek().equals(command)) {
+        } else if (log.peek().getListVersionChange().equals(command.getListVersionChange())) {
             updateVersion(command);
             log.remove();
         } else {

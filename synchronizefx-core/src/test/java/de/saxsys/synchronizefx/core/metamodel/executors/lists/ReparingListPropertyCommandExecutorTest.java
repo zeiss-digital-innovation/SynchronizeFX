@@ -65,6 +65,7 @@ import static org.mockito.Mockito.when;
 public class ReparingListPropertyCommandExecutorTest {
 
     private static final ListVersionChange EXEMPLARY_CHANGE = new ListVersionChange(randomUUID(), randomUUID());
+    private static final ListVersionChange OTHER_CHANGE = new ListVersionChange(randomUUID(), randomUUID());
     private static final Value EXEMPLARY_VALUE = new Value("exemplary value");
 
     private static final AddToList EXEMPLARY_ADD_COMMAND = new AddToList(randomUUID(), EXEMPLARY_CHANGE,
@@ -172,8 +173,8 @@ public class ReparingListPropertyCommandExecutorTest {
     @Test
     public void shouldRepairAndExecuteRemoteCommandThatWasntTheOldestUnapprovedLocalCommand() {
         final RemoveFromList otherCommandSameList = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(),
-                EXEMPLARY_CHANGE, 5, 3);
-        final RemoveFromList simulatedRepairedCommand = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 8, 6);
+                OTHER_CHANGE, 5, 3);
+        final RemoveFromList simulatedRepairedCommand = new RemoveFromList(randomUUID(), OTHER_CHANGE, 8, 6);
 
         wireUpCommandRepairers(otherCommandSameList, asList(simulatedRepairedCommand));
 
@@ -190,13 +191,13 @@ public class ReparingListPropertyCommandExecutorTest {
      */
     @Test
     public void shouldRepairAndResendAllUnapprovedLocalCommandsWhenRemoteCommandWasntFirstUnapprovedLocalCommand() {
-        final RemoveFromList remoteCommand = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(), EXEMPLARY_CHANGE, 5,
+        final RemoveFromList remoteCommand = new RemoveFromList(EXEMPLARY_ADD_COMMAND.getListId(), OTHER_CHANGE, 5,
                 3);
 
         final AddToList localCommand1 = new AddToList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 7);
         final ReplaceInList localCommand2 = new ReplaceInList(randomUUID(), EXEMPLARY_CHANGE, EXEMPLARY_VALUE, 0);
 
-        final RemoveFromList repairedRemoteCommand = new RemoveFromList(randomUUID(), EXEMPLARY_CHANGE, 8, 1);
+        final RemoveFromList repairedRemoteCommand = new RemoveFromList(randomUUID(), OTHER_CHANGE, 8, 1);
 
         cut.logLocalCommand(localCommand1);
         cut.logLocalCommand(localCommand2);
