@@ -37,6 +37,7 @@ import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListPropertyComman
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.RemoveFromListRepairer;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReparingListPropertyCommandExecutor;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReplaceInListRepairer;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.SimpleListPropertyCommandApprover;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.SimpleListPropertyCommandExecutor;
 
 /**
@@ -112,7 +113,8 @@ public class MetaModel {
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
         final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(
-                simpleListCommandExecutor, new TemporaryReferenceKeeper(), listMetaData, objectRegistry);
+                new SimpleListPropertyCommandApprover(simpleListCommandExecutor, listMetaData),
+                new TemporaryReferenceKeeper(), listMetaData, objectRegistry);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
                 listMetaData, singleValuePropertyExecutor, filteringListExecutor);
 

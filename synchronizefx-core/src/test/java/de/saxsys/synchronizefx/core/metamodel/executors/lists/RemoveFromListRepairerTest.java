@@ -146,21 +146,35 @@ public class RemoveFromListRepairerTest {
         assertThat(repaired2).hasSize(1);
         positionAndCountEquals(repaired2.get(0), 2, 2);
 
-        final RemoveFromList toRepair3 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 2, 4);
-        final RemoveFromList repairAgainst3 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 2, 4);
-        final List<RemoveFromList> repaired3 = cut.repairCommand(toRepair3, repairAgainst3);
-        assertThat(repaired3).hasSize(0);
-
-        final RemoveFromList toRepair4 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 2, 4);
-        final RemoveFromList repairAgainst4 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 0, 20);
-        final List<RemoveFromList> repaired4 = cut.repairCommand(toRepair4, repairAgainst4);
-        assertThat(repaired4).hasSize(0);
-
         final RemoveFromList toRepair5 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 0, 20);
         final RemoveFromList repairAgainst5 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 4, 2);
         final List<RemoveFromList> repaired5 = cut.repairCommand(toRepair5, repairAgainst5);
         assertThat(repaired5).hasSize(1);
         positionAndCountEquals(repaired5.get(0), 0, 18);
+    }
+
+    /**
+     * Even if the indices of a {@link RemoveFromList} to repair are already removed by another {@link RemoveFromList},
+     * the repairer should return a list with one element.
+     * 
+     * <p>
+     * This way it is ensured, that other repairing classes have commands available for further repairing (e.g. version
+     * repairing).
+     * </p>
+     */
+    @Test
+    public void shouldNotDropCommandCompletely() {
+        final RemoveFromList toRepair1 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 2, 4);
+        final RemoveFromList repairAgainst1 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 2, 4);
+        final List<RemoveFromList> repaired1 = cut.repairCommand(toRepair1, repairAgainst1);
+        assertThat(repaired1).hasSize(1);
+        positionAndCountEquals(repaired1.get(0), 0, 0);
+
+        final RemoveFromList toRepair2 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 2, 4);
+        final RemoveFromList repairAgainst2 = new RemoveFromList(SOME_LIST, SOME_CHANGE, 0, 20);
+        final List<RemoveFromList> repaired2 = cut.repairCommand(toRepair2, repairAgainst2);
+        assertThat(repaired2).hasSize(1);
+        positionAndCountEquals(repaired2.get(0), 0, 0);
     }
 
     /**

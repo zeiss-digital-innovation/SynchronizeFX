@@ -117,7 +117,8 @@ public class ListPropertyMetaDataStore {
     /**
      * Checks if this meta data store does already have meta data for a given list.
      * 
-     * @param list The list that should be checked for already having meta data.
+     * @param list
+     *            The list that should be checked for already having meta data.
      * @return <code>true</code> if meta data is known and <code>false</code> if not.
      */
     public boolean hasMetaDataFor(final List<?> list) {
@@ -224,6 +225,12 @@ public class ListPropertyMetaDataStore {
          */
         public List<ListCommand> getUnapprovedCommandsAsList() {
             return unapprovedCommands;
+        }
+
+        @Override
+        public String toString() {
+            return "ListPropertyMetaData [localVersion=" + localVersion + ", approvedVersion=" + approvedVersion
+                    + ", unapprovedCommands=" + unapprovedCommands + "]";
         }
     }
 }

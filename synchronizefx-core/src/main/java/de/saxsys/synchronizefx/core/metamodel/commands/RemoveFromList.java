@@ -70,8 +70,8 @@ public class RemoveFromList extends ListCommand {
 
     @Override
     public String toString() {
-        return "RemoveFromList [startPosition=" + startPosition + ", removeCount=" + removeCount
-                + ", ListVersionChange=" + super.toString() + "]";
+        return "RemoveFromList [listId=" + getListId() + ", versionChange=" + getListVersionChange()
+                + ", startPosition=" + startPosition + ", removeCount=" + removeCount + "]";
     }
 
 }

@@ -37,7 +37,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
  * <p>
  * Repairing {@link RemoveFromList} command can result in more complex instructions thats semantics are not covered by a
  * single {@link RemoveFromList} command. Therefore in this class the a {@link List} of {@link RemoveFromList} commands
- * is returned which may be empty.
+ * is returned which is guaranteed to contain at least one command.
  * </p>
  * 
  * @author Raik Bieniek
@@ -83,7 +83,7 @@ public class RemoveFromListRepairer {
         final int indicesBeforeAndAfter = max(indicesBefore, 0) + max(indicesAfter, 0);
 
         if (indicesBeforeAndAfter == 0) {
-            return asList();
+            return asList(createRepaired(toRepair, 0, 0));
         }
 
         final int removeCount = min(indicesBeforeAndAfter, toRepair.getRemoveCount());

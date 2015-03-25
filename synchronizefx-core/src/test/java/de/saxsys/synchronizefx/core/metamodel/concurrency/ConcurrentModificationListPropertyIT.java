@@ -28,8 +28,8 @@ import de.saxsys.synchronizefx.core.inmemorypeers.InMemoryServer;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReparingListPropertyCommandExecutorTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 
  * @author Raik Bieniek
  */
-@Ignore("not implemented yet")
 public class ConcurrentModificationListPropertyIT {
 
     /**
@@ -71,6 +70,9 @@ public class ConcurrentModificationListPropertyIT {
         server.startSynchronizeFxServer();
         client1.startSynchronizeFxClient();
         client2.startSynchronizeFxClient();
+
+        client1.setDelaySending(true);
+        client2.setDelaySending(true);
     }
 
     /**
@@ -94,8 +96,8 @@ public class ConcurrentModificationListPropertyIT {
             }
         });
 
-        waitForConsistency();
-
+        flushCommandsOfClients();
+        
         assertThat(server.getModel()).isEqualTo(client1.getModel()).isEqualTo(client2.getModel());
         assertThat(server.getModel().exemplaryProperty).containsExactly("client 1 change", "initial 1",
                 "client 2 change", "initial 2");
@@ -118,17 +120,24 @@ public class ConcurrentModificationListPropertyIT {
             @Override
             public void run() {
                 // remove "initial 2"
-                client1.getModel().exemplaryProperty.remove(1);
+                client2.getModel().exemplaryProperty.remove(1);
             }
         });
 
-        waitForConsistency();
+        flushCommandsOfClients();
 
         assertThat(server.getModel()).isEqualTo(client1.getModel()).isEqualTo(client2.getModel());
         assertThat(server.getModel().exemplaryProperty).containsExactly("initial 1");
     }
 
-    private void waitForConsistency() {
+    private void flushCommandsOfClients() {
+        waitShortly();
+        client1.setDelaySending(false);
+        client2.setDelaySending(false);
+        waitShortly();
+    }
+
+    private void waitShortly() {
         try {
             Thread.sleep(WAIT_FOR_CONSITENCY_TIME);
         } catch (final InterruptedException e) {

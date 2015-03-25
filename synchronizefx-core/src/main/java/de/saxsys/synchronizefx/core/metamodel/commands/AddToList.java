@@ -73,7 +73,7 @@ public class AddToList extends ListCommand {
 
     @Override
     public String toString() {
-        return "AddToList [value=" + value + ", position=" + position + ", ListVersionChange=" + super.toString() + "]";
+        return "AddToList [listId=" + getListId() + ", versionChange=" + getListVersionChange() + ", value=" + value
+                + ", position=" + position + "]";
     }
-
 }

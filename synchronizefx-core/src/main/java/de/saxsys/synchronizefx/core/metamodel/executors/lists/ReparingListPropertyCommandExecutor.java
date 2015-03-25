@@ -137,14 +137,12 @@ public class ReparingListPropertyCommandExecutor implements ListPropertyCommandE
             List<? extends ListCommand> repairedCommands = indexRepairer.repairCommands(
                     metaData.getUnapprovedCommands(), command);
 
-            if (metaData.getUnapprovedCommands().size() > 0) {
-                // repair versions if local commands are left after repairing indices.
-                versionRepairer.repairLocalCommandsVersion(metaData.getUnapprovedCommands(), command);
-                repairedCommands = versionRepairer.repairRemoteCommandVersion(repairedCommands,
-                        metaData.getUnapprovedCommandsAsList());
-                // re-send repaired local changes
-                topologyLayerCallback.sendCommands((List) metaData.getUnapprovedCommandsAsList());
-            }
+            // repair versions if local commands are left after repairing indices.
+            versionRepairer.repairLocalCommandsVersion(metaData.getUnapprovedCommands(), command);
+            repairedCommands = versionRepairer.repairRemoteCommandVersion(repairedCommands,
+                    metaData.getUnapprovedCommandsAsList());
+            // re-send repaired local changes
+            topologyLayerCallback.sendCommands((List) metaData.getUnapprovedCommandsAsList());
 
             // execute repaired commands
             for (final ListCommand repaired : repairedCommands) {
