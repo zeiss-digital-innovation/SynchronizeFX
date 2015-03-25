@@ -21,6 +21,7 @@ package de.saxsys.synchronizefx.core.metamodel;
 
 import java.lang.reflect.Field;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -190,8 +191,11 @@ public class CommandListExecutor {
     private void registerInMetaModel(final Object object, final UUID id) {
         objectRegistry.registerObject(object, id);
         if (object instanceof ListProperty) {
-            listPropertyMetaDataStore.storeMetaDataOrFail((ListProperty<?>) object, new ListPropertyMetaData(
-                    CommandListCreator.INITIAL_LIST_VERSION, CommandListCreator.INITIAL_LIST_VERSION));
+            final List<?> list = (List<?>) object;
+            if (!listPropertyMetaDataStore.hasMetaDataFor(list)) {
+                listPropertyMetaDataStore.storeMetaDataOrFail(list, new ListPropertyMetaData(
+                        CommandListCreator.INITIAL_LIST_VERSION, CommandListCreator.INITIAL_LIST_VERSION));
+            }
         }
     }
 

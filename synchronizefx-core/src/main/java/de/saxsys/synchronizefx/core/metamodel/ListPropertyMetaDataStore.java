@@ -81,7 +81,7 @@ public class ListPropertyMetaDataStore {
      * 
      * <p>
      * <em>Performance hint:</em> If a reference to the list property itself is available, the method
-     * {@link #getMetaDataOrFail(Object)} should be used as this saves a lookup in a map.
+     * {@link #getMetaDataOrFail(List)} should be used as this saves a lookup in a map.
      * </p>
      * 
      * @param listId
@@ -106,12 +106,22 @@ public class ListPropertyMetaDataStore {
      *             <code>listId</code>
      */
     public void storeMetaDataOrFail(final List<?> list, final ListPropertyMetaData metaData)
-            throws ObjectToIdMappingException {
+        throws ObjectToIdMappingException {
         if (listToData.get(list) != null) {
             throw new ObjectToIdMappingException("Meta data for a known property should be registered twice. "
                     + "The clients may no longer be synchron.");
         }
         listToData.put(list, metaData);
+    }
+
+    /**
+     * Checks if this meta data store does already have meta data for a given list.
+     * 
+     * @param list The list that should be checked for already having meta data.
+     * @return <code>true</code> if meta data is known and <code>false</code> if not.
+     */
+    public boolean hasMetaDataFor(final List<?> list) {
+        return listToData.containsKey(list);
     }
 
     /**

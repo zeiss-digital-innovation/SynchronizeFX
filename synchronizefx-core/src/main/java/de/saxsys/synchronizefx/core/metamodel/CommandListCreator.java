@@ -308,20 +308,24 @@ class CommandListCreator {
             final State state) {
         final boolean isObservableObject = createObservableObject(value, state);
 
+        final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(listId);
         ListVersionChange change;
         if (state.skipKnown) {
             // List is already known on other peers, update the version.
-            change = increaseListVersion(listId);
+            change = increaseListVersion(metaData);
         } else {
-            // Initial walk through the whole list.
-            change = new ListVersionChange(INITIAL_LIST_VERSION, INITIAL_LIST_VERSION);
+            // Initial walk through the whole list, do not update the version.
+            change = new ListVersionChange(metaData.getLocalVersion(), metaData.getLocalVersion());
         }
         final AddToList msg = new AddToList(listId, change, valueMapper.map(value, isObservableObject), position);
         state.commands.add(msg);
     }
 
     private ListVersionChange increaseListVersion(final UUID listId) {
-        final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(listId);
+        return increaseListVersion(listMetaDataStore.getMetaDataOrFail(listId));
+    }
+
+    private ListVersionChange increaseListVersion(final ListPropertyMetaData metaData) {
         final ListVersionChange change = new ListVersionChange(metaData.getLocalVersion(), UUID.randomUUID());
         metaData.setLocalVersion(change.getToVersion());
         return change;
@@ -396,11 +400,23 @@ class CommandListCreator {
                 protected boolean visitCollectionProperty(final ListProperty<?> fieldValue) {
                     final boolean listWasKnown = objectRegistry.getId(fieldValue).isPresent();
                     final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
-                    if (!state.skipKnown && !listWasKnown) {
+                    if (!listWasKnown) {
+                        // initial walk through the meta model
                         listMetaDataStore.storeMetaDataOrFail(fieldValue, new ListPropertyMetaData(
                                 INITIAL_LIST_VERSION, INITIAL_LIST_VERSION));
                     }
                     final ListIterator<?> it = fieldValue.listIterator();
+                    if (!it.hasNext()) {
+                        final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(fieldValue);
+                        if (metaData.getLocalVersion() != INITIAL_LIST_VERSION) {
+                            // This can happen when there where elements added after the list was created which where
+                            // all removed afterwards so that the list is now empty. This means that no AddToList
+                            // command will be created which would update the list version. Therefore the following
+                            // command will do this.
+                            state.commands.add(new RemoveFromList(fieldId, new ListVersionChange(INITIAL_LIST_VERSION,
+                                    metaData.getLocalVersion()), 0, 0));
+                        }
+                    }
                     int index = 0;
                     while (it.hasNext()) {
                         final Object o = it.next();

@@ -25,7 +25,7 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * An implementation that saves the parameters of the callback function so that they can be evaluated in tests.
@@ -41,7 +41,7 @@ public class SaveParameterCallback implements TopologyLayerCallback {
 
     @Override
     public void onError(final SynchronizeFXException error) {
-        fail("exception occured: " + error.getMessage());
+        fail("exception occured: ", error);
     }
 
     @Override

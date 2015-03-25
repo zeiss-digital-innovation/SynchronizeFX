@@ -90,6 +90,17 @@ public class ListPropertyMetaDataStoreTest {
 
         assertThat(cut.getMetaDataOrFail(list1Id)).isSameAs(exampleMetaData1);
     }
+    
+    /**
+     * The cut can check if meta data is already known for a list.
+     */
+    @Test
+    public void canCheckIfMetaDataIsStoredForList() {
+        cut.storeMetaDataOrFail(list1, exampleMetaData1);
+        
+        assertThat(cut.hasMetaDataFor(list1)).isTrue();
+        assertThat(cut.hasMetaDataFor(list2)).isFalse();
+    }
 
     /**
      * When {@link ListPropertyMetaData} should be stored for a property that already has meta data, the cut should

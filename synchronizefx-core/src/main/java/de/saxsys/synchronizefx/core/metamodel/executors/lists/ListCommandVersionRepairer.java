@@ -53,9 +53,6 @@ public class ListCommandVersionRepairer {
      */
     public void repairLocalCommandsVersion(final Queue<ListCommand> localCommands,
             final ListCommand originalRemoteCommand) {
-        if (localCommands.isEmpty()) {
-            return;
-        }
 
         localCommands.add(repairCommand(localCommands.poll(), originalRemoteCommand.getListVersionChange()
                 .getToVersion(), randomUUID()));
