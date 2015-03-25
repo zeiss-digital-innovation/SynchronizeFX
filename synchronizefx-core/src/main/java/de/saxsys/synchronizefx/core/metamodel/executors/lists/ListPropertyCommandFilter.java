@@ -22,6 +22,7 @@ package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 import java.util.UUID;
 
 import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.TemporaryReferenceKeeper;
 import de.saxsys.synchronizefx.core.metamodel.WeakObjectRegistry;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
@@ -56,6 +57,7 @@ public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
     private final TemporaryReferenceKeeper referenceKeeper;
     private final ListPropertyMetaDataStore listVersions;
     private final WeakObjectRegistry objectRegistry;
+    private final boolean useLocalVerision;
 
     /**
      * Initializes an instance with all its dependencies.
@@ -68,14 +70,18 @@ public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
      *            Used to retrieve the current version of local list properties.
      * @param objectRegistry
      *            Used to retrieve observable objects that need to be prevented from being garbage collected.
+     * @param useLocalVerision
+     *            When <code>true</code> the local list version is used when deciding if commands need to be filtered
+     *            out. When <code>false</code>, the approved list command version is used.
      */
     public ListPropertyCommandFilter(final ListPropertyCommandExecutor executor,
             final TemporaryReferenceKeeper referenceKeeper, final ListPropertyMetaDataStore listVersions,
-            final WeakObjectRegistry objectRegistry) {
+            final WeakObjectRegistry objectRegistry, final boolean useLocalVerision) {
         this.executor = executor;
         this.referenceKeeper = referenceKeeper;
         this.listVersions = listVersions;
         this.objectRegistry = objectRegistry;
+        this.useLocalVerision = useLocalVerision;
     }
 
     /**
@@ -122,7 +128,8 @@ public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
     }
 
     private boolean couldBeExecuted(final ListCommand command) {
-        final UUID listVersion = listVersions.getMetaDataOrFail(command.getListId()).getApprovedVersion();
+        final ListPropertyMetaData metaData = listVersions.getMetaDataOrFail(command.getListId());
+        final UUID listVersion = useLocalVerision ? metaData.getLocalVersion() : metaData.getApprovedVersion();
         final UUID commandFromVersion = command.getListVersionChange().getFromVersion();
 
         if (commandFromVersion.equals(listVersion)) {

@@ -406,16 +406,11 @@ class CommandListCreator {
                                 INITIAL_LIST_VERSION, INITIAL_LIST_VERSION));
                     }
                     final ListIterator<?> it = fieldValue.listIterator();
-                    if (!it.hasNext()) {
-                        final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(fieldValue);
-                        if (metaData.getLocalVersion() != INITIAL_LIST_VERSION) {
-                            // This can happen when there where elements added after the list was created which where
-                            // all removed afterwards so that the list is now empty. This means that no AddToList
-                            // command will be created which would update the list version. Therefore the following
-                            // command will do this.
-                            state.commands.add(new RemoveFromList(fieldId, new ListVersionChange(INITIAL_LIST_VERSION,
-                                    metaData.getLocalVersion()), 0, 0));
-                        }
+
+                    final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(fieldValue);
+                    if (metaData.getLocalVersion() != INITIAL_LIST_VERSION) {
+                        state.commands.add(new RemoveFromList(fieldId, new ListVersionChange(INITIAL_LIST_VERSION,
+                                metaData.getLocalVersion()), 0, 0));
                     }
                     int index = 0;
                     while (it.hasNext()) {

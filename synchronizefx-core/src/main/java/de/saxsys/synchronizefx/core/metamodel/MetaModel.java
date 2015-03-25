@@ -37,7 +37,6 @@ import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListPropertyComman
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.RemoveFromListRepairer;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReparingListPropertyCommandExecutor;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReplaceInListRepairer;
-import de.saxsys.synchronizefx.core.metamodel.executors.lists.SimpleListPropertyCommandApprover;
 import de.saxsys.synchronizefx.core.metamodel.executors.lists.SimpleListPropertyCommandExecutor;
 
 /**
@@ -86,7 +85,7 @@ public class MetaModel {
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
         final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(repairingListExecutor,
-                new TemporaryReferenceKeeper(), listMetaData, objectRegistry);
+                new TemporaryReferenceKeeper(), listMetaData, objectRegistry, false);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
                 listMetaData, singleValuePropertyExecutor, filteringListExecutor);
     }
@@ -113,8 +112,7 @@ public class MetaModel {
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
         final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(
-                new SimpleListPropertyCommandApprover(simpleListCommandExecutor, listMetaData),
-                new TemporaryReferenceKeeper(), listMetaData, objectRegistry);
+                simpleListCommandExecutor, new TemporaryReferenceKeeper(), listMetaData, objectRegistry, true);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
                 listMetaData, singleValuePropertyExecutor, filteringListExecutor);
 

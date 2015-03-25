@@ -33,9 +33,9 @@ import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.Value;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -81,8 +81,15 @@ public class ListPropertyCommandFilterTest {
     @Mock
     private WeakObjectRegistry objectRegistry;
 
-    @InjectMocks
     private ListPropertyCommandFilter cut;
+
+    /**
+     * Sets up the class under test.
+     */
+    @Before
+    public void setUpCut() {
+        cut = new ListPropertyCommandFilter(executor, referenceKeeper, listVersions, objectRegistry, false);
+    }
 
     /**
      * Commands that can be applied on the current version of the local list property are executed.
@@ -119,6 +126,24 @@ public class ListPropertyCommandFilterTest {
         cut.execute(exemplaryRemoveFromListCommand);
         cut.execute(exemlaryReplaceInListCommand);
 
+        verifyNoMoreInteractions(executor);
+    }
+
+    /**
+     * When requested, the cut uses the local version instead of the approved version to filter list commands.
+     */
+    @Test
+    public void canUseLocalVersionInsteadOfApprovedVersionWhenRequested() {
+        cut = new ListPropertyCommandFilter(executor, referenceKeeper, listVersions, objectRegistry, true);
+
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID)).thenReturn(
+                new ListPropertyMetaData(EXEMPLARY_VERSION_FOR_ADD, null)).thenReturn(
+                new ListPropertyMetaData(null, EXEMPLARY_VERSION_FOR_REMOVE));
+
+        cut.execute(exemplaryAddToListCommand);
+        cut.execute(exemplaryRemoveFromListCommand);
+
+        verify(executor).execute(exemplaryAddToListCommand);
         verifyNoMoreInteractions(executor);
     }
 
