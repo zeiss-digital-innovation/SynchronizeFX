@@ -97,7 +97,7 @@ public class ConcurrentModificationListPropertyIT {
         });
 
         flushCommandsOfClients();
-        
+
         assertThat(server.getModel()).isEqualTo(client1.getModel()).isEqualTo(client2.getModel());
         assertThat(server.getModel().exemplaryProperty).containsExactly("client 1 change", "initial 1",
                 "client 2 change", "initial 2");
@@ -156,7 +156,7 @@ public class ConcurrentModificationListPropertyIT {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((exemplaryProperty == null) ? 0 : exemplaryProperty.hashCode());
+            result = prime * result + ((exemplaryProperty.get() == null) ? 0 : exemplaryProperty.get().hashCode());
             return result;
         }
 
@@ -171,12 +171,12 @@ public class ConcurrentModificationListPropertyIT {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            ExemplaryModel other = (ExemplaryModel) obj;
-            if (exemplaryProperty == null) {
-                if (other.exemplaryProperty != null) {
+            final ExemplaryModel other = (ExemplaryModel) obj;
+            if (exemplaryProperty.get() == null) {
+                if (other.exemplaryProperty.get() != null) {
                     return false;
                 }
-            } else if (!exemplaryProperty.equals(other.exemplaryProperty)) {
+            } else if (!exemplaryProperty.get().equals(other.exemplaryProperty.get())) {
                 return false;
             }
             return true;
@@ -184,7 +184,7 @@ public class ConcurrentModificationListPropertyIT {
 
         @Override
         public String toString() {
-            return "ExemplaryModel [exemplaryProperty=" + exemplaryProperty + "]";
+            return "ExemplaryModel [exemplaryProperty=" + exemplaryProperty.get() + "]";
         }
     }
 }
