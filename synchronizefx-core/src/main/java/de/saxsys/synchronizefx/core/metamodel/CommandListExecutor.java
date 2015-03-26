@@ -27,9 +27,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import javafx.beans.property.Property;
+import javafx.beans.property.ListProperty;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
@@ -42,6 +43,7 @@ import de.saxsys.synchronizefx.core.metamodel.commands.ReplaceInList;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetRootElement;
 import de.saxsys.synchronizefx.core.metamodel.executors.SingleValuePropertyCommandExecutor;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListPropertyCommandExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +61,9 @@ public class CommandListExecutor {
     private final Listeners listeners;
     private final SilentChangeExecutor changeExecutor;
     private final ValueMapper valueMapper;
+    private final ListPropertyMetaDataStore listPropertyMetaDataStore;
     private final SingleValuePropertyCommandExecutor singleValuePropertyExecutor;
+    private final ListPropertyCommandExecutor listPropertyExecutor;
 
     /**
      * A set that holds hard references to objects that would otherwise only have weak references and thus could get
@@ -81,18 +85,26 @@ public class CommandListExecutor {
      * @param valueMapper
      *            Used to translate {@link de.saxsys.synchronizefx.core.metamodel.commands.Value} messages to the real
      *            values the represent.
+     * @param listPropertyMetaDataStore
+     *            Used to manage list property version information.
      * @param singleValuePropertyExecutor
      *            Used to execute changes in single-value-properties
+     * @param listPropertyExecutor
+     *            Used to execute changes on list properties.
      */
     public CommandListExecutor(final MetaModel parent, final WeakObjectRegistry objectRegistry,
             final Listeners listeners, final SilentChangeExecutor changeExecutor, final ValueMapper valueMapper,
-            final SingleValuePropertyCommandExecutor singleValuePropertyExecutor) {
+            final ListPropertyMetaDataStore listPropertyMetaDataStore,
+            final SingleValuePropertyCommandExecutor singleValuePropertyExecutor,
+            final ListPropertyCommandExecutor listPropertyExecutor) {
         this.parent = parent;
         this.objectRegistry = objectRegistry;
         this.changeExecutor = changeExecutor;
         this.listeners = listeners;
         this.valueMapper = valueMapper;
+        this.listPropertyMetaDataStore = listPropertyMetaDataStore;
         this.singleValuePropertyExecutor = singleValuePropertyExecutor;
+        this.listPropertyExecutor = listPropertyExecutor;
     }
 
     /**
@@ -106,13 +118,13 @@ public class CommandListExecutor {
         if (command instanceof CreateObservableObject) {
             execute((CreateObservableObject) command);
         } else if (command instanceof SetPropertyValue) {
-            singleValuePropertyExecutor.executeRemoteCommand((SetPropertyValue) command);
+            singleValuePropertyExecutor.execute((SetPropertyValue) command);
         } else if (command instanceof AddToList) {
-            execute((AddToList) command);
+            listPropertyExecutor.execute((AddToList) command);
         } else if (command instanceof RemoveFromList) {
-            execute((RemoveFromList) command);
+            listPropertyExecutor.execute((RemoveFromList) command);
         } else if (command instanceof ReplaceInList) {
-            execute((ReplaceInList) command);
+            listPropertyExecutor.execute((ReplaceInList) command);
         } else if (command instanceof PutToMap) {
             execute((PutToMap) command);
         } else if (command instanceof RemoveFromMap) {
@@ -144,7 +156,7 @@ public class CommandListExecutor {
                     try {
                         final Field field = current.getDeclaredField(entry.getKey());
                         field.setAccessible(true);
-                        objectRegistry.registerObject(field.get(obj), entry.getValue());
+                        registerInMetaModel(field.get(obj), entry.getValue());
                         fieldFound = true;
                         break;
                     } catch (final NoSuchFieldException e) {
@@ -154,7 +166,7 @@ public class CommandListExecutor {
                 }
                 if (!fieldFound) {
                     throw new SynchronizeFXException(
-                            "A commadn with a field name was recived which doesn't exist in the related class."
+                            "A command with a field name was recived which doesn't exist in the related class."
                                     + " Maybe you have different versions of the domain objects"
                                     + " in your clients and the server?");
                 }
@@ -176,74 +188,15 @@ public class CommandListExecutor {
         objectRegistry.registerObject(obj, command.getObjectId());
     }
 
-    private void execute(final SetPropertyValue command) throws SynchronizeFXException {
-        @SuppressWarnings("unchecked")
-        final Property<Object> prop = (Property<Object>) objectRegistry.getByIdOrFail(command.getPropertyId());
-
-        final Object value = valueMapper.map(command.getValue());
-
-        changeExecutor.execute(prop, new Runnable() {
-            @Override
-            public void run() {
-                prop.setValue(value);
+    private void registerInMetaModel(final Object object, final UUID id) {
+        objectRegistry.registerObject(object, id);
+        if (object instanceof ListProperty) {
+            final List<?> list = (List<?>) object;
+            if (!listPropertyMetaDataStore.hasMetaDataFor(list)) {
+                listPropertyMetaDataStore.storeMetaDataOrFail(list, new ListPropertyMetaData(
+                        CommandListCreator.INITIAL_LIST_VERSION, CommandListCreator.INITIAL_LIST_VERSION));
             }
-        });
-    }
-
-    private void execute(final AddToList command) {
-        @SuppressWarnings("unchecked")
-        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
-
-        final Object value = valueMapper.map(command.getValue());
-
-        changeExecutor.execute(list, new Runnable() {
-            @Override
-            public void run() {
-                if (list.size() >= command.getNewSize()) {
-                    LOG.warn("Preconditions to apply AddToList command are not met. This may be OK "
-                            + "if you've just connected.");
-                    return;
-                }
-                list.add(command.getPosition(), value);
-            }
-        });
-    }
-
-    private void execute(final RemoveFromList command) {
-        @SuppressWarnings("unchecked")
-        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
-
-        changeExecutor.execute(list, new Runnable() {
-            @Override
-            public void run() {
-                if (list.size() <= command.getNewSize()) {
-                    LOG.warn("Preconditions to apply RemoveFromList command are not met."
-                            + "This may be OK if you've just connected.");
-                    return;
-                }
-                if (command.getStartPosition() == 0 && command.getRemoveCount() == list.size()) {
-                    list.clear();
-                } else {
-                    for (int i = 0; i < command.getRemoveCount(); i++) {
-                        list.remove(command.getStartPosition());
-                    }
-                }
-            }
-        });
-    }
-
-    private void execute(final ReplaceInList command) {
-        @SuppressWarnings("unchecked")
-        final List<Object> list = (List<Object>) objectRegistry.getByIdOrFail(command.getListId());
-
-        final Object value = valueMapper.map(command.getValue());
-
-        changeExecutor.execute(list, new Runnable() {
-            @Override
-            public void run() {
-                list.set(command.getPosition(), value);
-            }
-        });
+        }
     }
 
     private void execute(final PutToMap command) {

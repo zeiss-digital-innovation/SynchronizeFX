@@ -19,14 +19,11 @@
 
 package de.saxsys.synchronizefx;
 
-import java.util.List;
-
 import javafx.application.Application;
 
 import de.saxsys.synchronizefx.testapp.DummyApplication;
 import de.saxsys.synchronizefx.testapp.ExampleClient;
 import de.saxsys.synchronizefx.testapp.ExampleServer;
-import de.saxsys.synchronizefx.testapp.Message;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,7 +31,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * This class tests whether the connection between a server and two clients is working correct, so that the data is
@@ -77,7 +74,7 @@ public class NettyTwoClientsIT {
      */
     @Test(timeout = TEST_TIMEOUT)
     public void testSameModel() {
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -91,7 +88,7 @@ public class NettyTwoClientsIT {
         sndClient.editRandomMessage();
         Thread.sleep(TIME_TO_WAIT);
 
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -105,7 +102,7 @@ public class NettyTwoClientsIT {
         sndClient.addMessage();
         Thread.sleep(TIME_TO_WAIT);
 
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -122,7 +119,7 @@ public class NettyTwoClientsIT {
         sndClient.deleteMessage(random);
         Thread.sleep(TIME_TO_WAIT);
 
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -138,7 +135,7 @@ public class NettyTwoClientsIT {
         sndClient.addMessage();
         Thread.sleep(TIME_TO_WAIT);
 
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -157,7 +154,7 @@ public class NettyTwoClientsIT {
         sndClient.editSpecialMessage(random, "changed message");
         Thread.sleep(TIME_TO_WAIT);
 
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -181,7 +178,7 @@ public class NettyTwoClientsIT {
         LOG.debug("Second client messages:" + sndClient.getMessages());
         LOG.debug("Temporary client messages: " + fstTempClient.getMessages());
 
-        assertTrue(!areDifferentLists(fstClient.getMessages(), sndClient.getMessages()));
+        assertThat(fstClient.getMessages()).containsExactlyElementsOf(sndClient.getMessages());
     }
 
     /**
@@ -214,32 +211,5 @@ public class NettyTwoClientsIT {
             }
         }
         return client;
-    }
-
-    /**
-     * Compares whether the messages of the two given lists have the same text. In case there is a difference between
-     * the messages, the method returns <code>true</code>, otherwise <code>false</code>.
-     * 
-     * @param firstList
-     *            the first list, which elements should be compared
-     * @param secondList
-     *            the second list, which elements should be compared
-     * @return <code>true</code>, when there is a difference between two elements, <code>false</code>, when there are no
-     *         differences between two elements
-     */
-    private boolean areDifferentLists(final List<Message> firstList, final List<Message> secondList) {
-        boolean different = false;
-        if (firstList.size() != secondList.size()) {
-            different = true;
-        } else {
-            for (int i = 0; i < firstList.size(); i++) {
-                String firstElem = firstList.get(i).getText();
-                String secondElem = secondList.get(i).getText();
-                if (firstElem.compareTo(secondElem) != 0) {
-                    different = true;
-                }
-            }
-        }
-        return different;
     }
 }

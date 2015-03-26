@@ -94,7 +94,7 @@ public class SimpleSingleValuePropertyCommandExecutorTest {
      */
     @Test
     public void shouldChangeTheValueOfAProperty() {
-        cut.executeRemoteCommand(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty1Change);
 
         assertThat(exemplaryProperty1.get()).isEqualTo("changed value");
     }
@@ -113,7 +113,7 @@ public class SimpleSingleValuePropertyCommandExecutorTest {
             }
         }).when(silentChangeExecutor).execute(any(), any(Runnable.class));
 
-        cut.executeRemoteCommand(exemplaryProperty1Change);
+        cut.execute(exemplaryProperty1Change);
 
         verify(silentChangeExecutor).execute(any(), any(Runnable.class));
 

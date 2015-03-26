@@ -85,8 +85,9 @@ public final class Server implements ServerCallback {
     private void userInputLoop() {
         String add = "'a' to add a note";
         String remove = "'r' to remove a note";
+        String replace = "'x' to replace a note";
 
-        System.out.println("press " + add + " or " + remove);
+        System.out.println("press " + add + ", " + replace + " or " + remove);
 
         while (true) {
             char key;
@@ -103,14 +104,24 @@ public final class Server implements ServerCallback {
 
             if (key == 'a') {
                 addRandomNote();
-            } else if (board.getNotes().size() != 0 && key == 'r') {
+            } else if (key == 'r') {
                 removeRandomNote();
-
+            } else if (key == 'x') {
+                replaceRandomNote();
             } else {
                 continue;
             }
-            System.out.println("press " + add + (board.getNotes().size() > 0 ? " or " + remove : ""));
+            System.out.println("press " + add + (board.getNotes().size() > 0 ? ", " + replace + " or " + remove : ""));
         }
+    }
+
+    private void replaceRandomNote() {
+        List<Note> notes = this.board.getNotes();
+        int size = notes.size();
+        if (size <= 0) {
+            return;
+        }
+        notes.set(random.nextInt(size), newRandomNote());
     }
 
     private void removeRandomNote() {
@@ -123,18 +134,22 @@ public final class Server implements ServerCallback {
     }
 
     private void addRandomNote() {
+        this.board.getNotes().add(newRandomNote());
+    }
+
+    private Note newRandomNote() {
         Note note = new Note();
         note.getPosition().setX(random.nextDouble());
         note.getPosition().setY(random.nextDouble());
         note.setText("Sample Note " + random.nextInt(1000));
-
-        this.board.getNotes().add(note);
+        return note;
     }
 
     /**
      * Starts the server.
      * 
-     * @param args Arguments are ignored
+     * @param args
+     *            Arguments are ignored
      */
     public static void main(final String... args) {
         new Server();

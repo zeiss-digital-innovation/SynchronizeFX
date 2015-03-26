@@ -36,11 +36,13 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SetProperty;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore.ListPropertyMetaData;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToList;
 import de.saxsys.synchronizefx.core.metamodel.commands.AddToSet;
 import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
 import de.saxsys.synchronizefx.core.metamodel.commands.CreateObservableObject;
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand.ListVersionChange;
 import de.saxsys.synchronizefx.core.metamodel.commands.PutToMap;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromList;
 import de.saxsys.synchronizefx.core.metamodel.commands.RemoveFromMap;
@@ -55,30 +57,43 @@ import de.saxsys.synchronizefx.core.metamodel.commands.Value;
  */
 class CommandListCreator {
 
+    /**
+     * The version any list property has when it newly registered in the model registry.
+     */
+    public static final UUID INITIAL_LIST_VERSION = UUID.fromString("8f9e03fe-62bb-4e6e-bfa9-6247ddc5418a");
+
     private final WeakObjectRegistry objectRegistry;
     private final ValueMapper valueMapper;
     private final TopologyLayerCallback topology;
+    private final ListPropertyMetaDataStore listMetaDataStore;
 
     /**
      * Initializes the creator.
      * 
-     * @param objectRegistry used to lookup and set ids for objects.
-     * @param valueMapper used to create {@link Value} messages.
-     * @param topology The user callback used to report errors.
+     * @param objectRegistry
+     *            used to lookup and set ids for objects.
+     * @param valueMapper
+     *            used to create {@link Value} messages.
+     * @param topology
+     *            The user callback used to report errors.
+     * @param listMetaDataStore
+     *            Used to store and retrieve list version information.
      */
     public CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
-            final TopologyLayerCallback topology) {
+            final TopologyLayerCallback topology, final ListPropertyMetaDataStore listMetaDataStore) {
         this.objectRegistry = objectRegistry;
         this.valueMapper = valueMapper;
         this.topology = topology;
+        this.listMetaDataStore = listMetaDataStore;
     }
 
     /**
      * @see MetaModel#commandsForDomainModel()
      * 
-     * @param root The root object of the domain model.
-     * @param callback The callback that takes the commands necessary to rebuild the domain model at it's current
-     *            state.
+     * @param root
+     *            The root object of the domain model.
+     * @param callback
+     *            The callback that takes the commands necessary to rebuild the domain model at it's current state.
      */
     public void commandsForDomainModel(final Object root, final CommandsForDomainModelCallback callback) {
         final State state = createCommandList(new WithCommandType() {
@@ -99,9 +114,12 @@ class CommandListCreator {
     /**
      * Creates the commands necessary to set a new value for a property.
      * 
-     * @param propertyId The id of the property where the new value should be set.
-     * @param value The value that should be set.
-     * @throws SynchronizeFXException When creation of the commands failed.
+     * @param propertyId
+     *            The id of the property where the new value should be set.
+     * @param value
+     *            The value that should be set.
+     * @throws SynchronizeFXException
+     *             When creation of the commands failed.
      * @return The commands.
      */
     public List<Command> setPropertyValue(final UUID propertyId, final Object value) throws SynchronizeFXException {
@@ -117,10 +135,14 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary for an add to list action.
      * 
-     * @param listId The ID of the list where the element should be added.
-     * @param position The position in the list at which the value object should be added.
-     * @param value The object that should be added to the list.
-     * @param newSize The new size the list has after this command has been executed on it.
+     * @param listId
+     *            The ID of the list where the element should be added.
+     * @param position
+     *            The position in the list at which the value object should be added.
+     * @param value
+     *            The object that should be added to the list.
+     * @param newSize
+     *            The new size the list has after this command has been executed on it.
      * @return a list with commands necessary to recreate this add to list command.
      */
     public List<Command> addToList(final UUID listId, final int position, final Object value, final int newSize) {
@@ -136,8 +158,10 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary for an add to set action.
      * 
-     * @param setId The ID of the set where the element should be added.
-     * @param value The object that should be added to the set.
+     * @param setId
+     *            The ID of the set where the element should be added.
+     * @param value
+     *            The object that should be added to the set.
      * @return a set with commands necessary to recreate this add to set command.
      */
     public List<Command> addToSet(final UUID setId, final Object value) {
@@ -153,9 +177,12 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to put a mapping into a map.
      * 
-     * @param mapId the id of the map where the mapping should be added.
-     * @param key the key of the new mapping.
-     * @param value the value of the new mapping.
+     * @param mapId
+     *            the id of the map where the mapping should be added.
+     * @param key
+     *            the key of the new mapping.
+     * @param value
+     *            the value of the new mapping.
      * @return the list with the commands.
      */
     public List<Command> putToMap(final UUID mapId, final Object key, final Object value) {
@@ -171,19 +198,17 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a list.
      * 
-     * @param listId The ID of the list where an element should be removed.
-     * @param startPosition The index of the first element in the list which should be removed.
-     * @param removeCount The element count to remove from the list, starting from <code>startPosition</code>.
-     * @param newSize The size the list will have after this command has been applied.
+     * @param listId
+     *            The ID of the list where an element should be removed.
+     * @param startPosition
+     *            The index of the first element in the list which should be removed.
+     * @param removeCount
+     *            The element count to remove from the list, starting from <code>startPosition</code>.
      * @return The command list.
      */
-    public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount,
-            final int newSize) {
-        final RemoveFromList msg = new RemoveFromList();
-        msg.setListId(listId);
-        msg.setStartPosition(startPosition);
-        msg.setRemoveCount(removeCount);
-        msg.setNewSize(newSize);
+    public List<Command> removeFromList(final UUID listId, final int startPosition, final int removeCount) {
+        final ListVersionChange change = increaseListVersion(listId);
+        final RemoveFromList msg = new RemoveFromList(listId, change, startPosition, removeCount);
         final List<Command> commands = new ArrayList<>(1);
         commands.add(msg);
         return commands;
@@ -192,8 +217,10 @@ class CommandListCreator {
     /**
      * Creates the list with command necessary to remove a mapping from a map.
      * 
-     * @param mapId the map where the mapping should be removed.
-     * @param key the key of the mapping that should be removed.
+     * @param mapId
+     *            the map where the mapping should be removed.
+     * @param key
+     *            the key of the mapping that should be removed.
      * @return the list with the commands.
      */
     public List<Command> removeFromMap(final UUID mapId, final Object key) {
@@ -217,8 +244,10 @@ class CommandListCreator {
     /**
      * Creates the list with commands necessary to remove a object from a set.
      * 
-     * @param setId The ID of the set where an element should be removed.
-     * @param value The element that should be removed.
+     * @param setId
+     *            The ID of the set where an element should be removed.
+     * @param value
+     *            The element that should be removed.
      * @return The command list.
      */
     public List<Command> removeFromSet(final UUID setId, final Object value) {
@@ -242,20 +271,22 @@ class CommandListCreator {
     /**
      * Creates the list of commands necessary to replace an object in a list.
      * 
-     * @param listId the ID of the list where the element should be replaced
-     * @param position the position of the element that should be replaced
-     * @param value the new value
+     * @param listId
+     *            the ID of the list where the element should be replaced
+     * @param position
+     *            the position of the element that should be replaced
+     * @param value
+     *            the new value
      * @return the command list
      */
     public List<Command> replaceInList(final UUID listId, final int position, final Object value) {
         final State state = createCommandList(new WithCommandType() {
             @Override
             public void invoke(final State state) {
-                final ReplaceInList replaceInList = new ReplaceInList();
-                replaceInList.setListId(listId);
-                replaceInList.setPosition(position);
                 final boolean isObservableObject = createObservableObject(value, state);
-                replaceInList.setValue(valueMapper.map(value, isObservableObject));
+                final ListVersionChange versionChange = increaseListVersion(listId);
+                final ReplaceInList replaceInList = new ReplaceInList(listId, versionChange, valueMapper.map(value,
+                        isObservableObject), position);
 
                 state.commands.add(replaceInList);
             }
@@ -275,15 +306,29 @@ class CommandListCreator {
 
     private void addToList(final UUID listId, final int position, final Object value, final int newSize,
             final State state) {
-        final AddToList msg = new AddToList();
-        msg.setListId(listId);
-        msg.setPosition(position);
-        msg.setNewSize(newSize);
-
         final boolean isObservableObject = createObservableObject(value, state);
-        msg.setValue(valueMapper.map(value, isObservableObject));
 
+        final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(listId);
+        ListVersionChange change;
+        if (state.skipKnown) {
+            // List is already known on other peers, update the version.
+            change = increaseListVersion(metaData);
+        } else {
+            // Initial walk through the whole list, do not update the version.
+            change = new ListVersionChange(metaData.getLocalVersion(), metaData.getLocalVersion());
+        }
+        final AddToList msg = new AddToList(listId, change, valueMapper.map(value, isObservableObject), position);
         state.commands.add(msg);
+    }
+
+    private ListVersionChange increaseListVersion(final UUID listId) {
+        return increaseListVersion(listMetaDataStore.getMetaDataOrFail(listId));
+    }
+
+    private ListVersionChange increaseListVersion(final ListPropertyMetaData metaData) {
+        final ListVersionChange change = new ListVersionChange(metaData.getLocalVersion(), UUID.randomUUID());
+        metaData.setLocalVersion(change.getToVersion());
+        return change;
     }
 
     private void addToSet(final UUID setId, final Object value, final State state) {
@@ -314,9 +359,12 @@ class CommandListCreator {
      * 
      * If {@code value} isn't an observable object, then nothing is added to the commandList.
      * 
-     * @param value The object for which the commands should be created.
-     * @param commandList The list where the commands should be added to.
-     * @param state The state of this domain model parsing.
+     * @param value
+     *            The object for which the commands should be created.
+     * @param commandList
+     *            The list where the commands should be added to.
+     * @param state
+     *            The state of this domain model parsing.
      * @return true if value is an observable object and false otherwise.
      */
     private boolean createObservableObject(final Object value, final State state) {
@@ -340,6 +388,7 @@ class CommandListCreator {
 
         try {
             new PropertyVisitor(value) {
+
                 @Override
                 protected boolean visitSingleValueProperty(final Property<?> fieldValue) {
                     final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
@@ -349,8 +398,20 @@ class CommandListCreator {
 
                 @Override
                 protected boolean visitCollectionProperty(final ListProperty<?> fieldValue) {
+                    final boolean listWasKnown = objectRegistry.getId(fieldValue).isPresent();
                     final UUID fieldId = registerPropertyAndParent(getCurrentField(), fieldValue);
+                    if (!listWasKnown) {
+                        // initial walk through the meta model
+                        listMetaDataStore.storeMetaDataOrFail(fieldValue, new ListPropertyMetaData(
+                                INITIAL_LIST_VERSION, INITIAL_LIST_VERSION));
+                    }
                     final ListIterator<?> it = fieldValue.listIterator();
+
+                    final ListPropertyMetaData metaData = listMetaDataStore.getMetaDataOrFail(fieldValue);
+                    if (metaData.getLocalVersion() != INITIAL_LIST_VERSION) {
+                        state.commands.add(new RemoveFromList(fieldId, new ListVersionChange(INITIAL_LIST_VERSION,
+                                metaData.getLocalVersion()), 0, 0));
+                    }
                     int index = 0;
                     while (it.hasNext()) {
                         final Object o = it.next();

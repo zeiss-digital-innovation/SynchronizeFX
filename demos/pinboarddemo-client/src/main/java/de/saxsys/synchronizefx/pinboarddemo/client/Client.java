@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Provides a client that shows notes on a board
  * 
- * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs
- * see the movement of the notes live.
+ * The movement of these notes is synchronized over the network so that other instances of this class in other JVMs see
+ * the movement of the notes live.
  * 
  * @author raik.bieniek
  * 
@@ -116,14 +116,11 @@ public final class Client extends Application implements ClientCallback {
             public void onChanged(final javafx.collections.ListChangeListener.Change<? extends Note> event) {
                 event.reset();
                 while (event.next()) {
-                    if (event.wasAdded()) {
-                        for (Note note : event.getAddedSubList()) {
-                            addNote(note);
-                        }
-                    } else if (event.wasRemoved()) {
-                        for (Note note : event.getRemoved()) {
-                            removeNote(note);
-                        }
+                    for (Note note : event.getAddedSubList()) {
+                        addNote(note);
+                    }
+                    for (Note note : event.getRemoved()) {
+                        removeNote(note);
                     }
                 }
                 event.reset();
@@ -164,7 +161,8 @@ public final class Client extends Application implements ClientCallback {
     /**
      * This method starts the client application.
      * 
-     * @param args The arguments are ignored.
+     * @param args
+     *            The arguments are ignored.
      */
     public static void main(final String... args) {
         launch();

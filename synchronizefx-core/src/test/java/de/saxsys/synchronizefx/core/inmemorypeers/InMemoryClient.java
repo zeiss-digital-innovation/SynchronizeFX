@@ -19,9 +19,11 @@
 
 package de.saxsys.synchronizefx.core.inmemorypeers;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import de.saxsys.synchronizefx.core.clientserver.ClientCallback;
 import de.saxsys.synchronizefx.core.clientserver.CommandTransferClient;
@@ -36,9 +38,10 @@ import org.slf4j.LoggerFactory;
 /**
  * An in-memory client implementation that can do changes to its domain model in its own thread.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  *
- * @param <T> The type of the domain model.
+ * @param <T>
+ *            The type of the domain model.
  */
 public class InMemoryClient<T> implements CommandTransferClient {
 
@@ -49,14 +52,24 @@ public class InMemoryClient<T> implements CommandTransferClient {
      */
     private static final long WAIT_FOR_DOMAIN_MODEL = 1000;
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(final Runnable r) {
+            final Thread thread = new Thread(r);
+            thread.setName("In-memory SynchronizeFX client thread " + System.identityHashCode(r));
+            return thread;
+        }
+    });
     private final InMemoryServer<T> server;
     private T model;
 
     private NetworkToTopologyCallbackClient callback;
 
+    private List<Command> delayedCommands;
+
     /**
-     * @param server The server to connect to.
+     * @param server
+     *            The server to connect to.
      */
     public InMemoryClient(final InMemoryServer<T> server) {
         this.server = server;
@@ -69,7 +82,11 @@ public class InMemoryClient<T> implements CommandTransferClient {
 
     @Override
     public void send(final List<Command> commands) {
-        server.recive(this, commands);
+        if (delayedCommands == null) {
+            server.recive(this, commands);
+        } else {
+            delayedCommands.addAll(commands);
+        }
     }
 
     @Override
@@ -86,8 +103,8 @@ public class InMemoryClient<T> implements CommandTransferClient {
      * Starts a {@link SynchronizeFxClient} with this object as client implementation.
      * 
      * <p>
-     * The startup is not done in Client thread but in the thread of the method caller. All changes done to
-     * properties by SynchronizeFX are done using the client thread.
+     * The startup is not done in Client thread but in the thread of the method caller. All changes done to properties
+     * by SynchronizeFX are done using the client thread.
      * </p>
      * 
      * @return The started {@link SynchronizeFxClient}
@@ -120,7 +137,8 @@ public class InMemoryClient<T> implements CommandTransferClient {
     /**
      * Schedules a runnable to be executed in the clients thread.
      * 
-     * @param runnable The execution to schedule
+     * @param runnable
+     *            The execution to schedule
      */
     public void executeInClientThread(final Runnable runnable) {
         executor.execute(runnable);
@@ -136,9 +154,35 @@ public class InMemoryClient<T> implements CommandTransferClient {
     }
 
     /**
-     * Recives commands from the server.
+     * Allows do delay the sending of commands to the server.
      * 
-     * @param commands The commands the client should receive.
+     * <p>
+     * When activated, all commands that should be send to the server are cached internally instead of being send. When
+     * deactivated all internally stored commands are send to the server and subsequent command will be send to the
+     * server directly again.
+     * </p>
+     * 
+     * @param delaySending
+     *            <code>true</code> to activate delaying send and <code>false</code> to deactivate it.
+     */
+    public void setDelaySending(final boolean delaySending) {
+        if (delaySending) {
+            if (delayedCommands == null) {
+                delayedCommands = new LinkedList<>();
+            }
+        } else {
+            if (delayedCommands != null && !delayedCommands.isEmpty()) {
+                server.recive(this, delayedCommands);
+                delayedCommands = null;
+            }
+        }
+    }
+
+    /**
+     * Receives commands from the server.
+     * 
+     * @param commands
+     *            The commands the client should receive.
      */
     void recieve(final List<Command> commands) {
         executeInClientThread(new Runnable() {

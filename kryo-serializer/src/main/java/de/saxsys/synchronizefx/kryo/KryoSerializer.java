@@ -33,7 +33,6 @@ import com.esotericsoftware.kryo.io.Output;
 
 /**
  * Serializes SynchronizeFX {@link Command}s by using the Kryo library.
- * 
  */
 public class KryoSerializer implements de.saxsys.synchronizefx.core.clientserver.Serializer {
     private KryoInitializer kryo = new KryoInitializer();

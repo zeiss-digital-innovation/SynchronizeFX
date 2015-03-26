@@ -26,21 +26,28 @@ import java.util.UUID;
  * 
  * @author Raik Bieniek
  */
-public class RemoveFromList implements ListCommand {
+public class RemoveFromList extends ListCommand {
 
-    private UUID listId;
-    private int startPosition;
-    private int removeCount;
-    private int newSize;
+    private final int startPosition;
+    private final int removeCount;
 
-    @Override
-    public UUID getListId() {
-        return listId;
-    }
-
-    @Override
-    public void setListId(final UUID listId) {
-        this.listId = listId;
+    /**
+     * Initializes an instance.
+     * 
+     * @param listId
+     *            see {@link #getListId()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
+     * @param startPosition
+     *            see {@link #getStartPosition()}
+     * @param removeCount
+     *            see {@link #getRemoveCount()}
+     */
+    public RemoveFromList(final UUID listId, final ListVersionChange listVersionChange, final int startPosition,
+            final int removeCount) {
+        super(listId, listVersionChange);
+        this.startPosition = startPosition;
+        this.removeCount = removeCount;
     }
 
     /**
@@ -53,15 +60,6 @@ public class RemoveFromList implements ListCommand {
     }
 
     /**
-     * @see #getStartPosition()
-     * @param startPosition
-     *            the position
-     */
-    public void setStartPosition(final int startPosition) {
-        this.startPosition = startPosition;
-    }
-
-    /**
      * The amount of elements starting from {@link #getStartPosition()} that should be removed.
      * 
      * @return The element amount to delete.
@@ -70,36 +68,10 @@ public class RemoveFromList implements ListCommand {
         return removeCount;
     }
 
-    /**
-     * @see #getRemoveCount()
-     * @param removeCount
-     *            The count
-     */
-    public void setRemoveCount(final int removeCount) {
-        this.removeCount = removeCount;
-    }
-
-    /**
-     * The new size the list should have after this command has been executed on it.
-     * 
-     * @return the new size
-     */
-    public int getNewSize() {
-        return newSize;
-    }
-
-    /**
-     * @see RemoveFromList#getNewSize()
-     * @param newSize
-     *            the new size
-     */
-    public void setNewSize(final int newSize) {
-        this.newSize = newSize;
-    }
-
     @Override
     public String toString() {
-        return "RemoveFromList [listId=" + listId + ", startPosition=" + startPosition + ", removeCount=" + removeCount
-                + ", newSize=" + newSize + "]";
+        return "RemoveFromList [listId=" + getListId() + ", versionChange=" + getListVersionChange()
+                + ", startPosition=" + startPosition + ", removeCount=" + removeCount + "]";
     }
+
 }

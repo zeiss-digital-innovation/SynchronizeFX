@@ -17,23 +17,7 @@
  * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.saxsys.synchronizefx.core.metamodel.executors;
-
-import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
-
 /**
- * Executes {@link SetPropertyValue} commands received from other peers.
- * 
- * @author Raik Bieniek
+ * Like the package de.saxsys.synchronizefx.core.metamodel.executors but especially for list properties.
  */
-public interface SingleValuePropertyCommandExecutor {
-
-    /**
-     * Executes an command that was received from an other peer if appropriate.
-     * 
-     * @param command
-     *            The received event.
-     */
-    void execute(SetPropertyValue command);
-
-}
+package de.saxsys.synchronizefx.core.metamodel.executors.lists;

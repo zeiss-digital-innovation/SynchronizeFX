@@ -24,24 +24,30 @@ import java.util.UUID;
 /**
  * A command that states that an element should be added to a list.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
-public class AddToList implements ListCommand {
+public class AddToList extends ListCommand {
 
-    private UUID listId;
-    private Value value;
-    private int position;
-    private int newSize;
+    private final Value value;
+    private final int position;
 
-    @Override
-    public UUID getListId() {
-        return listId;
-    }
-
-    @Override
-    public void setListId(final UUID listId) {
-        this.listId = listId;
+    /**
+     * Initializes an instance.
+     * 
+     * @param listId
+     *            see {@link #getListId()}
+     * @param listVersionChange
+     *            see {@link #getListVersionChange()}
+     * @param value
+     *            see {@link #getValue()}
+     * @param position
+     *            see {@link #getPosition()}
+     */
+    public AddToList(final UUID listId, final ListVersionChange listVersionChange, final Value value, //
+            final int position) {
+        super(listId, listVersionChange);
+        this.value = value;
+        this.position = position;
     }
 
     /**
@@ -59,51 +65,15 @@ public class AddToList implements ListCommand {
     }
 
     /**
-     * @see #getPosition()
-     * @param position
-     *            The position
-     */
-    public void setPosition(final int position) {
-        this.position = position;
-    }
-
-    /**
      * @return The value to add to the list.
      */
     public Value getValue() {
         return value;
     }
 
-    /**
-     * @see #getValue()
-     * @param value
-     *            the value
-     */
-    public void setValue(final Value value) {
-        this.value = value;
-    }
-
-    /**
-     * The new size the list should have after this command has been executed on it.
-     * 
-     * @return the new size
-     */
-    public int getNewSize() {
-        return newSize;
-    }
-
-    /**
-     * @see RemoveFromList#getNewSize()
-     * @param newSize
-     *            the new size
-     */
-    public void setNewSize(final int newSize) {
-        this.newSize = newSize;
-    }
-
     @Override
     public String toString() {
-        return "AddToList [listId=" + listId + ", value=" + value + ", position=" + position + ", newSize=" + newSize
-                + "]";
+        return "AddToList [listId=" + getListId() + ", versionChange=" + getListVersionChange() + ", value=" + value
+                + ", position=" + position + "]";
     }
 }

@@ -30,6 +30,7 @@ import de.saxsys.synchronizefx.core.metamodel.MetaModel;
 import de.saxsys.synchronizefx.core.metamodel.TopologyLayerCallback;
 import de.saxsys.synchronizefx.core.metamodel.commands.ClearReferences;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 
 import org.slf4j.Logger;
@@ -125,7 +126,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     }
 
     private boolean senderReceivingOwnCommandHandable(final Command command) {
-        return command instanceof SetPropertyValue || command instanceof ClearReferences;
+        return command instanceof SetPropertyValue || command instanceof ClearReferences
+                || command instanceof ListCommand;
     }
 
     @Override

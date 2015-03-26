@@ -22,7 +22,9 @@ package de.saxsys.synchronizefx.core.metamodel.executors;
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+import de.saxsys.synchronizefx.core.metamodel.commands.ListCommand;
 import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReparingListPropertyCommandExecutor;
 
 /**
  * Logs commands that where generated and send from the local peer to the server to allow model repairing based on the
@@ -37,15 +39,20 @@ import de.saxsys.synchronizefx.core.metamodel.commands.SetPropertyValue;
 public class CommandLogDispatcher {
 
     private final RepairingSingleValuePropertyCommandExecutor singleValue;
+    private final ReparingListPropertyCommandExecutor lists;
 
     /**
      * Initializes this dispatcher with all executers that are interested in commands.
      * 
      * @param singleValue
      *            The executor for single-value-property change commands.
+     * @param lists
+     *            The executor for list property commands.
      */
-    public CommandLogDispatcher(final RepairingSingleValuePropertyCommandExecutor singleValue) {
+    public CommandLogDispatcher(final RepairingSingleValuePropertyCommandExecutor singleValue,
+            final ReparingListPropertyCommandExecutor lists) {
         this.singleValue = singleValue;
+        this.lists = lists;
     }
 
     /**
@@ -53,6 +60,7 @@ public class CommandLogDispatcher {
      */
     public CommandLogDispatcher() {
         this.singleValue = null;
+        this.lists = null;
     }
 
     /**
@@ -68,6 +76,8 @@ public class CommandLogDispatcher {
         for (final Command command : commands) {
             if (command instanceof SetPropertyValue) {
                 singleValue.logLocalCommand((SetPropertyValue) command);
+            } else if (command instanceof ListCommand) {
+                lists.logLocalCommand((ListCommand) command);
             }
         }
     }

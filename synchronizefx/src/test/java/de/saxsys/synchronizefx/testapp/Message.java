@@ -23,7 +23,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 /**
- * Rerpresents a message with a simple text.
+ * Represents a message with a simple text.
  * 
  * @author ragna-diana.steglich
  * 
@@ -55,6 +55,36 @@ public class Message {
      */
     public StringProperty textProperty() {
         return text;
+    }
+    
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((text.get() == null) ? 0 : text.get().hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Message other = (Message) obj;
+        if (text.get() == null) {
+            if (other.text.get() != null) {
+                return false;
+            }
+        } else if (!text.get().equals(other.text.get())) {
+            return false;
+        }
+        return true;
     }
 
     @Override

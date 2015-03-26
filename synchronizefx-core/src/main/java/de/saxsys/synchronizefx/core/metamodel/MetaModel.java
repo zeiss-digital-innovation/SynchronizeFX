@@ -29,6 +29,15 @@ import de.saxsys.synchronizefx.core.metamodel.executors.CommandLogDispatcher;
 import de.saxsys.synchronizefx.core.metamodel.executors.RepairingSingleValuePropertyCommandExecutor;
 import de.saxsys.synchronizefx.core.metamodel.executors.SimpleSingleValuePropertyCommandExecutor;
 import de.saxsys.synchronizefx.core.metamodel.executors.SingleValuePropertyCommandExecutor;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.AddToListRepairer;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListCommandIndexRepairer;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListCommandVersionRepairer;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListPropertyCommandExecutor;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ListPropertyCommandFilter;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.RemoveFromListRepairer;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReparingListPropertyCommandExecutor;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.ReplaceInListRepairer;
+import de.saxsys.synchronizefx.core.metamodel.executors.lists.SimpleListPropertyCommandExecutor;
 
 /**
  * Generates and applies commands necessary to keep domain models synchronous.
@@ -44,6 +53,8 @@ public class MetaModel {
     private ValueMapper valueMapper;
     private SilentChangeExecutor silentChangeExecutor;
     private ModelWalkingSynchronizer modelWalkingSynchronizer;
+    private ListPropertyMetaDataStore listMetaData;
+    private SimpleListPropertyCommandExecutor simpleListCommandExecutor;
 
     // server / client dependent initialization
     private final CommandListExecutor executor;
@@ -64,12 +75,19 @@ public class MetaModel {
                 objectRegistry, new SimpleSingleValuePropertyCommandExecutor(objectRegistry, silentChangeExecutor,
                         valueMapper));
         // CHECKSTYLE:ON
-        final CommandLogDispatcher commandLog = new CommandLogDispatcher(singleValuePropertyExecutor);
+        final ReparingListPropertyCommandExecutor repairingListExecutor = new ReparingListPropertyCommandExecutor(
+                listMetaData, new ListCommandIndexRepairer(new AddToListRepairer(), new RemoveFromListRepairer(),
+                        new ReplaceInListRepairer()), new ListCommandVersionRepairer(), simpleListCommandExecutor,
+                topology);
+        final CommandLogDispatcher commandLog = new CommandLogDispatcher(singleValuePropertyExecutor,
+                repairingListExecutor);
 
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
+        final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(repairingListExecutor,
+                new TemporaryReferenceKeeper(), listMetaData, objectRegistry, false);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
-                singleValuePropertyExecutor);
+                listMetaData, singleValuePropertyExecutor, filteringListExecutor);
     }
 
     /**
@@ -93,8 +111,10 @@ public class MetaModel {
 
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
+        final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(
+                simpleListCommandExecutor, new TemporaryReferenceKeeper(), listMetaData, objectRegistry, true);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
-                singleValuePropertyExecutor);
+                listMetaData, singleValuePropertyExecutor, filteringListExecutor);
 
         registerListenersOnModel();
     }
@@ -107,8 +127,12 @@ public class MetaModel {
 
         this.modelWalkingSynchronizer = new ModelWalkingSynchronizer();
 
-        this.creator = new CommandListCreator(objectRegistry, valueMapper, topology);
+        this.listMetaData = new ListPropertyMetaDataStore(objectRegistry);
+
+        this.creator = new CommandListCreator(objectRegistry, valueMapper, topology, listMetaData);
         this.silentChangeExecutor = new SilentChangeExecutor();
+        this.simpleListCommandExecutor = new SimpleListPropertyCommandExecutor(objectRegistry, silentChangeExecutor,
+                valueMapper, listMetaData);
     }
 
     /**

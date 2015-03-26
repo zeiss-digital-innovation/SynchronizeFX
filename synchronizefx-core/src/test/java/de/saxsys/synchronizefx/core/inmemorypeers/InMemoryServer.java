@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
@@ -37,15 +38,23 @@ import org.slf4j.LoggerFactory;
 /**
  * An in-memory server implementation that can do changes to its domain model in its own thread.
  * 
- * @author Raik Bieniek <raik.bieniek@saxsys.de>
+ * @author Raik Bieniek
  *
- * @param <T> The type of the domain model.
+ * @param <T>
+ *            The type of the domain model.
  */
 public class InMemoryServer<T> implements CommandTransferServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryServer.class);
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(final Runnable r) {
+            final Thread thread = new Thread(r);
+            thread.setName("In-memory SynchronizeFX server thread " + System.identityHashCode(r));
+            return thread;
+        }
+    });
     private final List<InMemoryClient<T>> clients = new ArrayList<>();
 
     private final T model;
@@ -53,7 +62,8 @@ public class InMemoryServer<T> implements CommandTransferServer {
     private NetworkToTopologyCallbackServer callback;
 
     /**
-     * @param model The model that should be served to {@link InMemoryClient}s
+     * @param model
+     *            The model that should be served to {@link InMemoryClient}s
      */
     public InMemoryServer(final T model) {
         this.model = model;
@@ -112,7 +122,8 @@ public class InMemoryServer<T> implements CommandTransferServer {
     /**
      * Schedules a runnable to be executed in the servers thread.
      * 
-     * @param runnable The execution to schedule
+     * @param runnable
+     *            The execution to schedule
      */
     public void executeInServerThread(final Runnable runnable) {
         executor.execute(runnable);
@@ -122,8 +133,8 @@ public class InMemoryServer<T> implements CommandTransferServer {
      * Starts a {@link SynchronizeFxServer} with this object as client implementation.
      * 
      * <p>
-     * The startup is not done in Server thread but in the thread of the method caller. All changes done to
-     * properties by SynchronizeFX are done using the client thread.
+     * The startup is not done in Server thread but in the thread of the method caller. All changes done to properties
+     * by SynchronizeFX are done using the client thread.
      * </p>
      * 
      * @return The started {@link SynchronizeFxServer}
@@ -151,7 +162,8 @@ public class InMemoryServer<T> implements CommandTransferServer {
     /**
      * Connects a new client.
      * 
-     * @param client The client that wants to connect.
+     * @param client
+     *            The client that wants to connect.
      */
     void connect(final InMemoryClient<T> client) {
         executeInServerThread(new Runnable() {
@@ -165,7 +177,8 @@ public class InMemoryServer<T> implements CommandTransferServer {
     /**
      * Disconnects a client.
      * 
-     * @param client The client to disconnect.
+     * @param client
+     *            The client to disconnect.
      */
     void disconnect(final InMemoryClient<T> client) {
         executeInServerThread(new Runnable() {
@@ -179,8 +192,10 @@ public class InMemoryServer<T> implements CommandTransferServer {
     /**
      * Receive commands from a client.
      * 
-     * @param client The client that send the changes.
-     * @param commands The changes that where received.
+     * @param client
+     *            The client that send the changes.
+     * @param commands
+     *            The changes that where received.
      */
     void recive(final InMemoryClient<T> client, final List<Command> commands) {
         executeInServerThread(new Runnable() {
