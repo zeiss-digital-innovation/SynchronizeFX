@@ -22,7 +22,9 @@ package de.saxsys.synchronizefx.core.clientserver;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.CommandsForDomainModelCallback;
@@ -49,42 +51,44 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     private final CommandTransferServer networkLayer;
     private final MetaModel meta;
     private final ServerCallback serverCallback;
+    private final Executor changeExecutor;
 
-    private Executor changeExecutor;
+    private boolean executorCreatedLocaly;
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
-     * @param model
-     *            see
+     * @param model see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param networkLayer
-     *            see
+     * @param networkLayer see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param serverCallback
-     *            see
+     * @param serverCallback see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
     public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback serverCallback) {
         // CHECKSTYLE:ON
-        this(model, networkLayer, serverCallback, Executors.newSingleThreadExecutor());
+        this(model, networkLayer, serverCallback, Executors.newSingleThreadExecutor(new ThreadFactory() {
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread thread = new Thread(r, "synchronizefx model change thread-" + System.identityHashCode(r));
+                thread.setDaemon(true);
+                return thread;
+            }
+        }));
+        this.executorCreatedLocaly = true;
     }
 
     // CHECKSTYLE:OFF The signature for the other constructor is to long to fit in 120 characters
     /**
      * @see SynchronizeFxServer#SynchronizeFxServer(Object, MessageTransferServer, Serializer, UserCallbackServer);
-     * @param model
-     *            see
+     * @param model see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param networkLayer
-     *            see
+     * @param networkLayer see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param serverCallback
-     *            see
+     * @param serverCallback see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
-     * @param changeExecutor
-     *            see
+     * @param changeExecutor see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
     // CHECKSTYLE:ON
@@ -95,6 +99,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
         this.meta = new MetaModel(this, model);
         this.changeExecutor = changeExecutor;
         networkLayer.setTopologyLayerCallback(this);
+        this.executorCreatedLocaly = false;
     }
 
     @Override
@@ -104,7 +109,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
         }
 
         // FIXME Filtering the commands is a temporary hack. When the implementation is finished, clients
-        // should be able to handle receiving commands they have created on there own. At the moment this is only true
+        // should be able to handle receiving commands they have created on there own. At the moment this is only
+        // true
         // for some types of commands. Therefore these command types have to be separated from the other commands.
 
         final List<Command> filteredCommands = new LinkedList<>();
@@ -145,18 +151,17 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
 
     @Override
     public void domainModelChanged(final Object root) {
-        serverCallback.onError(new SynchronizeFXException("Domain model has changed on the server side. "
-                + "This is not supported. "
-                + "If you want to serve a new domain model, consider creating an a new Server "
-                + "or create a meta root that holds the real root object of your domain model "
-                + "wich than can be exchanged without problems."));
+        serverCallback.onError(
+                new SynchronizeFXException("Domain model has changed on the server side. " + "This is not supported. "
+                        + "If you want to serve a new domain model, consider creating an a new Server "
+                        + "or create a meta root that holds the real root object of your domain model "
+                        + "wich than can be exchanged without problems."));
     }
 
     /**
      * Sends the current domain model to a newly connecting client.
      * 
-     * @param newClient
-     *            An object that represent the new client that connected.
+     * @param newClient An object that represent the new client that connected.
      * @see IncommingEventHandlerServer#onConnect(Object)
      */
     @Override
@@ -179,8 +184,7 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      * Connection errors to single clients are usually non fatal. The server can still work correctly for the other
      * clients. Because of that this type of error is just logged here and not passed to the user.
      * 
-     * @param e
-     *            an exception that describes the problem.
+     * @param e an exception that describes the problem.
      * 
      * @see NetworkToTopologyCallbackServer#onClientConnectionError(SynchronizeFXException)
      */
@@ -206,9 +210,21 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
     }
 
     /**
+     * @see SynchronizeFxServer#getModelChangeExecutor()
+     * @return The executor for model changes.
+     */
+    public Executor getModelChangeExecutor() {
+        return changeExecutor;
+    }
+
+    /**
      * @see SynchronizeFxServer#shutdown()
      */
     public void shutdown() {
+        if (executorCreatedLocaly) {
+            // If the model change executor was created by this class, this class also has to shut it down.
+            ((ExecutorService) changeExecutor).shutdown();
+        }
         networkLayer.shutdown();
     }
 }

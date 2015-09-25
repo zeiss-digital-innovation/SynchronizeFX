@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletException;
@@ -118,8 +119,8 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
      * @see HttpServlet
      */
     @Override
-    protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException,
-        IOException {
+    protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
+        throws ServletException, IOException {
         if (callback == null) {
             throw new UnavailableException(
                     "The system isn't fully set up to handle your requests on this resource yet.", 5);
@@ -246,7 +247,15 @@ public abstract class SynchronizeFXTomcatServlet extends WebSocketServlet implem
         synchronized (connections) {
             final SynchronizeFXTomcatConnection syncFxClient = (SynchronizeFXTomcatConnection) client;
             connections.add(syncFxClient);
-            connectionThreads.put(syncFxClient, Executors.newSingleThreadExecutor());
+            connectionThreads.put(syncFxClient, Executors.newSingleThreadExecutor(new ThreadFactory() {
+                @Override
+                public Thread newThread(final Runnable runnable) {
+                    final Thread thread = new Thread(runnable,
+                            "synchronizefx client connection thread-" + System.identityHashCode(runnable));
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            }));
         }
     }
 
