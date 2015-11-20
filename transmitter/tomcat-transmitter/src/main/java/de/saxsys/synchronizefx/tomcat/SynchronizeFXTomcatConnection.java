@@ -31,23 +31,23 @@ import org.slf4j.LoggerFactory;
 /**
  * Objects of this class represent a single connection between the server and a client.
  * 
- * @author raik.bieniek
- * 
+ * @author Raik Bieniek
  */
 class SynchronizeFXTomcatConnection extends MessageInbound {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SynchronizeFXTomcatConnection.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SynchronizeFXTomcatChannel.class);
 
-    private final SynchronizeFXTomcatServlet parent;
+    private final SynchronizeFXTomcatChannel parent;
 
     /**
-     * 
-     * @param synchronizeFXTomcatServlet the connection management instance that accepted this connection. This
+     * Initializes an instance with all its dependencies.
+     *  
+     * @param synchronizeFXTomcatChannel the connection management instance that accepted this connection. This
      *            instance get's informed when messages are received from the client or the client closed the
      *            connection.
      */
-    SynchronizeFXTomcatConnection(final SynchronizeFXTomcatServlet synchronizeFXTomcatServlet) {
-        this.parent = synchronizeFXTomcatServlet;
+    SynchronizeFXTomcatConnection(final SynchronizeFXTomcatChannel synchronizeFXTomcatChannel) {
+        this.parent = synchronizeFXTomcatChannel;
     }
 
     @Override

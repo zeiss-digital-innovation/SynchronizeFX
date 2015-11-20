@@ -21,6 +21,7 @@ package de.saxsys.synchronizefx.netty.websockets;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,10 +51,11 @@ public class NettyWebsocketClient extends NettyBasicClient {
      * 
      * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
      *            websocket connection and <code>wss</code> for a HTTPS based connection.
+     * @param channelName The name of the channel to connect to at the given server URI.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      */
-    public NettyWebsocketClient(final URI serverUri, final Serializer serializer) {
-        this(serverUri, serializer, null);
+    public NettyWebsocketClient(final URI serverUri, final String channelName, final Serializer serializer) {
+        this(serverUri, channelName, serializer, null);
     }
 
     /**
@@ -61,13 +63,14 @@ public class NettyWebsocketClient extends NettyBasicClient {
      * 
      * @param serverUri The URI for the server to connect to. The scheme must be <code>ws</code> for a HTTP based
      *            websocket connection and <code>wss</code> for a HTTPS based connection.
+     * @param channelName The name of the channel to connect to at the given server URI.
      * @param serializer The serializer to use to serialize SynchronizeFX messages.
      * @param httpHeaders header parameter for the http connection
      */
-    public NettyWebsocketClient(final URI serverUri, final Serializer serializer,
+    public NettyWebsocketClient(final URI serverUri, final String channelName, final Serializer serializer,
             final Map<String, Object> httpHeaders) {
         super(new InetSocketAddress(serverUri.getHost(), serverUri.getPort()));
-        this.serverUri = serverUri;
+        this.serverUri = concatUri(serverUri, channelName);
         this.serializer = serializer;
         this.httpHeaders = new HashMap<>(httpHeaders);
         this.useSsl = uriRequiresSslOrFail();
@@ -78,6 +81,18 @@ public class NettyWebsocketClient extends NettyBasicClient {
         WebsocketChannelInitializer codec = new WebsocketChannelInitializer(serverUri, httpHeaders);
         return new BasicChannelInitializerClient(serializer, codec, useSsl);
 
+    }
+
+    private URI concatUri(final URI serverUri, final String channelName) {
+        final String basePath = serverUri.getPath();
+        final String channelPath = basePath + (basePath.endsWith("/") ? "" : "/") + channelName;
+        try {
+            // Use this complicated URI constructor so that the raw channelName is encoded correctly to a path.
+            return new URI(serverUri.getScheme(), null, serverUri.getHost(), serverUri.getPort(), channelPath, null,
+                    null);
+        } catch (final URISyntaxException e) {
+            throw new SynchronizeFXException("The URI to connect to the server could not be calculated.", e);
+        }
     }
 
     private boolean uriRequiresSslOrFail() throws SynchronizeFXException {

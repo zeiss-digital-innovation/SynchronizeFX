@@ -17,32 +17,36 @@ To add this module to a Maven based project add the following to your pom.xml
 
 The network layer is provided in form of a servlet.
 This servlet needs to get a `de.saxsys.synchronizefx.core.clientserver.Serializer` implementation to work properly.
-To do this you need to sub class `SynchronizeFXTomcatServlet` and implement the abstract method `getSerializer()`.
+To do this you need to sub class `SynchronizeFXTomcatServlet` and implement the abstract method `newSerializer()`.
 Make sure this servlet get's loaded in your Tomcat e.g. by using the `javax.servlet.annotation.WebServlet` annotation
 or registering it in your web.xml.
-You can then use it for the `SynchronizeFxServer` like this
+You can then use it to create `SynchronizeFxServer` like this
 
     //Get the servlet you just implemented somehow.
-    //This could be done with `@Inject` or ` = this;` if you put the following code directly in this servelet 
-    private MessageTransferServer myServlet = ...;
+    //This could be done with `@Inject` or ` = this;` if you put the following code directly in this servlet 
+    SynchronizeFXTomcatServlet myServlet = ...;
     
-    //Your implementation that handles errors and other events that can occur while the framework is running.
+    //Your implementation that handles errors that can occur while the framework is running.
     //This could be directly implemented here as anonymous class, it could be `this` or some extra class.
-    private UserCallbackServer callback = ...;
+    ServerCallback callback = ...;
     
     //The root of the domain model you want to share.
-    private Object root = ...;
+    Object root = ...;
+    
+    //A unique name for the model that should be shared. Multipe models can be shared at the same time
+    //by using different channel names.
+    String channelName = "someChannel";
     
     [...]
     
-    SynchronizeFxServer server = new SynchronizeFxServer(root, myServlet, callback);
-    //At the moment the following statement has no effect as it is assumed that the servlet is started already.
-    //It should be called anyway for forward compatibility as it may be needed in future for some initialization
-    //in SynchronizeFxServer itself.
+    //Create a new channel at the servlet that servers the domain model.
+    SynchronizeFxServer server = myServlet.newChannel(root, channelName, callback);
+    
+    //Finally start the server.
     server.start();
     
     [...]
     
-    //Use this when you have finished serving your domain model.
-    //As with server.start() this has no effect at the moment but it may have in upcomming versions.
+    //When the domain model should no longer be served call the following. This will disconnect all remaining
+    //connected clients.
     server.shutdown();

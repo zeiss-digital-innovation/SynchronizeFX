@@ -40,7 +40,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketVersion;
  */
 class WebsocketChannelInitializer implements Codec {
 
-    private static final String PROTOCOL = "v1.websocket.synchronizefx.saxsys.de";
+    private static final String PROTOCOL = "v2.websocket.synchronizefx.saxsys.de";
 
     private final URI serverUri;
     private final Map<String, Object> httpHeaders;
