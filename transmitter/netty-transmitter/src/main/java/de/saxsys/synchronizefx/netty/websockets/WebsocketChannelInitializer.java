@@ -30,6 +30,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 
@@ -52,7 +53,7 @@ class WebsocketChannelInitializer implements Codec {
      * @param httpHeaders optional headers that should be passed to the server when initializing the HTTP connection.
      *            If no user defined headers should be passed this parameter can be <code>null</code>
      */
-    public WebsocketChannelInitializer(final URI serverUri, final Map<String, Object> httpHeaders) {
+    WebsocketChannelInitializer(final URI serverUri, final Map<String, Object> httpHeaders) {
         this.serverUri = serverUri;
         this.httpHeaders = httpHeaders;
     }
@@ -61,8 +62,10 @@ class WebsocketChannelInitializer implements Codec {
     public void addToPipeline(final ChannelPipeline pipeline) {
         pipeline.addLast("http-codec", new HttpClientCodec());
         pipeline.addLast("aggregator", new HttpObjectAggregator(8192));
-        pipeline.addLast("websocket-protocol-handler", new WebSocketClientProtocolHandler(serverUri,
-                WebSocketVersion.V13, PROTOCOL, false, createHttpHeaders(httpHeaders), Integer.MAX_VALUE));
+
+        final WebSocketClientHandshaker handShaker = new WhiteSpaceInPathWebSocketClientHandshaker13(serverUri,
+                WebSocketVersion.V13, PROTOCOL, false, createHttpHeaders(httpHeaders), Integer.MAX_VALUE);
+        pipeline.addLast("websocket-protocol-handler", new WebSocketClientProtocolHandler(handShaker));
 
         pipeline.addLast("websocket-frame-codec", new ByteBufToWebSocketFrameCodec());
     }
