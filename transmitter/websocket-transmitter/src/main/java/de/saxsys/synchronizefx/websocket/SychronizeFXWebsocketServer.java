@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Executor;
 
 import javax.websocket.Endpoint;
 import javax.websocket.OnClose;
@@ -42,10 +43,9 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
  * <p>
  * The JSR 356 Websocket API provides multiple possibilities to create a Websocket endpoint, e.g. by implementing
  * {@link Endpoint} or using annotations like {@link OnOpen}. To support all of them this class contains the methods
- * {@link #onOpen(Session, String)} and {@link #onClose(Session, String)}. You must pass through the respective
- * events from your Websocket endpoint to this methods. The {@link OnError} methods needs to be handled by the
- * Websocket endpoint itself. Also {@link OnMessage} does not need to be passed to this class as this class registers
- * message handlers in self through the {@link #onOpen(Session, String)} method.
+ * {@link #onOpen(Session, String)}, {@link #onMessage(byte[], Session)} and {@link #onClose(Session)}. You
+ * must pass through the respective events from your Websocket endpoint to this methods. The {@link OnError} methods
+ * needs to be handled by the Websocket endpoint itself.
  * </p>
  * 
  * <p>
@@ -73,8 +73,9 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
 public class SychronizeFXWebsocketServer {
 
     private final Map<String, SynchronizeFXWebsocketChannel> channels = new HashMap<>();
-    // Use "channels" for synchronized access to "servers".
+    // Use "channels" for synchronized access to "servers" an "clients".
     private final Map<SynchronizeFxServer, SynchronizeFXWebsocketChannel> servers = new HashMap<>();
+    private final Map<Session, SynchronizeFXWebsocketChannel> clients = new HashMap<>();
     private boolean isCurrentlyShutingDown;
     private final Serializer serializer;
 
@@ -99,13 +100,18 @@ public class SychronizeFXWebsocketServer {
      * @param channelName The name of the channel at which clients can connect to the new server.
      * @param callback Used to inform the user of this class on errors. The methods in the callback are not called
      *            before you call {@link SynchronizeFxServer#start()}
+     * @param modelChangeExecutor An executor that should be used for all changes on the shared domain model. This
+     *            executor <b>must</b> ensure that only one command passed to it is executed at the same time or
+     *            otherwise synchronity can not be guaranteed. This can be achieved by using a single thread
+     *            executor.
      * @throws IllegalArgumentException When a {@link SynchronizeFxServer} was already started with the given channel
      *             name and has not yet been shut down.
      * @return The created server
      * @see SynchronizeFxServer#SynchronizeFxServer(Object,
      *      de.saxsys.synchronizefx.core.clientserver.CommandTransferServer, ServerCallback)
      */
-    public SynchronizeFxServer newChannel(final Object root, final String channelName, final ServerCallback callback) {
+    public SynchronizeFxServer newChannel(final Object root, final String channelName, final ServerCallback callback,
+            final Executor modelChangeExecutor) {
         synchronized (channels) {
             if (channels.containsKey(channelName)) {
                 throw new IllegalArgumentException("A new SynchronizeFX channel with the name \"" + channelName
@@ -113,11 +119,26 @@ public class SychronizeFXWebsocketServer {
             }
 
             final SynchronizeFXWebsocketChannel channel = new SynchronizeFXWebsocketChannel(this, serializer);
-            final SynchronizeFxServer server = new SynchronizeFxServer(root, channel, callback);
+            final SynchronizeFxServer server =
+                    modelChangeExecutor == null ? new SynchronizeFxServer(root, channel, callback)
+                            : new SynchronizeFxServer(root, channel, callback, modelChangeExecutor);
             channels.put(channelName, channel);
             servers.put(server, channel);
             return server;
         }
+    }
+
+    /**
+     * Like {@link #newChannel(Object, String, ServerCallback, Executor)} but with a default model change executor.
+     * 
+     * @see #newChannel(Object, String, ServerCallback, Executor)
+     * @param root see {@link #newChannel(Object, String, ServerCallback, Executor)}
+     * @param channelName see {@link #newChannel(Object, String, ServerCallback, Executor)}
+     * @param callback see {@link #newChannel(Object, String, ServerCallback, Executor)}
+     * @return see {@link #newChannel(Object, String, ServerCallback, Executor)}
+     */
+    public SynchronizeFxServer newChannel(final Object root, final String channelName, final ServerCallback callback) {
+        return newChannel(root, channelName, callback, null);
     }
 
     /**
@@ -148,21 +169,38 @@ public class SychronizeFXWebsocketServer {
      * @throws IllegalArgumentException If the channel passed as argument does not exist.
      */
     public void onOpen(final Session session, final String channelName) {
-        final SynchronizeFXWebsocketChannel channel = getChannelOrFail(channelName);
-
+        final SynchronizeFXWebsocketChannel channel;
+        synchronized (channels) {
+            channel = getChannelOrFail(channelName);
+            clients.put(session, channel);
+        }
         channel.newClient(session);
+    }
 
+    /**
+     * Pass {@link OnMessage} events of the Websocket API to this method to handle incoming commands of other peers.
+     * 
+     * @param message The message that was received.
+     * @param session The client that has send the message
+     */
+    public void onMessage(final byte[] message, final Session session) {
+        final SynchronizeFXWebsocketChannel channel = getChannelOrFail(session);
+
+        channel.newMessage(message, session);
     }
 
     /**
      * Pass {@link OnClose} events of the Websocket API to this method to handle the event of a disconnected client.
      * 
      * @param session The client that has disconnected.
-     * @param channelName The name of the channel this client is connected too.
-     * @throws IllegalArgumentException If the channel passed as argument does not exist.
+     * @throws IllegalArgumentException If the client passed as argument isn't registered in any channel.
      */
-    public void onClose(final Session session, final String channelName) {
-        final SynchronizeFXWebsocketChannel channel = getChannelOrFail(channelName);
+    public void onClose(final Session session) {
+        final SynchronizeFXWebsocketChannel channel;
+        synchronized (channels) {
+            channel = getChannelOrFail(session);
+            clients.remove(session);
+        }
 
         channel.connectionCloses(session);
     }
@@ -178,8 +216,8 @@ public class SychronizeFXWebsocketServer {
             }
             servers.clear();
             channels.clear();
+            clients.clear();
             isCurrentlyShutingDown = false;
-
         }
     }
 
@@ -212,6 +250,14 @@ public class SychronizeFXWebsocketServer {
                     serverIterator.remove();
                 }
             }
+
+            final Iterator<Entry<Session, SynchronizeFXWebsocketChannel>> clientIterator =
+                    clients.entrySet().iterator();
+            while (clientIterator.hasNext()) {
+                if (serverIterator.next().getValue().equals(synchronizeFXTomcatChannel)) {
+                    serverIterator.remove();
+                }
+            }
         }
     }
 
@@ -222,6 +268,18 @@ public class SychronizeFXWebsocketServer {
                 throw new IllegalArgumentException(
                         "A client tried to communicate with a SynchronizeFX channel with the name \"" + channelName
                                 + "\" which did not exist.");
+            }
+            return channel;
+        }
+    }
+
+    private SynchronizeFXWebsocketChannel getChannelOrFail(final Session session) {
+        synchronized (channels) {
+            final SynchronizeFXWebsocketChannel channel = clients.get(session);
+            if (channel == null) {
+                throw new IllegalArgumentException(
+                        "An event of a websocket client was received that was not associated "
+                                + "to a SynchronizeFX channel. Client: " + session);
             }
             return channel;
         }

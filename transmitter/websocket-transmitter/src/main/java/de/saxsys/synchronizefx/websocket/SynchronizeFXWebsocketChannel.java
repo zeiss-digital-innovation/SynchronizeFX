@@ -31,7 +31,6 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.websocket.CloseReason;
 import javax.websocket.CloseReason.CloseCodes;
-import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
 import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
@@ -76,6 +75,16 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
         synchronized (connections) {
             callback.onConnect(session);
         }
+    }
+
+    /**
+     * Inform this channel that one of its client has send a message.
+     * 
+     * @param message The message that was send.
+     * @param session The client that send the message.
+     */
+    void newMessage(final byte[] message, final Session session) {
+        callback.recive(serializer.deserialize(message), session);
     }
 
     /**
@@ -133,14 +142,6 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
                     return thread;
                 }
             }));
-
-            // receive messages from the client
-            session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
-                @Override
-                public void onMessage(final ByteBuffer message) {
-                    callback.recive(serializer.deserialize(toByteArray(message)), session);
-                }
-            });
         }
     }
 
@@ -238,15 +239,5 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
                 }
             }
         });
-    }
-
-    private byte[] toByteArray(final ByteBuffer message) {
-        if (message.hasArray()) {
-            return message.array();
-        }
-
-        final byte[] bytes = new byte[message.remaining()];
-        message.get(bytes, 0, bytes.length);
-        return bytes;
     }
 }
