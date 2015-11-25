@@ -47,7 +47,7 @@ class NetworkEventHandlerClient extends ChannelDuplexHandler {
      * 
      * @param callback The callback to in inform of errors.
      */
-    public NetworkEventHandlerClient(final NetworkToTopologyCallbackClient callback) {
+    NetworkEventHandlerClient(final NetworkToTopologyCallbackClient callback) {
         this.callback = callback;
     }
 

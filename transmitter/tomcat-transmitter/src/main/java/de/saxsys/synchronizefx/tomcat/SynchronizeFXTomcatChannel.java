@@ -67,44 +67,6 @@ class SynchronizeFXTomcatChannel implements CommandTransferServer {
         this.serializer = serializer;
     }
 
-    /**
-     * Sends send the result of {@link Serializer#serialize(List)} to a destination.
-     * 
-     * @param buffer the bytes to send.
-     * @param destination The peer to send to.
-     */
-    public void send(final byte[] buffer, final Object destination) {
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("Sending from thread: id: " + Thread.currentThread().getName() + ", name: "
-                    + Thread.currentThread().getName());
-        }
-
-        final WsOutbound outbound = ((MessageInbound) destination).getWsOutbound();
-
-        final ExecutorService executorService = connectionThreads.get(destination);
-        // execute asynchronously to avoid slower clients from interfering with faster clients
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    outbound.writeBinaryMessage(ByteBuffer.wrap(buffer));
-                } catch (final IOException e) {
-                    LOG.warn("Sending data to a client failed. Closing connection to this client.");
-                    try {
-                        outbound.close(1002, null);
-                        // CHECKSTYLE:OFF
-                    } catch (final IOException e1) {
-                        // Maybe the connection is already closed. This is no exceptional state but rather the
-                        // default in
-                        // this case. So it's safe to ignore this exception.
-                    }
-                    // CHECKSTYLE:ON
-                    connectionCloses((SynchronizeFXTomcatConnection) destination);
-                }
-            }
-        });
-    }
-
     // CommandTransferServer
 
     @Override
@@ -266,5 +228,43 @@ class SynchronizeFXTomcatChannel implements CommandTransferServer {
         synchronized (connections) {
             return connections.size();
         }
+    }
+
+    /**
+     * Sends send the result of {@link Serializer#serialize(List)} to a destination.
+     * 
+     * @param buffer the bytes to send.
+     * @param destination The peer to send to.
+     */
+    private void send(final byte[] buffer, final Object destination) {
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Sending from thread: id: " + Thread.currentThread().getName() + ", name: "
+                    + Thread.currentThread().getName());
+        }
+
+        final WsOutbound outbound = ((MessageInbound) destination).getWsOutbound();
+
+        final ExecutorService executorService = connectionThreads.get(destination);
+        // execute asynchronously to avoid slower clients from interfering with faster clients
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    outbound.writeBinaryMessage(ByteBuffer.wrap(buffer));
+                } catch (final IOException e) {
+                    LOG.warn("Sending data to a client failed. Closing connection to this client.");
+                    try {
+                        outbound.close(1002, null);
+                        // CHECKSTYLE:OFF
+                    } catch (final IOException e1) {
+                        // Maybe the connection is already closed. This is no exceptional state but rather the
+                        // default in
+                        // this case. So it's safe to ignore this exception.
+                    }
+                    // CHECKSTYLE:ON
+                    connectionCloses((SynchronizeFXTomcatConnection) destination);
+                }
+            }
+        });
     }
 }

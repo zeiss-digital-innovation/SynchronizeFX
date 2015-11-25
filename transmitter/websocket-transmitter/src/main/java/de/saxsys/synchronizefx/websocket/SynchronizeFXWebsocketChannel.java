@@ -1,0 +1,252 @@
+/**
+ * This file is part of SynchronizeFX.
+ * 
+ * Copyright (C) 2013-2014 Saxonia Systems AG
+ *
+ * SynchronizeFX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SynchronizeFX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with SynchronizeFX. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package de.saxsys.synchronizefx.websocket;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
+import javax.websocket.CloseReason;
+import javax.websocket.CloseReason.CloseCodes;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+
+import de.saxsys.synchronizefx.core.clientserver.CommandTransferServer;
+import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackServer;
+import de.saxsys.synchronizefx.core.clientserver.Serializer;
+import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
+import de.saxsys.synchronizefx.core.metamodel.commands.Command;
+
+/**
+ * A single channel that can be used by a single {@link SynchronizeFxServer}.
+ * 
+ * @author Raik Bieniek
+ */
+class SynchronizeFXWebsocketChannel implements CommandTransferServer {
+
+    private final Serializer serializer;
+    private final SychronizeFXWebsocketServer parent;
+
+    private final List<Session> connections = new LinkedList<>();
+    private final Map<Session, ExecutorService> connectionThreads = new HashMap<>();
+
+    private NetworkToTopologyCallbackServer callback;
+
+    /**
+     * Initializes an instance with all its dependencies.
+     * 
+     * @param parent The server that created and manages this channel.
+     * @param serializer Used to deserialize commands from other peers and serialize commands for other peers.
+     */
+    SynchronizeFXWebsocketChannel(final SychronizeFXWebsocketServer parent, final Serializer serializer) {
+        this.parent = parent;
+        this.serializer = serializer;
+    }
+
+    /**
+     * Inform this channel that a new client has connected to it.
+     * 
+     * @param session The client that has connected.
+     */
+    void newClient(final Session session) {
+        synchronized (connections) {
+            callback.onConnect(session);
+        }
+    }
+
+    /**
+     * Informs this {@link CommandTransferServer} that a client connection got closed.
+     * 
+     * @param connection The connection that was closed
+     */
+    void connectionCloses(final Session connection) {
+        synchronized (connections) {
+            final ExecutorService executorService = connectionThreads.get(connection);
+            if (executorService != null) {
+                executorService.shutdown();
+            }
+            connectionThreads.remove(connection);
+            connections.remove(connection);
+        }
+    }
+
+    /**
+     * The amount of currently connected clients.
+     * 
+     * @return The connected client count.
+     */
+    int getCurrentlyConnectedClientCount() {
+        synchronized (connections) {
+            return connections.size();
+        }
+    }
+
+    // CommandTransferServer
+
+    @Override
+    public void setTopologyLayerCallback(final NetworkToTopologyCallbackServer callback) {
+        this.callback = callback;
+    }
+
+    @Override
+    public void start() throws SynchronizeFXException {
+        // Nothing todo
+    }
+
+    @Override
+    public void onConnectFinished(final Object client) {
+        synchronized (connections) {
+            final Session session = (Session) client;
+            connections.add(session);
+
+            // create the thread for sending
+            connectionThreads.put(session, Executors.newSingleThreadExecutor(new ThreadFactory() {
+                @Override
+                public Thread newThread(final Runnable runnable) {
+                    final Thread thread = new Thread(runnable,
+                            "synchronizefx client connection thread-" + System.identityHashCode(runnable));
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            }));
+
+            // receive messages from the client
+            session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+                @Override
+                public void onMessage(final ByteBuffer message) {
+                    callback.recive(serializer.deserialize(toByteArray(message)), session);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void send(final List<Command> commands, final Object destination) {
+        byte[] buffer;
+        try {
+            buffer = serializer.serialize(commands);
+        } catch (final SynchronizeFXException e) {
+            shutdown();
+            callback.onFatalError(e);
+            return;
+        }
+        send(buffer, (Session) destination);
+    }
+
+    @Override
+    public void sendToAll(final List<Command> commands) {
+        sendToAllExcept(commands, null);
+    }
+
+    @Override
+    public void sendToAllExcept(final List<Command> commands, final Object nonReciver) {
+        final byte[] buffer;
+        try {
+            buffer = serializer.serialize(commands);
+        } catch (final SynchronizeFXException e) {
+            shutdown();
+            callback.onFatalError(e);
+            return;
+        }
+        synchronized (connections) {
+            for (final Session connection : connections) {
+                if (connection != nonReciver) {
+                    send(buffer, connection);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        synchronized (connections) {
+            parent.channelCloses(this);
+            for (final Session connection : connections) {
+                try {
+                    connection
+                            .close(new CloseReason(CloseCodes.GOING_AWAY, "This SynchronizeFX channel is closed now."));
+                } catch (final IOException e) {
+                    callback.onClientConnectionError(
+                            new SynchronizeFXException("Failed to close the connection to a connected client.", e));
+                } finally {
+                    final ExecutorService executorService = connectionThreads.get(connection);
+                    if (executorService != null) {
+                        executorService.shutdown();
+                    }
+                    connectionThreads.remove(connection);
+                }
+            }
+            connections.clear();
+        }
+        callback = null;
+    }
+
+    /**
+     * Sends send the result of {@link Serializer#serialize(List)} to a destination.
+     * 
+     * @param buffer the bytes to send.
+     * @param destination The peer to send to.
+     */
+    private void send(final byte[] buffer, final Session destination) {
+        final ExecutorService executorService;
+        synchronized (connections) {
+            executorService = connectionThreads.get(destination);
+        }
+
+        // execute asynchronously to avoid slower clients from interfering with faster clients
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // FIXME replace with getAsyncRemote and removeconnectionThreads as soon as getAsyncRemote on
+                    // tomcat is thread-safe
+                    destination.getBasicRemote().sendBinary(ByteBuffer.wrap(buffer));
+                } catch (final IOException e) {
+                    try {
+                        destination.close(new CloseReason(CloseCodes.PROTOCOL_ERROR, "Failed to send data."));
+                        // CHECKSTYLE:OFF
+                    } catch (final IOException e1) {
+                        // Maybe the connection is already closed. This is no exceptional state but rather the
+                        // default in this case. So it's safe to ignore this exception.
+                    }
+                    // CHECKSTYLE:ON
+                    connectionCloses(destination);
+                }
+            }
+        });
+    }
+
+    private byte[] toByteArray(final ByteBuffer message) {
+        if (message.hasArray()) {
+            return message.array();
+        }
+
+        final byte[] bytes = new byte[message.remaining()];
+        message.get(bytes, 0, bytes.length);
+        return bytes;
+    }
+}
