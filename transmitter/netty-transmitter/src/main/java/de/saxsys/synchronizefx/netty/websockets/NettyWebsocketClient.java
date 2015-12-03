@@ -84,6 +84,9 @@ public class NettyWebsocketClient extends NettyBasicClient {
     }
 
     private URI concatUri(final URI serverUri, final String channelName) {
+        if (channelName == null || "".equals(channelName)) {
+            return serverUri;
+        }
         final String basePath = serverUri.getPath();
         final String channelPath = basePath + (basePath.endsWith("/") ? "" : "/") + channelName;
         try {
