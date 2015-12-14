@@ -187,14 +187,16 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
         synchronized (connections) {
             parent.channelCloses(this);
             for (final Session connection : connections) {
+                final ExecutorService executorService = connectionThreads.get(connection);
                 try {
-                    connection
-                            .close(new CloseReason(CloseCodes.GOING_AWAY, "This SynchronizeFX channel is closed now."));
+                    if (executorService != null) {
+                        connection.close(
+                                new CloseReason(CloseCodes.GOING_AWAY, "This SynchronizeFX channel is closed now."));
+                    }
                 } catch (final IOException e) {
                     callback.onClientConnectionError(
                             new SynchronizeFXException("Failed to close the connection to a connected client.", e));
                 } finally {
-                    final ExecutorService executorService = connectionThreads.get(connection);
                     if (executorService != null) {
                         executorService.shutdown();
                     }
@@ -213,32 +215,32 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
      * @param destination The peer to send to.
      */
     private void send(final byte[] buffer, final Session destination) {
-        final ExecutorService executorService;
         synchronized (connections) {
-            executorService = connectionThreads.get(destination);
-        }
-
-        // execute asynchronously to avoid slower clients from interfering with faster clients
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // FIXME replace with getAsyncRemote and removeconnectionThreads as soon as getAsyncRemote on
-                    // tomcat is thread-safe
-                    destination.getBasicRemote().sendBinary(ByteBuffer.wrap(buffer));
-                } catch (final IOException e) {
+            // execute asynchronously to avoid slower clients from interfering with faster clients
+            connectionThreads.get(destination).execute(new Runnable() {
+                @Override
+                public void run() {
                     try {
+                        // for the case that the runnable was committed shortly before the connection was closed.
                         if (destination.isOpen()) {
-                            destination.close(new CloseReason(CloseCodes.PROTOCOL_ERROR, "Failed to send data."));
+                            // FIXME replace with getAsyncRemote and removeconnectionThreads as soon as
+                            // getAsyncRemote on tomcat is thread-safe
+                            destination.getBasicRemote().sendBinary(ByteBuffer.wrap(buffer));
                         }
-                    } catch (final IOException e1) {
-                        // The outer exception already indicated that something went wrong. 
-                        ignore(e1);
+                    } catch (final IOException e) {
+                        try {
+                            if (destination.isOpen()) {
+                                destination.close(new CloseReason(CloseCodes.PROTOCOL_ERROR, "Failed to send data."));
+                            }
+                        } catch (final IOException e1) {
+                            // The outer exception already indicated that something went wrong.
+                            ignore(e1);
+                        }
+                        connectionCloses(destination);
                     }
-                    connectionCloses(destination);
                 }
-            }
-        });
+            });
+        }
     }
 
     private void ignore(final IOException e) {
