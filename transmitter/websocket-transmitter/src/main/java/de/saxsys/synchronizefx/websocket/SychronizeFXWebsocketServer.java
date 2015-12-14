@@ -142,14 +142,14 @@ public class SychronizeFXWebsocketServer {
     }
 
     /**
-     * The amount of clients that are currently connected to the given {@link SynchronizeFxServer}.
+     * The number of clients that are currently connected to the given {@link SynchronizeFxServer}.
      * 
      * @param server The server thats connection count should be checked.
      * @throws IllegalArgumentException If the {@link SynchronizeFxServer} passed as argument wasn't started by this
      *             servlet or if it has already been shut down.
      * @return The client count
      */
-    public int getCurrentlyConnectedClientCount(final SynchronizeFxServer server) {
+    public int getConnectedClientCount(final SynchronizeFxServer server) {
         synchronized (channels) {
             final SynchronizeFXWebsocketChannel channel = servers.get(server);
             if (channel == null) {

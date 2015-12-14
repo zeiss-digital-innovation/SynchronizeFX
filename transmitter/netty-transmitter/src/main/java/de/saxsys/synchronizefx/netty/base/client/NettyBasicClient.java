@@ -35,6 +35,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +52,27 @@ public abstract class NettyBasicClient implements CommandTransferClient {
      */
     private static final int TIMEOUT = 10000;
 
+    /**
+     * The event loop that handles network actions.
+     * 
+     * <p>
+     * This will be null before {@link #connect()} is called and after {@link #disconnect()} is called.
+     * </p> 
+     */
+    protected EventLoopGroup eventLoopGroup;
+
+    /**
+     * The connection to the server.
+     * 
+     * <p>
+     * This will be null before {@link #connect()} is called and after {@link #disconnect()} is called.
+     * </p>
+     */
+    protected Channel channel;
+
     private final SocketAddress address;
 
     private NetworkToTopologyCallbackClient callback;
-    private EventLoopGroup eventLoopGroup;
-
-    private Channel channel;
 
     /**
      * Initializes the client.
@@ -102,6 +119,13 @@ public abstract class NettyBasicClient implements CommandTransferClient {
                 throw new SynchronizeFXException("Connection to the server failed.", future.cause());
             }
             this.channel = future.channel();
+            channel.closeFuture().addListener(new GenericFutureListener<Future<? super Void>>() {
+                @Override
+                public void operationComplete(final Future<? super Void> future) throws Exception {
+                    // stop the event loop
+                    eventLoopGroup.shutdownGracefully();
+                }
+            });
         } catch (InterruptedException e) {
             disconnect();
             throw new SynchronizeFXException(e);
@@ -116,10 +140,11 @@ public abstract class NettyBasicClient implements CommandTransferClient {
     @Override
     public void disconnect() {
         try {
-            if (channel != null) {
+            if (channel != null && channel.isOpen()) {
                 channel.close();
                 channel.closeFuture().sync();
             }
+            channel = null;
         } catch (InterruptedException e) {
             callback.onError(new SynchronizeFXException("Could not wait for the disconnect to finish.", e));
         }

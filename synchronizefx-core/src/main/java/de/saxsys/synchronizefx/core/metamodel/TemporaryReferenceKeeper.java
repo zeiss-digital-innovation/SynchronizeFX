@@ -54,7 +54,7 @@ public class TemporaryReferenceKeeper {
         // Just to keep the reference.
         private final Object referenceToKeep;
 
-        public HardReferenceTask(final Object referenceToKeep) {
+        HardReferenceTask(final Object referenceToKeep) {
             this.referenceToKeep = referenceToKeep;
         }
 

@@ -24,11 +24,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.netty.base.client.BasicChannelInitializerClient;
 import de.saxsys.synchronizefx.netty.base.client.NettyBasicClient;
+
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 
 /**
  * A client side transmitter implementation for SynchronizeFX that uses Netty and transfers messages over WebSockets.
@@ -40,6 +43,8 @@ import de.saxsys.synchronizefx.netty.base.client.NettyBasicClient;
  * 
  */
 public class NettyWebsocketClient extends NettyBasicClient {
+
+    private static final int GRACEFULL_SHUTDOWN_TIMEOUT = 5000;
 
     private final URI serverUri;
     private final Serializer serializer;
@@ -81,6 +86,20 @@ public class NettyWebsocketClient extends NettyBasicClient {
         WebsocketChannelInitializer codec = new WebsocketChannelInitializer(serverUri, httpHeaders);
         return new BasicChannelInitializerClient(serializer, codec, useSsl);
 
+    }
+
+    @Override
+    public void disconnect() {
+        channel.writeAndFlush(new CloseWebSocketFrame(1001, "The connection was terminated by the user."));
+        eventLoopGroup.schedule(new Runnable() {
+
+            @Override
+            public void run() {
+                // Forcefully disconnect the channel if the server failed to close it and shut down the event loop.
+                NettyWebsocketClient.super.disconnect();
+            }
+
+        }, GRACEFULL_SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
     private URI concatUri(final URI serverUri, final String channelName) {

@@ -228,16 +228,19 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
                     destination.getBasicRemote().sendBinary(ByteBuffer.wrap(buffer));
                 } catch (final IOException e) {
                     try {
-                        destination.close(new CloseReason(CloseCodes.PROTOCOL_ERROR, "Failed to send data."));
-                        // CHECKSTYLE:OFF
+                        if (destination.isOpen()) {
+                            destination.close(new CloseReason(CloseCodes.PROTOCOL_ERROR, "Failed to send data."));
+                        }
                     } catch (final IOException e1) {
-                        // Maybe the connection is already closed. This is no exceptional state but rather the
-                        // default in this case. So it's safe to ignore this exception.
+                        // The outer exception already indicated that something went wrong. 
+                        ignore(e1);
                     }
-                    // CHECKSTYLE:ON
                     connectionCloses(destination);
                 }
             }
         });
+    }
+
+    private void ignore(final IOException e) {
     }
 }
