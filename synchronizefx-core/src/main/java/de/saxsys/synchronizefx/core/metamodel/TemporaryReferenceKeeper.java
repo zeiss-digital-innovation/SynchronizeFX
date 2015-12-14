@@ -19,11 +19,20 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * Keeps hard references to arbitrary objects for 1 minute to prevent them from being garbage-collected to early.
+ * Keeps hard references to arbitrary objects for at least 1 minute to prevent them from being garbage-collected to
+ * early.
+ * 
+ * <p>
+ * To prevent usage of background threads, users of this class must call {@link #cleanReferenceCache()} to trigger
+ * the clean up.
+ * </p>
  * 
  * @author Raik Bieniek
  */
@@ -33,34 +42,73 @@ public class TemporaryReferenceKeeper {
      * The time to keep hard references in milliseconds.
      */
     private static final long REFERENCE_KEEPING_TIME = 60000;
-    private final Timer timer = new Timer();
+
+    private final List<HardReference> hardReferences = new LinkedList<>();
+    private final Supplier<Date> currentDateSupplier;
+
+    /**
+     * Initializes an instance with all its dependencies.
+     * 
+     * @param currentDateSupplier A supplier that should return the current date each time it is called.
+     */
+    public TemporaryReferenceKeeper(final Supplier<Date> currentDateSupplier) {
+        this.currentDateSupplier = currentDateSupplier;
+    }
 
     /**
      * Keeps a hard reference to the passed object for 1 minute.
      * 
-     * @param object
-     *            The object to keep a hard reference to.
+     * <p>
+     * When using this method you must call {@link #cleanReferenceCache()} to trigger a clean up.
+     * </p>
+     * 
+     * @param object The object to keep a hard reference to.
      */
     public void keepReferenceTo(final Object object) {
-        timer.schedule(new HardReferenceTask(object), REFERENCE_KEEPING_TIME);
+        hardReferences.add(new HardReference(object, currentDateSupplier.get()));
+    }
+
+    /**
+     * Checks and cleans cached references that have timed out.
+     */
+    public void cleanReferenceCache() {
+        final long now = currentDateSupplier.get().getTime();
+        final Iterator<HardReference> it = hardReferences.iterator();
+        while (it.hasNext()) {
+            if (it.next().keeptSince.getTime() + REFERENCE_KEEPING_TIME <= now) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
+     * The list of all references that are currently kept.
+     * 
+     * <p>
+     * This is only intended to be used by tests.
+     * </p>
+     * 
+     * @return All references that are currently held by this instance.
+     */
+    Iterable<Object> getHardReferences() {
+        final List<Object> references = new ArrayList<Object>(hardReferences.size());
+        for (final HardReference reference : hardReferences) {
+            references.add(reference.referenceToKeep);
+        }
+        return references;
     }
 
     /**
      * A task that just keeps a hard reference to an object.
      */
-    private static class HardReferenceTask extends TimerTask {
+    private static class HardReference {
 
-        @SuppressWarnings("unused")
-        // Just to keep the reference.
         private final Object referenceToKeep;
+        private final Date keeptSince;
 
-        HardReferenceTask(final Object referenceToKeep) {
+        HardReference(final Object referenceToKeep, final Date keeptSince) {
             this.referenceToKeep = referenceToKeep;
-        }
-
-        @Override
-        public void run() {
-            // Nothing needs to be done. The task must just stop existing.
+            this.keeptSince = keeptSince;
         }
     }
 }

@@ -19,6 +19,7 @@
 
 package de.saxsys.synchronizefx.core.metamodel;
 
+import java.util.Date;
 import java.util.List;
 
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
@@ -63,29 +64,36 @@ public class MetaModel {
     /**
      * Creates a {@link MetaModel} where the root object of the domain model is received from another node.
      * 
-     * @param topology
-     *            used to interact with the lower layer which is probably represented by the class that called this
-     *            constructor.
+     * @param topology used to interact with the lower layer which is probably represented by the class that called
+     *            this constructor.
      */
     public MetaModel(final TopologyLayerCallback topology) {
         initCommonObjects(topology);
 
         // CHECKSTYLE:OFF Because of line length limit. TODO find shorter class names.
-        final RepairingSingleValuePropertyCommandExecutor singleValuePropertyExecutor = new RepairingSingleValuePropertyCommandExecutor(
-                objectRegistry, new SimpleSingleValuePropertyCommandExecutor(objectRegistry, silentChangeExecutor,
-                        valueMapper));
+        final RepairingSingleValuePropertyCommandExecutor singleValuePropertyExecutor =
+                new RepairingSingleValuePropertyCommandExecutor(objectRegistry,
+                        new SimpleSingleValuePropertyCommandExecutor(objectRegistry, silentChangeExecutor,
+                                valueMapper));
         // CHECKSTYLE:ON
-        final ReparingListPropertyCommandExecutor repairingListExecutor = new ReparingListPropertyCommandExecutor(
-                listMetaData, new ListCommandIndexRepairer(new AddToListRepairer(), new RemoveFromListRepairer(),
-                        new ReplaceInListRepairer()), new ListCommandVersionRepairer(), simpleListCommandExecutor,
-                topology);
-        final CommandLogDispatcher commandLog = new CommandLogDispatcher(singleValuePropertyExecutor,
-                repairingListExecutor);
+        final ReparingListPropertyCommandExecutor repairingListExecutor =
+                new ReparingListPropertyCommandExecutor(listMetaData,
+                        new ListCommandIndexRepairer(new AddToListRepairer(), new RemoveFromListRepairer(),
+                                new ReplaceInListRepairer()),
+                        new ListCommandVersionRepairer(), simpleListCommandExecutor, topology);
+        final CommandLogDispatcher commandLog =
+                new CommandLogDispatcher(singleValuePropertyExecutor, repairingListExecutor);
 
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
+        final TemporaryReferenceKeeper referenceKeeper = new TemporaryReferenceKeeper(new Supplier<Date>() {
+            @Override
+            public Date get() {
+                return new Date();
+            }
+        });
         final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(repairingListExecutor,
-                new TemporaryReferenceKeeper(), listMetaData, objectRegistry, false);
+                referenceKeeper, listMetaData, objectRegistry, false);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
                 listMetaData, singleValuePropertyExecutor, filteringListExecutor);
     }
@@ -94,25 +102,29 @@ public class MetaModel {
      * Creates a {@link MetaModel} which serves a new domain model.
      * 
      * @see MetaModel#MetaModel(TopologyLayerCallback)
-     * @param topology
-     *            see {@link MetaModel#MetaModel(TopologyLayerCallback)}
-     * @param root
-     *            The root object of the domain model that should be served.
+     * @param topology see {@link MetaModel#MetaModel(TopologyLayerCallback)}
+     * @param root The root object of the domain model that should be served.
      */
     public MetaModel(final TopologyLayerCallback topology, final Object root) {
         initCommonObjects(topology);
         this.root = root;
 
         // CHECKSTYLE:OFF Because of line length limit. TODO find shorter class names.
-        final SingleValuePropertyCommandExecutor singleValuePropertyExecutor = new SimpleSingleValuePropertyCommandExecutor(
-                objectRegistry, silentChangeExecutor, valueMapper);
+        final SingleValuePropertyCommandExecutor singleValuePropertyExecutor =
+                new SimpleSingleValuePropertyCommandExecutor(objectRegistry, silentChangeExecutor, valueMapper);
         // CHECKSTYLE:ON
         final CommandLogDispatcher commandLog = new CommandLogDispatcher();
 
         this.listeners = new Listeners(objectRegistry, creator, topology, modelWalkingSynchronizer, commandLog);
         silentChangeExecutor.registerListenersToSilence(listeners);
+        final TemporaryReferenceKeeper referenceKeeper = new TemporaryReferenceKeeper(new Supplier<Date>() {
+            @Override
+            public Date get() {
+                return new Date();
+            }
+        });
         final ListPropertyCommandExecutor filteringListExecutor = new ListPropertyCommandFilter(
-                simpleListCommandExecutor, new TemporaryReferenceKeeper(), listMetaData, objectRegistry, true);
+                simpleListCommandExecutor, referenceKeeper, listMetaData, objectRegistry, true);
         this.executor = new CommandListExecutor(this, objectRegistry, listeners, silentChangeExecutor, valueMapper,
                 listMetaData, singleValuePropertyExecutor, filteringListExecutor);
 
@@ -131,18 +143,18 @@ public class MetaModel {
 
         this.creator = new CommandListCreator(objectRegistry, valueMapper, topology, listMetaData);
         this.silentChangeExecutor = new SilentChangeExecutor();
-        this.simpleListCommandExecutor = new SimpleListPropertyCommandExecutor(objectRegistry, silentChangeExecutor,
-                valueMapper, listMetaData);
+        this.simpleListCommandExecutor =
+                new SimpleListPropertyCommandExecutor(objectRegistry, silentChangeExecutor, valueMapper, listMetaData);
     }
 
     /**
      * Executes commands to change the domain model of the user.
      * 
      * <p>
-     * This method is <em>not</em> Thread-safe. All callers must make sure that this method is called sequentially e.g
-     * by using a single-thread executor. The thread in which this method is called will also be used to execute changes
-     * on JavaFX properties so clients that have bound the GUI to properties of the domain model should make sure that
-     * this method is called in the JavaFX GUI thread.
+     * This method is <em>not</em> Thread-safe. All callers must make sure that this method is called sequentially
+     * e.g by using a single-thread executor. The thread in which this method is called will also be used to execute
+     * changes on JavaFX properties so clients that have bound the GUI to properties of the domain model should make
+     * sure that this method is called in the JavaFX GUI thread.
      * </p>
      * 
      * <p>
@@ -151,8 +163,7 @@ public class MetaModel {
      * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)}.
      * </p>
      * 
-     * @param commands
-     *            The commands that should be executed.
+     * @param commands The commands that should be executed.
      */
     public void execute(final List<Command> commands) {
         try {
@@ -173,15 +184,15 @@ public class MetaModel {
      * This method creates the commands necessary to reproduce the entire domain model.
      * 
      * <p>
-     * The API of this method may looks a bit odd as the commands produced are returned via a callback instead of return
-     * but this is necessary to ensure that no updated are lost for newly connecting peers.
+     * The API of this method may looks a bit odd as the commands produced are returned via a callback instead of
+     * return but this is necessary to ensure that no updated are lost for newly connecting peers.
      * </p>
      * 
      * <p>
-     * Make sure that commands you receive via {@link TopologyLayerCallback#sendCommands(List)} are not send to the peer
-     * you've requested this initial set of commands for before your callback is called. Make also sure that future
-     * calls of {@link TopologyLayerCallback#sendCommands(List)} will send the changes to this new peer before your
-     * callback returns.
+     * Make sure that commands you receive via {@link TopologyLayerCallback#sendCommands(List)} are not send to the
+     * peer you've requested this initial set of commands for before your callback is called. Make also sure that
+     * future calls of {@link TopologyLayerCallback#sendCommands(List)} will send the changes to this new peer before
+     * your callback returns.
      * </p>
      * 
      * <p>
@@ -189,13 +200,12 @@ public class MetaModel {
      * {@link MetaModel#commandsForDomainModel(CommandsForDomainModelCallback)} returns.
      * </p>
      * 
-     * @param callback
-     *            The callback that takes the commands.
+     * @param callback The callback that takes the commands.
      */
     public void commandsForDomainModel(final CommandsForDomainModelCallback callback) {
         if (this.root == null) {
-            topology.onError(new SynchronizeFXException(
-                    "Request to create necessary commands to reproduce the domain model "
+            topology.onError(
+                    new SynchronizeFXException("Request to create necessary commands to reproduce the domain model "
                             + " but the root object of the domain model is not set."));
             return;
         }
@@ -213,8 +223,7 @@ public class MetaModel {
      * 
      * This is usably called on an {@link SetRootElement} command.
      * 
-     * @param root
-     *            the new root object.
+     * @param root the new root object.
      */
     void setRoot(final Object root) {
         this.root = root;
@@ -238,8 +247,7 @@ public class MetaModel {
      * Execute a single command to change the domain model of the user.
      * 
      * @see MetaModel#execute(List)
-     * @param command
-     *            The command that should be executed.
+     * @param command The command that should be executed.
      */
     private void execute(final Object command) {
         executor.execute(command);

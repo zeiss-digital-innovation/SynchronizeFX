@@ -92,6 +92,7 @@ public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
      */
     @Override
     public void execute(final AddToList command) {
+        referenceKeeper.cleanReferenceCache();
         if (couldBeExecuted(command)) {
             executor.execute(command);
         } else {
@@ -107,6 +108,7 @@ public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
      */
     @Override
     public void execute(final RemoveFromList command) {
+        referenceKeeper.cleanReferenceCache();
         if (couldBeExecuted(command)) {
             executor.execute(command);
         }
@@ -120,6 +122,7 @@ public class ListPropertyCommandFilter implements ListPropertyCommandExecutor {
      */
     @Override
     public void execute(final ReplaceInList command) {
+        referenceKeeper.cleanReferenceCache();
         if (couldBeExecuted(command)) {
             executor.execute(command);
         } else {

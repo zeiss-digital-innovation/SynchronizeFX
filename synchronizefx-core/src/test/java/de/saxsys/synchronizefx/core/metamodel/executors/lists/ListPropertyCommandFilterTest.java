@@ -20,7 +20,6 @@
 package de.saxsys.synchronizefx.core.metamodel.executors.lists;
 
 import java.util.UUID;
-
 import static java.util.UUID.randomUUID;
 
 import de.saxsys.synchronizefx.core.metamodel.ListPropertyMetaDataStore;
@@ -38,7 +37,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -62,8 +63,8 @@ public class ListPropertyCommandFilterTest {
     private static final Value EXEMPLARY_VALUE_FOR_ADD = new Value(EXEMPLARY_OBSERVABLE_OBJECT_ID_1);
     private static final Value EXEMPLARY_VALUE_FOR_REPLACE = new Value(EXEMPLARY_OBSERVABLE_OBJECT_ID_2);
 
-    private final AddToList exemplaryAddToListCommand = new AddToList(EXEMPLARY_LIST_ID, new ListVersionChange(
-            EXEMPLARY_VERSION_FOR_ADD, randomUUID()), EXEMPLARY_VALUE_FOR_ADD, 8);
+    private final AddToList exemplaryAddToListCommand = new AddToList(EXEMPLARY_LIST_ID,
+            new ListVersionChange(EXEMPLARY_VERSION_FOR_ADD, randomUUID()), EXEMPLARY_VALUE_FOR_ADD, 8);
     private final RemoveFromList exemplaryRemoveFromListCommand = new RemoveFromList(EXEMPLARY_LIST_ID,
             new ListVersionChange(EXEMPLARY_VERSION_FOR_REMOVE, randomUUID()), 50, 7);
     private final ReplaceInList exemlaryReplaceInListCommand = new ReplaceInList(EXEMPLARY_LIST_ID,
@@ -109,7 +110,7 @@ public class ListPropertyCommandFilterTest {
         verify(executor).execute(exemplaryRemoveFromListCommand);
         verify(executor).execute(exemlaryReplaceInListCommand);
 
-        verifyNoMoreInteractions(referenceKeeper);
+        verify(referenceKeeper, never()).keepReferenceTo(any());
     }
 
     /**
@@ -117,8 +118,7 @@ public class ListPropertyCommandFilterTest {
      */
     @Test
     public void droppsCommandsThatsVersionDifferFromTheApprovedVersionOfTheListProperty() {
-        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
-                .thenReturn(new ListPropertyMetaData(null, randomUUID()))
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID)).thenReturn(new ListPropertyMetaData(null, randomUUID()))
                 .thenReturn(new ListPropertyMetaData(null, randomUUID()))
                 .thenReturn(new ListPropertyMetaData(null, randomUUID()));
 
@@ -136,9 +136,9 @@ public class ListPropertyCommandFilterTest {
     public void canUseLocalVersionInsteadOfApprovedVersionWhenRequested() {
         cut = new ListPropertyCommandFilter(executor, referenceKeeper, listVersions, objectRegistry, true);
 
-        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID)).thenReturn(
-                new ListPropertyMetaData(EXEMPLARY_VERSION_FOR_ADD, null)).thenReturn(
-                new ListPropertyMetaData(null, EXEMPLARY_VERSION_FOR_REMOVE));
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
+                .thenReturn(new ListPropertyMetaData(EXEMPLARY_VERSION_FOR_ADD, null))
+                .thenReturn(new ListPropertyMetaData(null, EXEMPLARY_VERSION_FOR_REMOVE));
 
         cut.execute(exemplaryAddToListCommand);
         cut.execute(exemplaryRemoveFromListCommand);
@@ -148,18 +148,18 @@ public class ListPropertyCommandFilterTest {
     }
 
     /**
-     * If dropped {@link AddToList} and {@link ReplaceInList} commands contain references to observable objects they are
-     * cached.
+     * If dropped {@link AddToList} and {@link ReplaceInList} commands contain references to observable objects they
+     * are cached.
      * 
      * <p>
-     * This prevents them from being garbage collected before the remote peer send the repaired version of the command.
+     * This prevents them from being garbage collected before the remote peer send the repaired version of the
+     * command.
      * </p>
      */
     @Test
     public void cachesObservableObjectsOfAddToListAndReplaceInListCommands() {
-        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
-                .thenReturn(new ListPropertyMetaData(null, randomUUID())).thenReturn(
-                        new ListPropertyMetaData(null, randomUUID()));
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID)).thenReturn(new ListPropertyMetaData(null, randomUUID()))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID()));
 
         final Object observableObjectForAdd = new Object();
         final Object observableObjectForReplace = new Object();
@@ -178,24 +178,40 @@ public class ListPropertyCommandFilterTest {
      * If dropped {@link AddToList} and {@link ReplaceInList} commands contain a simple objects they are not cached.
      * 
      * <p>
-     * Simple objects will be resent with the repaired version of the command. It is therefore OK when they are garbage
-     * collected.
+     * Simple objects will be resent with the repaired version of the command. It is therefore OK when they are
+     * garbage collected.
      * </p>
      */
     @Test
     public void doesntCacheSimpleObjectsOfAddToListAndReplaceInListCommands() {
-        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
-                .thenReturn(new ListPropertyMetaData(null, randomUUID())).thenReturn(
-                        new ListPropertyMetaData(null, randomUUID()));
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID)).thenReturn(new ListPropertyMetaData(null, randomUUID()))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID()));
 
-        final AddToList addCommandWithSimpleObject = new AddToList(EXEMPLARY_LIST_ID, new ListVersionChange(
-                randomUUID(), randomUUID()), new Value("some simple object"), 6);
+        final AddToList addCommandWithSimpleObject = new AddToList(EXEMPLARY_LIST_ID,
+                new ListVersionChange(randomUUID(), randomUUID()), new Value("some simple object"), 6);
         final ReplaceInList replaceCommandWithSimpleObject = new ReplaceInList(EXEMPLARY_LIST_ID,
                 new ListVersionChange(randomUUID(), randomUUID()), new Value("other simple object"), 7);
 
         cut.execute(addCommandWithSimpleObject);
         cut.execute(replaceCommandWithSimpleObject);
 
-        verifyNoMoreInteractions(referenceKeeper, objectRegistry, executor);
+        verify(referenceKeeper, never()).keepReferenceTo(any());
+        verifyNoMoreInteractions(objectRegistry, executor);
     }
+
+    /**
+     * The cut triggers a reference clean up on every received list command.
+     */
+    @Test
+    public void cleansUpReferenceCacheOnEveryCommand() {
+        when(listVersions.getMetaDataOrFail(EXEMPLARY_LIST_ID))
+                .thenReturn(new ListPropertyMetaData(null, randomUUID()));
+
+        cut.execute(exemplaryAddToListCommand);
+        cut.execute(exemplaryRemoveFromListCommand);
+        cut.execute(exemlaryReplaceInListCommand);
+
+        verify(referenceKeeper, times(3)).cleanReferenceCache();
+    }
+
 }
