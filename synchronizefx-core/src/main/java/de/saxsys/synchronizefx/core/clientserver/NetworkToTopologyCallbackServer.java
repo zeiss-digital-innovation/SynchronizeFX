@@ -56,9 +56,10 @@ public interface NetworkToTopologyCallbackServer {
      * server must still be working. If not use
      * {@link NetworkToTopologyCallbackServer#onFatalError(SynchronizeFXException)} instead.
      * 
+     * @param client An object that represents the client where the error occurred.
      * @param e an exception that describes the problem.
      */
-    void onClientConnectionError(SynchronizeFXException e);
+    void onClientConnectionError(Object client, SynchronizeFXException e);
 
     /**
      * A fatal error that made the server shut down.

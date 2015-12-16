@@ -22,11 +22,13 @@ package de.saxsys.synchronizefx.netty.base.client;
 import java.net.SocketAddress;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.saxsys.synchronizefx.core.clientserver.CommandTransferClient;
 import de.saxsys.synchronizefx.core.clientserver.NetworkToTopologyCallbackClient;
 import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 import de.saxsys.synchronizefx.core.metamodel.commands.Command;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -37,9 +39,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Contains the base client implementation for all Netty based {@link CommandTransferClient}s.
@@ -57,7 +56,7 @@ public abstract class NettyBasicClient implements CommandTransferClient {
      * 
      * <p>
      * This will be null before {@link #connect()} is called and after {@link #disconnect()} is called.
-     * </p> 
+     * </p>
      */
     protected EventLoopGroup eventLoopGroup;
 
@@ -139,15 +138,10 @@ public abstract class NettyBasicClient implements CommandTransferClient {
 
     @Override
     public void disconnect() {
-        try {
-            if (channel != null && channel.isOpen()) {
-                channel.close();
-                channel.closeFuture().sync();
-            }
-            channel = null;
-        } catch (InterruptedException e) {
-            callback.onError(new SynchronizeFXException("Could not wait for the disconnect to finish.", e));
+        if (channel != null && channel.isOpen()) {
+            channel.close();
         }
+        channel = null;
         eventLoopGroup.shutdownGracefully();
     }
 }

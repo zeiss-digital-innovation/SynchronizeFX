@@ -74,11 +74,11 @@ class ServerBuilder implements ServerModelStep, ServerCallbackStep, OptionalServ
     @Override
     public SynchronizeFxServer build() {
         final NettyServer netty = new NettyServer(port, serializer);
-        
+
         if (changeExecutor == null) {
             return new SynchronizeFxServer(model, netty, callback);
         } else {
-            return new SynchronizeFxServer(model, netty, callback, changeExecutor); 
+            return new SynchronizeFxServer(model, netty, changeExecutor, callback);
         }
     }
 }

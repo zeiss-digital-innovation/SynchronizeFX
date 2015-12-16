@@ -30,11 +30,26 @@ import de.saxsys.synchronizefx.core.exceptions.SynchronizeFXException;
 public interface ServerCallback {
 
     /**
-     * Called when an error occurred in the synchronization code.
+     * Called when a fatal error occurred in the synchronization code.
      * 
+     * <p>
      * This includes errors occurred in the {@link CommandTransferServer} implementation.
+     * </p>
      * 
      * @param error the exception that describes the error.
      */
     void onError(SynchronizeFXException error);
+
+    /**
+     * Called when an error with the connection to a client occurred.
+     * 
+     * <p>
+     * When this event occurs, the server will still work. Just the connection to the affected client is broken.
+     * </p>
+     * 
+     * @param client The client for which an error occurred. The type of this object depends on the network layer
+     *            that is used.
+     * @param error The error that occurred.
+     */
+    void onClientConnectionError(Object client, SynchronizeFXException error);
 }

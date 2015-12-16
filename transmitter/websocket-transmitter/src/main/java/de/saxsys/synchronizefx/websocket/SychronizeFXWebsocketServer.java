@@ -43,9 +43,9 @@ import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
  * <p>
  * The JSR 356 Websocket API provides multiple possibilities to create a Websocket endpoint, e.g. by implementing
  * {@link Endpoint} or using annotations like {@link OnOpen}. To support all of them this class contains the methods
- * {@link #onOpen(Session, String)}, {@link #onMessage(byte[], Session)} and {@link #onClose(Session)}. You
- * must pass through the respective events from your Websocket endpoint to this methods. The {@link OnError} methods
- * needs to be handled by the Websocket endpoint itself.
+ * {@link #onOpen(Session, String)}, {@link #onMessage(byte[], Session)} and {@link #onClose(Session)}. You must pass
+ * through the respective events from your Websocket endpoint to this methods. The {@link OnError} methods needs to
+ * be handled by the Websocket endpoint itself.
  * </p>
  * 
  * <p>
@@ -110,8 +110,8 @@ public class SychronizeFXWebsocketServer {
      * @see SynchronizeFxServer#SynchronizeFxServer(Object,
      *      de.saxsys.synchronizefx.core.clientserver.CommandTransferServer, ServerCallback)
      */
-    public SynchronizeFxServer newChannel(final Object root, final String channelName, final ServerCallback callback,
-            final Executor modelChangeExecutor) {
+    public SynchronizeFxServer newChannel(final Object root, final String channelName,
+            final Executor modelChangeExecutor, final ServerCallback callback) {
         synchronized (channels) {
             if (channels.containsKey(channelName)) {
                 throw new IllegalArgumentException("A new SynchronizeFX channel with the name \"" + channelName
@@ -121,7 +121,7 @@ public class SychronizeFXWebsocketServer {
             final SynchronizeFXWebsocketChannel channel = new SynchronizeFXWebsocketChannel(this, serializer);
             final SynchronizeFxServer server =
                     modelChangeExecutor == null ? new SynchronizeFxServer(root, channel, callback)
-                            : new SynchronizeFxServer(root, channel, callback, modelChangeExecutor);
+                            : new SynchronizeFxServer(root, channel, modelChangeExecutor, callback);
             channels.put(channelName, channel);
             servers.put(server, channel);
             return server;
@@ -138,7 +138,7 @@ public class SychronizeFXWebsocketServer {
      * @return see {@link #newChannel(Object, String, ServerCallback, Executor)}
      */
     public SynchronizeFxServer newChannel(final Object root, final String channelName, final ServerCallback callback) {
-        return newChannel(root, channelName, callback, null);
+        return newChannel(root, channelName, null, callback);
     }
 
     /**

@@ -140,12 +140,17 @@ public class InMemoryServer<T> implements CommandTransferServer {
      * @return The started {@link SynchronizeFxServer}
      */
     public SynchronizeFxServer startSynchronizeFxServer() {
-        final SynchronizeFxServer server = new SynchronizeFxServer(model, this, new ServerCallback() {
+        final SynchronizeFxServer server = new SynchronizeFxServer(model, this, executor, new ServerCallback() {
             @Override
             public void onError(final SynchronizeFXException error) {
                 LOG.error("An SynchronizeFX exception occured. ", error);
             }
-        }, executor);
+
+            @Override
+            public void onClientConnectionError(final Object client, final SynchronizeFXException error) {
+                LOG.error("A client connection error occured. ", error);
+            }
+        });
         server.start();
         return server;
     }

@@ -73,7 +73,7 @@ public class SynchronizeFxServer {
      *            clients.
      */
     public SynchronizeFxServer(final Object model, final CommandTransferServer networkLayer,
-            final ServerCallback callback, final Executor changeExecutor) {
+            final Executor changeExecutor, final ServerCallback callback) {
         impl = new DomainModelServer(model, networkLayer, callback, changeExecutor);
     }
 

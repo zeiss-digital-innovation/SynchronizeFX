@@ -70,6 +70,11 @@ public class ExampleServer implements ServerCallback {
         System.exit(-1);
     }
 
+    @Override
+    public void onClientConnectionError(final Object client, final SynchronizeFXException error) {
+        LOG.warn("A client connection error occured.", error);
+    }
+
     private void addNewMessage(final String text) {
         Message message = new Message();
         message.setText(text);

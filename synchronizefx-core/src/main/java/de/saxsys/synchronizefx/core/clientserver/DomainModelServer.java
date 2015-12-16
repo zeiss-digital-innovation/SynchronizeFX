@@ -183,14 +183,14 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      * 
      * Connection errors to single clients are usually non fatal. The server can still work correctly for the other
      * clients. Because of that this type of error is just logged here and not passed to the user.
-     * 
+     *
+     * @param client An object that represent the client where the error occurred.
      * @param e an exception that describes the problem.
-     * 
      * @see NetworkToTopologyCallbackServer#onClientConnectionError(SynchronizeFXException)
      */
     @Override
-    public void onClientConnectionError(final SynchronizeFXException e) {
-        LOG.warn("Client disconnected unexpectetly", e);
+    public void onClientConnectionError(final Object client, final SynchronizeFXException e) {
+        serverCallback.onClientConnectionError(client, e);
     }
 
     @Override

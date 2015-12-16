@@ -32,7 +32,12 @@ public final class ServerApp {
 
                     @Override
                     public void onError(final SynchronizeFXException exception) {
-                        System.out.println("Server Error:" + exception.getLocalizedMessage());
+                        System.err.println("Server Error:" + exception.getLocalizedMessage());
+                    }
+
+                    @Override
+                    public void onClientConnectionError(final Object client, final SynchronizeFXException exception) {
+                        System.err.println("An exception in the communication to a client occurred." + exception);
                     }
 
                 }).build();

@@ -192,9 +192,9 @@ class SynchronizeFXTomcatChannel implements CommandTransferServer {
             try {
                 sender.getWsOutbound().close(0, null);
             } catch (final IOException e1) {
-                callback.onClientConnectionError(new SynchronizeFXException(e1));
+                callback.onClientConnectionError(sender, new SynchronizeFXException(e1));
             }
-            callback.onClientConnectionError(e);
+            callback.onClientConnectionError(sender, e);
             return;
         }
         synchronized (callback) {

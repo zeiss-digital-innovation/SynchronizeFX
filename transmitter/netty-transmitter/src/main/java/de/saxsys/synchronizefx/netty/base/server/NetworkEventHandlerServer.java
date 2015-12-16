@@ -71,7 +71,7 @@ class NetworkEventHandlerServer extends ChannelDuplexHandler {
                         + ". Closing the connection to this client.";
         LOG.warn(message, cause);
         ctx.channel().close();
-        userCallback.onClientConnectionError(new SynchronizeFXException(message, cause));
+        userCallback.onClientConnectionError(ctx.channel(), new SynchronizeFXException(message, cause));
     }
 
     @Override

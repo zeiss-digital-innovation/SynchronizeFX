@@ -90,9 +90,7 @@ public class NettyWebsocketClient extends NettyBasicClient {
 
     @Override
     public void disconnect() {
-        channel.writeAndFlush(new CloseWebSocketFrame(1001, "The connection was terminated by the user."));
         eventLoopGroup.schedule(new Runnable() {
-
             @Override
             public void run() {
                 // Forcefully disconnect the channel if the server failed to close it and shut down the event loop.
@@ -100,6 +98,7 @@ public class NettyWebsocketClient extends NettyBasicClient {
             }
 
         }, GRACEFULL_SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS);
+        channel.writeAndFlush(new CloseWebSocketFrame(1001, "The connection was terminated by the user."));
     }
 
     private URI concatUri(final URI serverUri, final String channelName) {

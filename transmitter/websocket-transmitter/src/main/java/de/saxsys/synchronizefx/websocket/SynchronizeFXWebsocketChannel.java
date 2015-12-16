@@ -20,6 +20,7 @@
 package de.saxsys.synchronizefx.websocket;
 
 import java.io.IOException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -96,7 +97,7 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
         synchronized (connections) {
             final ExecutorService executorService = connectionThreads.get(connection);
             if (executorService != null) {
-                executorService.shutdown();
+                executorService.shutdownNow();
             }
             connectionThreads.remove(connection);
             connections.remove(connection);
@@ -139,6 +140,12 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
                     final Thread thread = new Thread(runnable,
                             "synchronizefx client connection thread-" + System.identityHashCode(runnable));
                     thread.setDaemon(true);
+                    thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+                        @Override
+                        public void uncaughtException(final Thread t, final Throwable e) {
+                            handleClientError(session, e);
+                        }
+                    });
                     return thread;
                 }
             }));
@@ -194,7 +201,7 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
                                 new CloseReason(CloseCodes.GOING_AWAY, "This SynchronizeFX channel is closed now."));
                     }
                 } catch (final IOException e) {
-                    callback.onClientConnectionError(
+                    callback.onClientConnectionError(connection,
                             new SynchronizeFXException("Failed to close the connection to a connected client.", e));
                 } finally {
                     if (executorService != null) {
@@ -217,7 +224,12 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
     private void send(final byte[] buffer, final Session destination) {
         synchronized (connections) {
             // execute asynchronously to avoid slower clients from interfering with faster clients
-            connectionThreads.get(destination).execute(new Runnable() {
+            final ExecutorService connectionThread = connectionThreads.get(destination);
+            if (connectionThread == null) {
+                // Maybe the client has disconnected in the mean time.
+                return;
+            }
+            connectionThread.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -236,11 +248,21 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
                             // The outer exception already indicated that something went wrong.
                             ignore(e1);
                         }
+                        handleClientError(destination, e);
                         connectionCloses(destination);
                     }
                 }
             });
         }
+    }
+
+    private void handleClientError(final Session destination, final Throwable e) {
+        if (!destination.isOpen()) {
+            // The connection may has been closed in the mean time.
+            return;
+        }
+        callback.onClientConnectionError(destination,
+                new SynchronizeFXException("An error in the communication with a client occurred.", e));
     }
 
     private void ignore(final IOException e) {

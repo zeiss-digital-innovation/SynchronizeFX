@@ -68,6 +68,11 @@ public final class Server implements ServerCallback {
         System.exit(-1);
     }
 
+    @Override
+    public void onClientConnectionError(final Object client, final SynchronizeFXException error) {
+        LOG.warn("An exception in the communication to a client occurred.", error);
+    }
+
     private void shutdownServerOnExit() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -148,8 +153,7 @@ public final class Server implements ServerCallback {
     /**
      * Starts the server.
      * 
-     * @param args
-     *            Arguments are ignored
+     * @param args Arguments are ignored
      */
     public static void main(final String... args) {
         new Server();
