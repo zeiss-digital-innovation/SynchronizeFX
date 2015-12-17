@@ -65,9 +65,9 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      * @param serverCallback see
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
-    public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
+    // CHECKSTYLE:ON
+    DomainModelServer(final Object model, final CommandTransferServer networkLayer,
             final ServerCallback serverCallback) {
-        // CHECKSTYLE:ON
         this(model, networkLayer, serverCallback, Executors.newSingleThreadExecutor(new ThreadFactory() {
             @Override
             public Thread newThread(final Runnable r) {
@@ -92,8 +92,8 @@ class DomainModelServer implements NetworkToTopologyCallbackServer, TopologyLaye
      *            {@link SynchronizeFxServer#SynchronizeFxServer(Object, CommandTransferServer, Serializer, ServerCallback)}
      */
     // CHECKSTYLE:ON
-    public DomainModelServer(final Object model, final CommandTransferServer networkLayer,
-            final ServerCallback serverCallback, final Executor changeExecutor) {
+    DomainModelServer(final Object model, final CommandTransferServer networkLayer, final ServerCallback serverCallback,
+            final Executor changeExecutor) {
         this.networkLayer = networkLayer;
         this.serverCallback = serverCallback;
         this.meta = new MetaModel(this, model);

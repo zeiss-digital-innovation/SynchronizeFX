@@ -283,7 +283,7 @@ public class SyncListPropertyTest {
         final ListProperty<String> wrappedList = new SimpleListProperty<>(FXCollections.<String> observableArrayList());
         final ListProperty<Child> childList = new SimpleListProperty<>(FXCollections.<Child> observableArrayList());
 
-        public Root() {
+        Root() {
 
         }
 
@@ -344,11 +344,11 @@ public class SyncListPropertyTest {
     private static final class Child {
         final IntegerProperty someInt = new SimpleIntegerProperty();
 
-        public Child() {
+        Child() {
 
         }
 
-        public Child(final int someInt) {
+        Child(final int someInt) {
             this.someInt.set(someInt);
         }
 

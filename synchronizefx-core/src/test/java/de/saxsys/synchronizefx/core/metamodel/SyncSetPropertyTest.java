@@ -200,7 +200,7 @@ public class SyncSetPropertyTest {
         final SimpleSetProperty<Long> fieldWithConcreteType = new SimpleSetProperty<>(
                 FXCollections.<Long> observableSet());
 
-        public Root() {
+        Root() {
 
         }
 
@@ -261,11 +261,11 @@ public class SyncSetPropertyTest {
     private static final class Child {
         final IntegerProperty someInt = new SimpleIntegerProperty();
 
-        public Child() {
+        Child() {
 
         }
 
-        public Child(final int someInt) {
+        Child(final int someInt) {
             this.someInt.set(someInt);
         }
 

@@ -93,7 +93,7 @@ final class KryoInitializer extends ThreadLocal<Kryo> {
         private final Class<T> clazz;
         private final Serializer<T> serializer;
 
-        public CustomSerializers(final Class<T> clazz, final Serializer<T> serializer) {
+        CustomSerializers(final Class<T> clazz, final Serializer<T> serializer) {
             this.clazz = clazz;
             this.serializer = serializer;
         }

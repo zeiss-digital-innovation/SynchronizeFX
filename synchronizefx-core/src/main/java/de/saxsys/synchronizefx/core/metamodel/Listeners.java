@@ -87,7 +87,7 @@ class Listeners implements ChangeListener<Object>, ListChangeListener<Object>, S
      * @param commandLog
      *            To log locally produced commands that where send to the server.
      */
-    public Listeners(final WeakObjectRegistry objectRegistry, final CommandListCreator creator,
+    Listeners(final WeakObjectRegistry objectRegistry, final CommandListCreator creator,
             final TopologyLayerCallback topology, final ModelWalkingSynchronizer synchronizer,
             final CommandLogDispatcher commandLog) {
         this.objectRegistry = objectRegistry;

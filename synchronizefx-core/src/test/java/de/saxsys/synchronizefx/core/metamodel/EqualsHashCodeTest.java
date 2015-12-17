@@ -116,7 +116,7 @@ public class EqualsHashCodeTest {
     private static final class MessedUpHashCodeEqualsClass {
         private final ObjectProperty<MessedUpHashCodeEqualsClass> child = new SimpleObjectProperty<>();
 
-        public MessedUpHashCodeEqualsClass() {
+        MessedUpHashCodeEqualsClass() {
         }
 
         @Override

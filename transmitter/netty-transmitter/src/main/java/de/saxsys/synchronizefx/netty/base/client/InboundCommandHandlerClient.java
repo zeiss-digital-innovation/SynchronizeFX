@@ -39,7 +39,7 @@ class InboundCommandHandlerClient extends SimpleChannelInboundHandler<List<Comma
      * 
      * @param callback The callback to the upper layer to inform it on new commands.
      */
-    public InboundCommandHandlerClient(final NetworkToTopologyCallbackClient callback) {
+    InboundCommandHandlerClient(final NetworkToTopologyCallbackClient callback) {
         this.callback = callback;
     }
 

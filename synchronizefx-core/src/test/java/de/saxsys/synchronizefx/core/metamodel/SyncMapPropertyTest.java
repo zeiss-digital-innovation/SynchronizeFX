@@ -226,7 +226,7 @@ public class SyncMapPropertyTest {
         final MapProperty<Child, Child> otherMap = new SimpleMapProperty<>(
                 FXCollections.observableMap(new HashMap<Child, Child>()));
 
-        public Root() {
+        Root() {
 
         }
 
@@ -276,11 +276,11 @@ public class SyncMapPropertyTest {
     private static class Child {
         final IntegerProperty someInt = new SimpleIntegerProperty();
 
-        public Child(final int someInt) {
+        Child(final int someInt) {
             this.someInt.set(someInt);
         }
 
-        public Child() {
+        Child() {
         }
 
         @Override

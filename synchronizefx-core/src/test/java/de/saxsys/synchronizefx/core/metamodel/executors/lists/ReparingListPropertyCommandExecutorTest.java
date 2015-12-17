@@ -242,12 +242,14 @@ public class ReparingListPropertyCommandExecutorTest {
     /**
      * Compares the {@link ListCommand#getListId()} and {@link ListCommand#getListVersionChange()} of
      * {@link ListCommand}s.
+     * 
+     * @param <T>The concrete type of {@link ListCommand}s that are compared.
      */
     private static class SameIdAndVersion<T extends ListCommand> extends ArgumentMatcher<T> {
 
         private final ListCommand compareTo;
 
-        public SameIdAndVersion(final T compareTo) {
+        SameIdAndVersion(final T compareTo) {
             this.compareTo = compareTo;
         }
 

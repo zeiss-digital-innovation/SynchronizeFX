@@ -47,7 +47,7 @@ class NetworkEventHandlerServer extends ChannelDuplexHandler {
      * 
      * @param userCallback used to inform the user on failed client connections.
      */
-    public NetworkEventHandlerServer(final NetworkToTopologyCallbackServer userCallback) {
+    NetworkEventHandlerServer(final NetworkToTopologyCallbackServer userCallback) {
         this.userCallback = userCallback;
     }
 

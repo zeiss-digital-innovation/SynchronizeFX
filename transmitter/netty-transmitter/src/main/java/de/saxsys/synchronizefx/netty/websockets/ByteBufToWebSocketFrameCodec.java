@@ -48,7 +48,7 @@ class ByteBufToWebSocketFrameCodec extends MessageToMessageCodec<WebSocketFrame,
     /**
      * Initializes the codec.
      */
-    public ByteBufToWebSocketFrameCodec() {
+    ByteBufToWebSocketFrameCodec() {
     }
 
     @Override

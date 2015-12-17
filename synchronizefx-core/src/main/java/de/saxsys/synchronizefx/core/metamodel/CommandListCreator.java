@@ -79,7 +79,7 @@ class CommandListCreator {
      * @param listMetaDataStore
      *            Used to store and retrieve list version information.
      */
-    public CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
+    CommandListCreator(final WeakObjectRegistry objectRegistry, final ValueMapper valueMapper,
             final TopologyLayerCallback topology, final ListPropertyMetaDataStore listMetaDataStore) {
         this.objectRegistry = objectRegistry;
         this.valueMapper = valueMapper;
@@ -494,7 +494,7 @@ class CommandListCreator {
          */
         private boolean lastObjectWasObservable;
 
-        public State(final boolean skipKnown) {
+        State(final boolean skipKnown) {
             this.skipKnown = skipKnown;
         }
 

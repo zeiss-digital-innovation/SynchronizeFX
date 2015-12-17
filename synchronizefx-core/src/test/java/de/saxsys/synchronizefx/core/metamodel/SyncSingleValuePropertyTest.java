@@ -224,7 +224,7 @@ public class SyncSingleValuePropertyTest {
         final SimpleLongProperty fieldWithConcreteType = new SimpleLongProperty();
         final Property<String> shouldAlsoBeSynchronized = new SimpleStringProperty();
         
-        public Root() {
+        Root() {
 
         }
 
@@ -291,7 +291,7 @@ public class SyncSingleValuePropertyTest {
     private static final class Child {
         IntegerProperty childInt = new SimpleIntegerProperty();
 
-        public Child() {
+        Child() {
 
         }
 

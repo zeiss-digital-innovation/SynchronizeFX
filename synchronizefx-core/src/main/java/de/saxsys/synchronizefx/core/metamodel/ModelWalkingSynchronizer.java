@@ -87,7 +87,7 @@ class ModelWalkingSynchronizer {
     /**
      * Initializes this synchronizer.
      */
-    public ModelWalkingSynchronizer() {
+    ModelWalkingSynchronizer() {
         for (int i = 0; i < ActionType.values().length; i++) {
             actionLocks.add(new HashSet<CountDownLatch>());
         }

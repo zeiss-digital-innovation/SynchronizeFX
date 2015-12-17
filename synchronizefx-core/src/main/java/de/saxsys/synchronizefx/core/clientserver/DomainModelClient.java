@@ -57,7 +57,7 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
      *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, Serializer, ClientCallback)}
      */
     // CHECKSTYLE:ON
-    public DomainModelClient(final CommandTransferClient networkLayer, final ClientCallback clientCallback) {
+    DomainModelClient(final CommandTransferClient networkLayer, final ClientCallback clientCallback) {
         this(networkLayer, clientCallback, new ExecuteInJavaFXThread());
     }
 
@@ -72,7 +72,7 @@ class DomainModelClient implements NetworkToTopologyCallbackClient, TopologyLaye
      *            {@link SynchronizeFxClient#SynchronizeFxClient(CommandTransferClient, ClientCallback, Executor)}
      */
     // CHECKSTYLE:ON
-    public DomainModelClient(final CommandTransferClient networkLayer, final ClientCallback clientCallback,
+    DomainModelClient(final CommandTransferClient networkLayer, final ClientCallback clientCallback,
             final Executor changeExecutor) {
         this.clientCallback = clientCallback;
         this.networkLayer = networkLayer;

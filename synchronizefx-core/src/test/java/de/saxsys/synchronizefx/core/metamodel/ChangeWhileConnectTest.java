@@ -449,7 +449,7 @@ public class ChangeWhileConnectTest {
         final ListProperty<Domain> list = new SimpleListProperty<>(FXCollections.<Domain> observableArrayList());
         IntegerProperty waitingProperty = new SimpleIntegerProperty();
 
-        public Domain() {
+        Domain() {
 
         }
 
