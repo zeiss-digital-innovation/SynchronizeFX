@@ -36,6 +36,7 @@ import javax.websocket.server.PathParam;
 import de.saxsys.synchronizefx.core.clientserver.Serializer;
 import de.saxsys.synchronizefx.core.clientserver.ServerCallback;
 import de.saxsys.synchronizefx.core.clientserver.SynchronizeFxServer;
+import de.saxsys.synchronizefx.core.metamodel.Optional;
 
 /**
  * An server-side network layer implementation for SynchronizeFX that uses the JSR 356 Websocket API.
@@ -129,13 +130,13 @@ public class SychronizeFXWebsocketServer {
     }
 
     /**
-     * Like {@link #newChannel(Object, String, ServerCallback, Executor)} but with a default model change executor.
+     * Like {@link #newChannel(Object, String, Executor, ServerCallback)} but with a default model change executor.
      * 
-     * @see #newChannel(Object, String, ServerCallback, Executor)
-     * @param root see {@link #newChannel(Object, String, ServerCallback, Executor)}
-     * @param channelName see {@link #newChannel(Object, String, ServerCallback, Executor)}
-     * @param callback see {@link #newChannel(Object, String, ServerCallback, Executor)}
-     * @return see {@link #newChannel(Object, String, ServerCallback, Executor)}
+     * @see #newChannel(Object, String, Executor, ServerCallback)
+     * @param root see {@link #newChannel(Object, String, Executor, ServerCallback)}
+     * @param channelName see {@link #newChannel(Object, String, Executor, ServerCallback)}
+     * @param callback see {@link #newChannel(Object, String, Executor, ServerCallback)}
+     * @return see {@link #newChannel(Object, String, Executor, ServerCallback)}
      */
     public SynchronizeFxServer newChannel(final Object root, final String channelName, final ServerCallback callback) {
         return newChannel(root, channelName, null, callback);
@@ -196,13 +197,16 @@ public class SychronizeFXWebsocketServer {
      * @throws IllegalArgumentException If the client passed as argument isn't registered in any channel.
      */
     public void onClose(final Session session) {
-        final SynchronizeFXWebsocketChannel channel;
+        final Optional<SynchronizeFXWebsocketChannel> channel;
         synchronized (channels) {
-            channel = getChannelOrFail(session);
+            channel = getChannel(session);
             clients.remove(session);
         }
 
-        channel.connectionCloses(session);
+        // Maybe this is the response for a server side close.
+        if (channel.isPresent()) {
+            channel.get().connectionCloses(session);
+        }
     }
 
     /**
@@ -254,8 +258,8 @@ public class SychronizeFXWebsocketServer {
             final Iterator<Entry<Session, SynchronizeFXWebsocketChannel>> clientIterator =
                     clients.entrySet().iterator();
             while (clientIterator.hasNext()) {
-                if (serverIterator.next().getValue().equals(synchronizeFXTomcatChannel)) {
-                    serverIterator.remove();
+                if (clientIterator.next().getValue().equals(synchronizeFXTomcatChannel)) {
+                    clientIterator.remove();
                 }
             }
         }
@@ -274,14 +278,19 @@ public class SychronizeFXWebsocketServer {
     }
 
     private SynchronizeFXWebsocketChannel getChannelOrFail(final Session session) {
+        final Optional<SynchronizeFXWebsocketChannel> channel = getChannel(session);
+        if (channel.isPresent()) {
+            return channel.get();
+        }
+        throw new IllegalArgumentException("An event of a websocket client was received that was not associated "
+                + "to a SynchronizeFX channel. Client: " + session);
+
+    }
+
+    private Optional<SynchronizeFXWebsocketChannel> getChannel(final Session session) {
         synchronized (channels) {
             final SynchronizeFXWebsocketChannel channel = clients.get(session);
-            if (channel == null) {
-                throw new IllegalArgumentException(
-                        "An event of a websocket client was received that was not associated "
-                                + "to a SynchronizeFX channel. Client: " + session);
-            }
-            return channel;
+            return Optional.ofNullable(channel);
         }
     }
 }

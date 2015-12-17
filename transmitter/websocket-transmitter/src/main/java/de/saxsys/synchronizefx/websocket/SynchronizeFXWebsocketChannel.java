@@ -196,17 +196,16 @@ class SynchronizeFXWebsocketChannel implements CommandTransferServer {
             for (final Session connection : connections) {
                 final ExecutorService executorService = connectionThreads.get(connection);
                 try {
+                    // If there is no executor service for a client, it may has already been shut down.
                     if (executorService != null) {
-                        connection.close(
-                                new CloseReason(CloseCodes.GOING_AWAY, "This SynchronizeFX channel is closed now."));
+                        executorService.shutdownNow();
                     }
+                    connection
+                            .close(new CloseReason(CloseCodes.GOING_AWAY, "This SynchronizeFX channel is closed now."));
                 } catch (final IOException e) {
                     callback.onClientConnectionError(connection,
                             new SynchronizeFXException("Failed to close the connection to a connected client.", e));
                 } finally {
-                    if (executorService != null) {
-                        executorService.shutdown();
-                    }
                     connectionThreads.remove(connection);
                 }
             }
